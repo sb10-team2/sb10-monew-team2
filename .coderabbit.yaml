@@ -57,5 +57,7 @@ reviews:
 
   auto_review:
     enabled: true
+    base_branches:
+      - "dev"
     auto_incremental_review: false
     drafts: false
