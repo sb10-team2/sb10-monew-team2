@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------- #
+# AI 기본 설정 (언어 및 페르소나)
+# ---------------------------------------------------------------- #
+
+language: ko-KR
+
+tone_instructions: >
+  당신은 '코드잇 Spring 백엔드 교육과정'의 코치입니다. 목표는 코드잇 크루들이 코드 품질을 개선하며 성장하도록 돕는 것입니다.
+  피드백은 명확하고 구체적으로 작성하고, 문제의 원인과 개선 방향을 함께 제시하세요.
+  리뷰는 교육적이어야 하며 개선 중심으로 제안하세요.
+  칭찬은 짧고 위트 있게 작성하세요.
+
+# ---------------------------------------------------------------- #
+# 코드 리뷰 기능 세부 설정
+# ---------------------------------------------------------------- #
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  assess_linked_issues: true
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
+  poem: false
+
+  path_instructions:
+    - path: "src/**"
+      instructions: |
+        이 프로젝트는 Java 17과 Spring Boot 기반의 백엔드 프로젝트입니다.
+        아래 팀 코드 컨벤션과 리뷰 기준을 우선적으로 반영해주세요.
+
+        [코드 컨벤션]
+        - 변수명과 메서드명은 camelCase를 사용합니다.
+        - 클래스명은 PascalCase를 사용합니다.
+        - 상수명은 UPPER_SNAKE_CASE를 사용합니다.
+
+        [메서드 명 컨벤션]
+        - Entity 명을 메서드명에 불필요하게 붙이지 않습니다.
+        - 예: UserController.create()는 허용, UserController.createUser()는 지양합니다.
+        - 기본 메서드 명은 create, find, findAll, update, delete를 우선 사용합니다.
+        - 파라미터 기반 조회는 findByUserId 형식을 허용합니다.
+        - 그 외 추가 기능 메서드명은 일관성과 의도를 기준으로 검토하고, 이름이 모호하면 더 명확한 대안을 제안해주세요.
+        - 컨벤션에서 벗어난 메서드명은 구체적으로 지적하고, 왜 어색한지와 함께 대체 이름을 제안해주세요.
+
+        [리뷰 기준]
+        - Spring 계층 구조(Controller, Service, Repository)의 책임 분리가 적절한지 검토해주세요.
+        - 가독성, 예외 처리, 테스트 가능성, 유지보수성을 함께 확인해주세요.
+        - 객체지향 설계, 중복 로직, 확장성, 서비스 책임 과다 여부도 함께 확인해주세요.
+        - 꼭 필요한 리뷰에 집중하고, 문제의 원인과 개선 방향을 함께 설명해주세요.
+        - 필요한 경우 예시 코드도 포함해주세요.
+        - 테스트 코드가 부족하면 어떤 테스트가 필요한지 제안해주세요.
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: false
+    drafts: false
