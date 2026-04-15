@@ -6,8 +6,8 @@ spring:
 # 각자 로컬 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/monew
-    username: jeonseungju
-    password: 070405
+    username: monew
+    password: monew123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
