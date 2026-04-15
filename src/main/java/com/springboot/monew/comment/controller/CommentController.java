@@ -1,6 +1,6 @@
-package com.springboot.comment.controller;
+package com.springboot.monew.comment.controller;
 
-import com.springboot.comment.service.CommentService;
+import com.springboot.monew.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;

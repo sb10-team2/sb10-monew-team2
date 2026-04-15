@@ -1,4 +1,4 @@
-package com.springboot.comment.entity;
+package com.springboot.monew.comment.entity;
 
 import com.springboot.monew.base.BaseUpdatableEntity;
 import jakarta.persistence.Column;

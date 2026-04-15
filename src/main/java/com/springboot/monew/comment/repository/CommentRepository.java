@@ -1,6 +1,6 @@
-package com.springboot.comment.repository;
+package com.springboot.monew.comment.repository;
 
-import com.springboot.comment.entity.Comment;
+import com.springboot.monew.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
