@@ -6,6 +6,6 @@ import java.util.Map;
 
 public class BackupSerializationFailedException extends BackupException {
     public BackupSerializationFailedException(String reason) {
-        super(ErrorCode.BACKUP_SERIALIZATION_FAILED, Map.of("reason", reason));
+        super(ErrorCode.BACKUP_SERIALIZATION_FAILED, Map.of("cause", "SERIALIZATION_FAILED"));
     }
 }

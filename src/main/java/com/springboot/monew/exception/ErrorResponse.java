@@ -42,12 +42,12 @@ public class ErrorResponse {
         );
     }
 
-    // 일반 예외 처리용
+    // 일반 예외 처리용 (내부 정보 노출 방지)
     public static ErrorResponse from(HttpStatus status, Exception ex) {
         return new ErrorResponse(
                 Instant.now(),
-                ex.getClass().getSimpleName(),
-                ex.getMessage(),
+                status.name(),
+                status.is5xxServerError() ? "서버 내부 오류가 발생했습니다." : ex.getMessage(),
                 new HashMap<>(),
                 ex.getClass().getSimpleName(),
                 status.value()
