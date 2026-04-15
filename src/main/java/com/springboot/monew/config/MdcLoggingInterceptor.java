@@ -19,6 +19,7 @@ public class MdcLoggingInterceptor implements HandlerInterceptor {
         MDC.put("request_id", requestId);
         MDC.put("method", request.getMethod());
         MDC.put("uri", request.getRequestURI());
+        MDC.put("ip", request.getRemoteAddr());
         response.setHeader("Monew-Request-ID", requestId);
         return true;
     }
