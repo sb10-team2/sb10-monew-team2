@@ -1,7 +1,7 @@
 spring:
-  mvc:
-    servlet:
-      context-path: /api
+#  mvc:
+#    servlet:
+#      context-path:
 
 # 각자 로컬 설정
   datasource:
