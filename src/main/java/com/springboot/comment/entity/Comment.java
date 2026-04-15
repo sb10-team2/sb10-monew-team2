@@ -17,11 +17,11 @@ public class Comment extends BaseUpdatableEntity {
     // TODO: User, Article 구현 완료 시 주석 해제 예정
 
     /*
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
         private User user;
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @Column(name = "article_id", nullable = false, columnDefinition = "UUID")
         private Article article;
      */
@@ -59,8 +59,7 @@ public class Comment extends BaseUpdatableEntity {
     }
     // 좋아요 수 감소
     public void decreaseLikeCount() {
-        if (this.likeCount <= 0) this.likeCount = 0;
-        this.likeCount--;
+        if (this.likeCount > 0) this.likeCount--;
     }
     // 논리 삭제 시
     public void delete() {
