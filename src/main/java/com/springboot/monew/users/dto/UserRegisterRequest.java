@@ -17,7 +17,7 @@ public record UserRegisterRequest(
         @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "닉네임은 한글, 영문, 숫자만 사용할 수 있습니다.")
         String nickname,
 
-        @NotBlank
+        @NotBlank(message = "비밀번호는 필수입니다.")
         @Size(min = 6, max = 20, message = "비밀번호는 6자 이상 20자 이하여야 합니다.")
         @Pattern(regexp = "^\\S+$", message = "비밀번호에 공백이 포함될 수 없습니다.")
         @Pattern(regexp = ".*[A-Za-z].*", message = "비밀번호에는 영문이 포함되어야 합니다.")
