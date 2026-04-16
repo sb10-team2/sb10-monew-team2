@@ -86,7 +86,7 @@ public class CommentService {
         // User user = userRepository.findByIdAndDeleteAt~(userId)
 
         // Todo: 중복 좋아요 check
-//        if(!commentLikeRepository.existsByIdAndUserId(commentId, userId)){
+//        if(commentLikeRepository.existsByIdAndUserId(commentId, userId)){
 //            throw new CommentException(CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS,
 //                    Map.of("commentId", commentId, "userId", userId));
 //        }
@@ -95,7 +95,11 @@ public class CommentService {
         // Todo: User 구현 시 로직 수정
         CommentLike commentLike = new CommentLike(comment);
         commentLikeRepository.save(commentLike);
+        log.debug("likeCount 증가 전 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
         comment.increaseLikeCount();
+        log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
+
+        log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
 
         // Comment, CommentLike -> CommentLikeDto로 변환
         return commentLikeMapper.toCommentLikeDto(commentLike);
