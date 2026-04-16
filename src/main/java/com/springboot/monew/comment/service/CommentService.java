@@ -96,7 +96,7 @@ public class CommentService {
         CommentLike commentLike = new CommentLike(comment);
         commentLikeRepository.save(commentLike);
         log.debug("likeCount 증가 전 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
-        comment.increaseLikeCount();
+        commentRepository.incrementLikeCount(comment.getId());
         log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
 
         log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
