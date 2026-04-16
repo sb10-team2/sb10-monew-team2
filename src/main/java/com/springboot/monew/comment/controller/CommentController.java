@@ -42,7 +42,7 @@ public class CommentController implements CommentApiDocs{
             @RequestHeader("Monew-Request-User-ID") UUID userId
     ) {
         CommentLikeDto commentLikeDto = commentService.like(commentId, userId);
-        return ResponseEntity.created(URI.create("/api/comments/"+ commentLikeDto.commentId() + "/comment-likes"))
+        return ResponseEntity.created(URI.create("/api/comments/"+ commentLikeDto.commentId() + "/comment-likes"+ commentLikeDto.id()))
                 .body(commentLikeDto);
     }
 

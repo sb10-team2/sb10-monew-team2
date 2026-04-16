@@ -72,7 +72,8 @@ public class CommentService {
                 // TODO: 임시 값 false 해제 commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
 
         log.info("댓글 수정 완료 - commentId: {} userId: {}", commentId, userId);
-        log.debug("댓글 수정 내용 - newContent: {}", comment.getContent());
+        log.debug("댓글 수정 완료 - commentId: {}, userId: {}, contentLength: {}",
+                commentId, userId, comment.getContent().length());
         return commentMapper.toCommentDto(comment,likeByMe);
     }
 
