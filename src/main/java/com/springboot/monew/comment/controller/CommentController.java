@@ -33,10 +33,14 @@ public class CommentController implements CommentApiDocs{
                 .body(commentService.create(request));
     }
 
-    // TODO:관심사 댓글 좋아요 API
+    // TODO: 관심사 댓글 좋아요 API
     @PostMapping("/{commentId}/comment-likes")
-    ResponseEntity<?> like() {
-        return ResponseEntity.ok().build();
+    ResponseEntity<?> like(
+            @PathVariable UUID commentId,
+            @RequestHeader("Monew-Request-User-ID") UUID userId
+    ) {
+        return ResponseEntity.created(URI.create("/api/comments"))
+                .body(commentService.like(commentId, userId));
     }
 
     // TODO: 댓글 좋아요 취소 API
