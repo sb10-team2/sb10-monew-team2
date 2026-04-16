@@ -22,3 +22,11 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+naver:
+  api:
+    key: ${NAVER_API_KEY}
+    secret: ${NAVER_API_SECRET}
+
+
+
