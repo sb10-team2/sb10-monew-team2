@@ -14,7 +14,7 @@ import java.util.UUID;
         uniqueConstraints = {
                 @UniqueConstraint(name = "UK_NEWS_ARTICLES_ORIGINAL_LINK", columnNames = "original_link")
         })
-public class NewsArticles {
+public class NewsArticle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,7 +41,7 @@ public class NewsArticles {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public NewsArticles(String source, String originalLink, String title, Instant publishedAt, String summary) {
+    public NewsArticle(String source, String originalLink, String title, Instant publishedAt, String summary) {
         this.source = source;
         this.originalLink = originalLink;
         this.title = title;
