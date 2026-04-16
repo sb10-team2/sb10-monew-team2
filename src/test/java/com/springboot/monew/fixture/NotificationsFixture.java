@@ -1,0 +1,23 @@
+package com.springboot.monew.fixture;
+
+import com.springboot.monew.notification.entity.Notification;
+import org.instancio.Instancio;
+
+import static org.instancio.Select.field;
+
+public final class NotificationsFixture {
+    private NotificationsFixture() {
+    }
+
+    public static Notification createEntityWithInterest() {
+        return Instancio.of(Notification.class)
+                .ignore(field(Notification::getCommentLike))
+                .create();
+    }
+
+    public static Notification createEntityWithCommentLike() {
+        return Instancio.of(Notification.class)
+                .ignore(field(Notification::getInterest))
+                .create();
+    }
+}
