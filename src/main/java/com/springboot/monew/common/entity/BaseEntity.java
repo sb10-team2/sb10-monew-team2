@@ -1,4 +1,4 @@
-package com.springboot.monew.base;
+package com.springboot.monew.common.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
