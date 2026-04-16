@@ -35,7 +35,7 @@ public class CommentController implements CommentApiDocs{
                 .body(commentDto);
     }
 
-    // TODO: 관심사 댓글 좋아요 API
+    // 관심사 댓글 좋아요 API
     @PostMapping("/{commentId}/comment-likes")
     public ResponseEntity<CommentLikeDto> like(
             @PathVariable UUID commentId,
@@ -52,10 +52,10 @@ public class CommentController implements CommentApiDocs{
         return ResponseEntity.ok().build();
     }
 
-    // TODO: 댓글 논리 삭제 API
+    // 댓글 논리 삭제 API
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> softDelete() {
-        return ResponseEntity.ok().build();
+    public void softDelete(@PathVariable UUID commentId) {
+        commentService.softDelete(commentId);
     }
 
     // 댓글 정보 수정 API
