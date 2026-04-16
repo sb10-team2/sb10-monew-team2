@@ -52,7 +52,7 @@ CREATE TABLE comments (
                             "user_id"	UUID		NOT NULL,
                             "article_id"	UUID		NOT NULL,
                             "content"	VARCHAR(200)		NOT NULL,
-                            "like_count"	SMALLINT	DEFAULT 0	NOT NULL,
+                            "like_count"	INTEGER	DEFAULT 0	NOT NULL,
                             "is_deleted"	BOOLEAN		DEFAULT false NOT NULL,
                             "created_at"	TIMESTAMPTZ		NOT NULL,
                             "updated_at"	TIMESTAMPTZ		NULL
@@ -229,3 +229,8 @@ ALTER TABLE interest_keywords ADD CONSTRAINT "FK_INTEREST_KEYWORDS_KEYWORD_ID"
 -- 하나의 관심사에 동일한 키워드가 중복될 수 없다.
 ALTER TABLE interest_keywords ADD CONSTRAINT "UK_INTEREST_KEYWORDS_INTEREST_ID_KEYWORD_ID"
     UNIQUE ("interest_id", "keyword_id");
+
+--- ==================
+--- comments 테이블 제약 조건 : like_count는 0 미만으로 내려갈 수 없다!
+--- ==================
+ALTER TABLE comments ADD CONSTRAINT "CK_COMMENTS_LIKE_COUNT" CHECK ("like_count" >= 0);

@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> details = new java.util.HashMap<>(fieldErrors);
         log.warn("[MethodArgumentNotValidException] {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.from(ErrorCode.INVALID_INPUT, details, ex));
+                .body(ErrorResponse.from(HttpStatus.BAD_REQUEST, details, ex));
     }
 
     // 클라이언트 요청 오류
