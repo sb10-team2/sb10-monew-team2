@@ -1,6 +1,7 @@
 package com.springboot.monew.comment.controller;
 
 import com.springboot.monew.comment.dto.CommentDto;
+import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.dto.CommentRegisterRequest;
 import com.springboot.monew.comment.dto.CommentUpdateRequest;
 import com.springboot.monew.comment.service.CommentService;
@@ -22,42 +23,44 @@ public class CommentController implements CommentApiDocs{
 
     // TODO:댓글 목록 조회 API
     @GetMapping
-    ResponseEntity<?> list() {
+    public ResponseEntity<?> list() {
         return ResponseEntity.ok().build();
     }
 
     // 댓글 등록 API
     @PostMapping
-    ResponseEntity<CommentDto> create(@Valid @RequestBody CommentRegisterRequest request) {
-        return ResponseEntity.created(URI.create("/api/comments"))
-                .body(commentService.create(request));
+    public ResponseEntity<CommentDto> create(@Valid @RequestBody CommentRegisterRequest request) {
+        CommentDto commentDto = commentService.create(request);
+        return ResponseEntity.created(URI.create("/api/comments/" + commentDto.id()))
+                .body(commentDto);
     }
 
     // TODO: 관심사 댓글 좋아요 API
     @PostMapping("/{commentId}/comment-likes")
-    ResponseEntity<?> like(
+    public ResponseEntity<CommentLikeDto> like(
             @PathVariable UUID commentId,
             @RequestHeader("Monew-Request-User-ID") UUID userId
     ) {
-        return ResponseEntity.created(URI.create("/api/comments"))
-                .body(commentService.like(commentId, userId));
+        CommentLikeDto commentLikeDto = commentService.like(commentId, userId);
+        return ResponseEntity.created(URI.create("/api/comments/"+ commentLikeDto.commentId() + "/comment-likes"))
+                .body(commentLikeDto);
     }
 
     // TODO: 댓글 좋아요 취소 API
     @DeleteMapping("/{commentId}/comment-likes")
-    ResponseEntity<?> unlike() {
+    public ResponseEntity<?> unlike() {
         return ResponseEntity.ok().build();
     }
 
     // TODO: 댓글 논리 삭제 API
     @DeleteMapping("/{commentId}")
-    ResponseEntity<?> softDelete() {
+    public ResponseEntity<?> softDelete() {
         return ResponseEntity.ok().build();
     }
 
     // 댓글 정보 수정 API
     @PatchMapping("/{commentId}")
-    ResponseEntity<CommentDto> update(
+    public ResponseEntity<CommentDto> update(
             @PathVariable UUID commentId,
             @RequestHeader("Monew-Request-User-ID") UUID userId,  // 여기!
             @Valid @RequestBody CommentUpdateRequest request
@@ -67,7 +70,7 @@ public class CommentController implements CommentApiDocs{
 
     // TODO: 댓글 물리 삭제 API
     @DeleteMapping("/{commentId}/hard")
-    ResponseEntity<?> hardDelete() {
+    public ResponseEntity<?> hardDelete() {
         return ResponseEntity.ok().build();
     }
 
