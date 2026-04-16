@@ -105,4 +105,23 @@ public class CommentService {
         // Comment, CommentLike -> CommentLikeDto로 변환
         return commentLikeMapper.toCommentLikeDto(commentLike);
     }
+
+    @Transactional
+    public void softDelete(UUID commentId) {
+        // 조회 -> 존재하지 않는 경우, 이미 논리 삭제한 경우
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId))
+                );
+        if (comment.isDeleted()) {
+            throw new CommentException(
+                    CommentErrorCode.COMMENT_ALREADY_DELETED,
+                    Map.of("commentId", commentId)
+            );
+
+        }
+        // 논리 삭제 (false -> true)
+        comment.delete();
+    }
 }
