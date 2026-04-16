@@ -4,21 +4,29 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserRegisterRequestTest {
+    private static ValidatorFactory factory;
     private Validator validator;
+
+    @BeforeAll
+    static void setUpFactory() {
+        factory = Validation.buildDefaultValidatorFactory();
+    }
 
     @BeforeEach
     void setUp() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
+    }
+
+    @AfterAll
+    static void tearDown() {
+        factory.close();
     }
 
     @Test
