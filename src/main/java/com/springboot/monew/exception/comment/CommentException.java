@@ -5,7 +5,7 @@ import com.springboot.monew.exception.MonewException;
 
 import java.util.Map;
 
-public abstract class CommentException extends MonewException {
+public class CommentException extends MonewException {
     public CommentException(ErrorCode errorCode, Map<String, Object> details) {
         super(errorCode, details);
     }

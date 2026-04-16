@@ -16,7 +16,6 @@ import java.time.Instant;
  */
 
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 public abstract class BaseUpdatableEntity extends BaseEntity {
     @LastModifiedDate
