@@ -1,0 +1,85 @@
+package com.springboot.monew.notification.entity;
+
+import com.springboot.monew.common.entity.BaseEntity;
+import com.springboot.monew.entity.CommentLike;
+import com.springboot.monew.entity.Interest;
+import com.springboot.monew.entity.User;
+import com.springboot.monew.notification.exception.NotificationErrorCode;
+import com.springboot.monew.notification.exception.NotificationException;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+@Getter
+@Setter
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "notifications")
+public class Notification extends BaseEntity {
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Column(name = "confirmed", nullable = false)
+    private Boolean confirmed = false;
+
+    @Column(name = "content", nullable = false, length = 100)
+    private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resource_type", nullable = false, length = 10)
+    private ResourceType resourceType;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interest_id")
+    private Interest interest;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_likes_id")
+    private CommentLike commentLike;
+
+    @Builder
+    public Notification(String content,
+                        ResourceType resourceType,
+                        User user,
+                        Interest interest,
+                        CommentLike commentLike) {
+        this.content = content;
+        this.resourceType = resourceType;
+        this.user = user;
+        this.interest = interest;
+        this.commentLike = commentLike;
+    }
+
+    @Transient
+    public UUID getResourceId() {
+        if (resourceType == ResourceType.COMMENT && commentLike != null) {
+            return commentLike.getId();
+        }
+        if (resourceType == ResourceType.INTEREST && interest != null) {
+            return interest.getId();
+        }
+        Map<String, Object> details = new HashMap<>();
+        details.put("resourceType", resourceType);
+        details.put("commentLike", commentLike);
+        details.put("interest", interest);
+        throw new NotificationException(NotificationErrorCode.INVALID_DATA, details);
+    }
+
+    public Optional<Interest> getInterest() {
+        return Optional.ofNullable(interest);
+    }
+
+    public Optional<CommentLike> getCommentLike() {
+        return Optional.ofNullable(commentLike);
+    }
+
+}
