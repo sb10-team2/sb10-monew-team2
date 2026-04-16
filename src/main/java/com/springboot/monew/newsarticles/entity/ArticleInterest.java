@@ -1,6 +1,6 @@
 package com.springboot.monew.newsarticles.entity;
 
-import com.springboot.monew.base.BaseEntity;
+import com.springboot.monew.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
