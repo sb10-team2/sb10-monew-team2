@@ -1,7 +1,10 @@
 package com.springboot.monew.mapper;
 
 import com.springboot.monew.fixture.NotificationsFixture;
+import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.entity.Notification;
+import com.springboot.monew.notification.mapper.NotificationMapper;
+import com.springboot.monew.notification.mapper.NotificationMapperImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +26,7 @@ public class NotificationMapperTest {
 
         // then
         Assertions.assertThat(dto)
-                .extracting("updateAt", "confirmed", "content", "userId", "resourceType", "resourceId")
-                .isEqualTo(notification);
+                .extracting("id", "createdAt", "updatedAt", "confirmed", "content", "userId", "resourceType", "resourceId")
+                .contains(notification.getId(), notification.getCreatedAt(), notification.getUpdatedAt(), notification.getConfirmed(), notification.getContent(), notification.getUser().getId(), notification.getResourceType(), notification.getResourceId());
     }
 }
