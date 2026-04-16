@@ -25,7 +25,7 @@ public class UserRegisterRequestTest {
     @DisplayName("올바른 이메일이면 검증에 성공한다")
     void validateEmail_success() {
         // given
-        UserRegisterRequest request = new UserRegisterRequest("test@example.com");
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "monew123");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
@@ -38,7 +38,7 @@ public class UserRegisterRequestTest {
     @DisplayName("이메일 형식이 아니면 검증에 실패한다")
     void validateEmail_fail_whenInvalidFormat() {
         // given
-        UserRegisterRequest request = new UserRegisterRequest("invalid-email");
+        UserRegisterRequest request = new UserRegisterRequest("invalid-email", "monew123");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
@@ -51,7 +51,7 @@ public class UserRegisterRequestTest {
     @DisplayName("이메일에 공백이 포함되면 검증에 실패한다")
     void validateEmail_fail_whenContainsWhitespace() {
         // given
-        UserRegisterRequest request = new UserRegisterRequest("test @example.com");
+        UserRegisterRequest request = new UserRegisterRequest("test @example.com", "monew123");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
@@ -64,7 +64,7 @@ public class UserRegisterRequestTest {
     @DisplayName("이메일 길이가 5자 미만이면 검증에 실패한다")
     void validateEmail_fail_whenTooShort() {
         // given
-        UserRegisterRequest request = new UserRegisterRequest("a@b");
+        UserRegisterRequest request = new UserRegisterRequest("a@b", "monew123");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
@@ -78,7 +78,85 @@ public class UserRegisterRequestTest {
     void validateEmail_fail_whenTooLong() {
         // given
         String longEmail = "a".repeat(95) + "@test.com";
-        UserRegisterRequest request = new UserRegisterRequest(longEmail);
+        UserRegisterRequest request = new UserRegisterRequest(longEmail, "monew123");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("올바른 닉네임이면 검증에 성공한다")
+    void validateNickname_success() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "모뉴123");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    @DisplayName("닉네임이 null이면 검증에 실패한다")
+    void validateNickname_fail_whenNull() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", null);
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("닉네임이 비어 있으면 검증에 실패한다")
+    void validateNickname_fail_whenBlank() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("닉네임이 공백만 있으면 검증에 실패한다")
+    void validateNickname_fail_whenOnlyWhiteSpace() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "   ");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("닉네임에 공백이 포함되면 검증에 실패한다")
+    void validateNickname_fail_whenContainsWhitespace() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "ab c");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("닉네임에 특수문자가 포함되면 검증에 실패한다")
+    void validateNickname_fail_whenContainsSpecialCharacter() {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest("test@example.com", "ab@c");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
