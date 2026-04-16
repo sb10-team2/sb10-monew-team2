@@ -17,7 +17,7 @@ public class NotificationMapperTest {
 
     @Test
     @DisplayName("Notification 객체와 dto 공통 필드의 값이 같다")
-    void entity_equal_to_dto() {
+    void entityIsEqualToDto() {
         // given
         Notification notification = NotificationsFixture.createEntityWithCommentLike();
 
