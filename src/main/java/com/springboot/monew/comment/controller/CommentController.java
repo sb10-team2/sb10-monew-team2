@@ -68,10 +68,10 @@ public class CommentController implements CommentApiDocs{
         return ResponseEntity.ok(commentService.update(commentId, userId, request));
     }
 
-    // TODO: 댓글 물리 삭제 API
+    // 댓글 물리 삭제 API
     @DeleteMapping("/{commentId}/hard")
-    public ResponseEntity<?> hardDelete() {
-        return ResponseEntity.ok().build();
+    public void hardDelete(@PathVariable UUID commentId) {
+        commentService.hardDelete(commentId);
     }
 
 }

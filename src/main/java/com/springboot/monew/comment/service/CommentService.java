@@ -77,6 +77,7 @@ public class CommentService {
         return commentMapper.toCommentDto(comment,likeByMe);
     }
 
+    // 댓글 좋아요
     @Transactional
     public CommentLikeDto like(UUID commentId, UUID userId){
         // 댓글 조회 (존재, SoftDelete 여부)
@@ -106,6 +107,7 @@ public class CommentService {
         return commentLikeMapper.toCommentLikeDto(commentLike);
     }
 
+    // 댓글 논리 삭제
     @Transactional
     public void softDelete(UUID commentId) {
         // 조회 -> 존재하지 않는 경우, 이미 논리 삭제한 경우
@@ -123,5 +125,18 @@ public class CommentService {
         }
         // 논리 삭제 (false -> true)
         comment.delete();
+    }
+
+    // 댓글 물리 삭제
+    @Transactional
+    public void hardDelete(UUID commentId) {
+        // 조회 - 소프트 딜릿 여부에 상관없이 삭제
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId))
+                );
+
+        commentRepository.delete(comment);
     }
 }
