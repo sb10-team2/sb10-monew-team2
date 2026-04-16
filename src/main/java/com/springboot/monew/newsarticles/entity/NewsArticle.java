@@ -13,7 +13,8 @@ import java.util.UUID;
 @Table(name = "news_articles",
         uniqueConstraints = {
                 @UniqueConstraint(name = "UK_NEWS_ARTICLES_ORIGINAL_LINK", columnNames = "original_link")
-        })
+        }
+)
 public class NewsArticle {
 
     @Id
