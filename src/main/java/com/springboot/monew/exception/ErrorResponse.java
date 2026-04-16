@@ -22,7 +22,7 @@ public class ErrorResponse {
     public static ErrorResponse from(MonewException ex) {
         return new ErrorResponse(
                 Instant.now(),
-                ex.getErrorCode().name(),
+                ex.getErrorCode().getCode(),
                 ex.getMessage(),
                 ex.getDetails(),
                 ex.getClass().getSimpleName(),
@@ -31,14 +31,14 @@ public class ErrorResponse {
     }
 
     // @Valid 검증 실패 처리용 (필드별 에러 details 포함)
-    public static ErrorResponse from(ErrorCode errorCode, Map<String, Object> details, Exception ex) {
+    public static ErrorResponse from(HttpStatus status, Map<String, Object> details, Exception ex) {
         return new ErrorResponse(
                 Instant.now(),
-                errorCode.name(),
-                errorCode.getMessage(),
+                status.name(),
+                "입력값 검증에 실패하였습니다.",
                 details,
                 ex.getClass().getSimpleName(),
-                errorCode.getHttpStatus().value()
+                status.value()
         );
     }
 
