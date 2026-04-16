@@ -2,6 +2,7 @@ package com.springboot.monew.comment.controller;
 
 import com.springboot.monew.comment.dto.CommentDto;
 import com.springboot.monew.comment.dto.CommentRegisterRequest;
+import com.springboot.monew.comment.dto.CommentUpdateRequest;
 import com.springboot.monew.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -49,10 +51,14 @@ public class CommentController implements CommentApiDocs{
         return ResponseEntity.ok().build();
     }
 
-    // TODO: 댓글 정보 수정 API
+    // 댓글 정보 수정 API
     @PatchMapping("/{commentId}")
-    ResponseEntity<?> update() {
-        return ResponseEntity.ok().build();
+    ResponseEntity<CommentDto> update(
+            @PathVariable UUID commentId,
+            @RequestHeader("Monew-Request-User-ID") UUID userId,  // 여기!
+            @Valid @RequestBody CommentUpdateRequest request
+    ) {
+        return ResponseEntity.ok(commentService.update(commentId, userId, request));
     }
 
     // TODO: 댓글 물리 삭제 API
