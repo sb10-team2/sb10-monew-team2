@@ -50,7 +50,9 @@ public class User extends BaseUpdatableEntity {
     }
 
     public void delete() {
-        this.deletedAt = Instant.now();
+        if (this.deletedAt == null) {
+            this.deletedAt = Instant.now();
+        }
     }
 
     public boolean isDeleted() {
