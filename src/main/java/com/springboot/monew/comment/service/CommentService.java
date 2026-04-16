@@ -10,7 +10,6 @@ import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
-import com.springboot.monew.exception.ErrorCode;
 import com.springboot.monew.exception.comment.CommentErrorCode;
 import com.springboot.monew.exception.comment.CommentException;
 import lombok.RequiredArgsConstructor;
@@ -125,6 +124,7 @@ public class CommentService {
         }
         // 논리 삭제 (false -> true)
         comment.delete();
+        log.info("댓글 논리 삭제 완료 - commentId: {}", commentId);
     }
 
     // 댓글 물리 삭제
@@ -138,6 +138,7 @@ public class CommentService {
                 );
 
         commentRepository.delete(comment);
+        log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
     }
 
     // 댓글 좋아요 취소
@@ -167,5 +168,6 @@ public class CommentService {
 
         // Comment 쪽 likeCount 감소 (동시성 문제 고려)
         commentRepository.decrementLikeCount(comment.getId());
+        log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
     }
 }
