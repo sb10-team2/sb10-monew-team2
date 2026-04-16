@@ -1,6 +1,6 @@
 package com.springboot.monew.comment.entity;
 
-import com.springboot.monew.base.BaseEntity;
+import com.springboot.monew.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

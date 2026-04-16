@@ -1,4 +1,4 @@
-package com.springboot.monew.exception.user;
+package com.springboot.monew.users.exception;
 
 import com.springboot.monew.exception.ErrorCode;
 import lombok.Getter;

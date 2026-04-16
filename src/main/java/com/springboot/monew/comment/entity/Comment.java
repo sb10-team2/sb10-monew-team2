@@ -1,9 +1,8 @@
 package com.springboot.monew.comment.entity;
 
-import com.springboot.monew.base.BaseUpdatableEntity;
+import com.springboot.monew.common.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -22,7 +22,7 @@ public class UserRegisterRequestTest {
     }
 
     @Test
-    @DisplayName("올바른 이메일이면 검증에 성공한다")
+    @DisplayName("이메일, 닉네임, 비밀번호가 모두 올바르면 검증에 성공한다")
     void validateEmail_success() {
         // given
         UserRegisterRequest request =
@@ -93,20 +93,6 @@ public class UserRegisterRequestTest {
     }
 
     @Test
-    @DisplayName("올바른 닉네임이면 검증에 성공한다")
-    void validateNickname_success() {
-        // given
-        UserRegisterRequest request =
-                new UserRegisterRequest("test@example.com", "모뉴123", "ab12!@");
-
-        // when
-        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
-
-        // then
-        assertThat(violations).isEmpty();
-    }
-
-    @Test
     @DisplayName("닉네임이 null이면 검증에 실패한다")
     void validateNickname_fail_whenNull() {
         // given
@@ -174,20 +160,6 @@ public class UserRegisterRequestTest {
 
         // then
         assertThat(violations).isNotEmpty();
-    }
-
-    @Test
-    @DisplayName("올바른 비밀번호이면 검증에 성공한다")
-    void validatePassword_success() {
-        // given
-        UserRegisterRequest request =
-                new UserRegisterRequest("test@example.com", "monew123", "ab12!@");
-
-        // when
-        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
-
-        // then
-        assertThat(violations).isEmpty();
     }
 
     @Test
