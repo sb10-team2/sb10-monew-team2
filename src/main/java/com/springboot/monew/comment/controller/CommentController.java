@@ -46,10 +46,13 @@ public class CommentController implements CommentApiDocs{
                 .body(commentLikeDto);
     }
 
-    // TODO: 댓글 좋아요 취소 API
+    // 댓글 좋아요 취소 API
     @DeleteMapping("/{commentId}/comment-likes")
-    public ResponseEntity<?> unlike() {
-        return ResponseEntity.ok().build();
+    public void unlike(
+            @PathVariable UUID commentId,
+            @RequestHeader("Monew-Request-User-ID") UUID userId
+    ) {
+        commentService.unlike(commentId, userId);
     }
 
     // 댓글 논리 삭제 API

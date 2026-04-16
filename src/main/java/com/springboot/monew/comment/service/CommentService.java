@@ -139,4 +139,33 @@ public class CommentService {
 
         commentRepository.delete(comment);
     }
+
+    // 댓글 좋아요 취소
+    @Transactional
+    public void unlike(UUID commentId, UUID userId) {
+        // 댓글 -> 존재, 소프트 딜릿 여부 확인
+        Comment comment = commentRepository.findByIdAndIsDeletedFalse(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId)
+                ));
+
+        // Todo: User -> 존재, 소프트 딜릿 여부 확인
+        // User user = userRepository.findByIdAndDeletedAt~(userId);
+
+        // Todo : 좋아요 존재 확인 (comment, user), 로직 수정해야 함.
+        CommentLike commentLike = commentLikeRepository.findCommentLikeByComment(comment)
+                .orElseThrow(
+                        () -> new CommentException(
+                                CommentErrorCode.COMMENT_LIKE_NOT_FOUND,
+                                Map.of("commentId", commentId)
+                        )
+                );
+
+        // 좋아요 삭제(하드 딜릿) -> 좋아요 취소 시 이력에서 바로 삭제되므로 하드딜릿이 맞다고 판단
+        commentLikeRepository.delete(commentLike);
+
+        // Comment 쪽 likeCount 감소 (동시성 문제 고려)
+        commentRepository.decrementLikeCount(comment.getId());
+    }
 }
