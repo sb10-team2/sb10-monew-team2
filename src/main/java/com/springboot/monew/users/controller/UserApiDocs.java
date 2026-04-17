@@ -1,6 +1,6 @@
 package com.springboot.monew.users.controller;
 
-import com.springboot.monew.exception.ErrorResponse;
+import com.springboot.monew.common.exception.ErrorResponse;
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserRegisterRequest;
 import io.swagger.v3.oas.annotations.Operation;

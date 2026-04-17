@@ -1,4 +1,4 @@
-package com.springboot.monew.exception;
+package com.springboot.monew.common.exception;
 
 import java.util.List;
 import java.util.Map;

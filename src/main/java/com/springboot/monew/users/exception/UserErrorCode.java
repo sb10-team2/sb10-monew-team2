@@ -1,6 +1,6 @@
 package com.springboot.monew.users.exception;
 
-import com.springboot.monew.exception.ErrorCode;
+import com.springboot.monew.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

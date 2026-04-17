@@ -1,4 +1,4 @@
-package com.springboot.monew.exception;
+package com.springboot.monew.common.exception;
 
 import org.springframework.http.HttpStatus;
 
