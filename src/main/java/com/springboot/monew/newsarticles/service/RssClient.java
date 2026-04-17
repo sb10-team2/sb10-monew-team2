@@ -28,7 +28,11 @@ public class RssClient {
 
                 String title = item.selectFirst("title").text();
                 String link = item.selectFirst("link").text();
-                String description = item.selectFirst("description").text();
+
+                //description이 없는 경우도 있어서 null 허용.
+                Element descriptionElement = item.selectFirst("description");
+                String description = descriptionElement != null ? descriptionElement.text() : "";
+
                 String pubDate = item.selectFirst("pubDate").text();
 
                 //RssItem형으로 변환해서 반환
