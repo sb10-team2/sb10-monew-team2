@@ -15,6 +15,7 @@ import com.springboot.monew.interest.util.StringSimilarityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class InterestService {
     private final InterestKeywordRepository interestKeywordRepository;
     private final InterestDtoMapper interestDtoMapper;
 
+    @Transactional
     public InterestDto create(InterestRegisterRequest request) {
         String interestName = request.name();
         List<String> keywordNames = request.keywords();
