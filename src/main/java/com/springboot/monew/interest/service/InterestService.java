@@ -5,6 +5,8 @@ import com.springboot.monew.interest.dto.response.InterestDto;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.entity.InterestKeyword;
 import com.springboot.monew.interest.entity.Keyword;
+import com.springboot.monew.interest.exception.InterestErrorCode;
+import com.springboot.monew.interest.exception.InterestException;
 import com.springboot.monew.interest.mapper.InterestDtoMapper;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +51,7 @@ public class InterestService {
 
     private void validateDuplicateInterestName(String interestName) {
         if (interestRepository.existsByName(interestName)) {
-            // 예외 개선 필요 - "이미 존재하는 관심사 이름입니다."
-            throw new RuntimeException();
+            throw new InterestException(InterestErrorCode.INTEREST_NAME_ALREADY_EXISTS, Map.of("name", interestName));
         }
     }
 
@@ -58,8 +60,7 @@ public class InterestService {
 
         for (String existingName : existingNames) {
             if (StringSimilarityUtil.isSimilarEnough(interestName, existingName, NAME_SIMILARITY_THRESHOLD)) {
-                // 예외 개선 필요 - "유사도 80% 이상의 관심사 이름은 등록할 수 없습니다."
-                throw new RuntimeException();
+                throw new InterestException(InterestErrorCode.INTEREST_NAME_ALREADY_EXISTS, Map.of("name", interestName));
             }
         }
     }
@@ -70,8 +71,7 @@ public class InterestService {
                 .count();
 
         if (distinctCount != keywords.size()) {
-            // 예외 개선 필요 - "키워드는 중복될 수 없습니다."
-            throw new RuntimeException();
+            throw new InterestException(InterestErrorCode.DUPLICATE_KEYWORDS, Map.of());
         }
     }
 }
