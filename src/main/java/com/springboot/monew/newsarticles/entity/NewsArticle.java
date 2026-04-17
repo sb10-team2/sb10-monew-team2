@@ -36,7 +36,7 @@ public class NewsArticle {
     @Column(name = "published_at", nullable = false)
     private Instant publishedAt;
 
-    @Column(nullable = false, columnDefinition = "TEXT")    //JPA가 테이블 생성할때 해당 컬럼을 DB의 TEXT 타입으로 지정하라.
+    @Column(columnDefinition = "TEXT")    //JPA가 테이블 생성할때 해당 컬럼을 DB의 TEXT 타입으로 지정하라.
     private String summary;
 
     @Column(name = "view_count", nullable = false)

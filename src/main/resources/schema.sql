@@ -90,7 +90,7 @@ CREATE TABLE news_articles (
                                  "original_link"	VARCHAR(500)	NOT NULL,
                                  "title"	VARCHAR(300)	NOT NULL,
                                  "published_at"	TIMESTAMPTZ  NOT NULL,
-                                 "summary"	TEXT	NOT NULL,
+                                 "summary"	TEXT,
                                  "view_count"	INTEGER	NOT NULL DEFAULT 0,
                                  "is_deleted"	BOOLEAN	NOT	NULL
 );
