@@ -1,4 +1,4 @@
-package com.springboot.monew.exception.article;
+package com.springboot.monew.newsarticles.exception;
 
 import com.springboot.monew.exception.ErrorCode;
 import com.springboot.monew.exception.MonewException;
