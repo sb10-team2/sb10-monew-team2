@@ -1,11 +1,11 @@
 package com.springboot.monew.notification.entity;
 
+import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.entity.BaseEntity;
-import com.springboot.monew.entity.CommentLike;
-import com.springboot.monew.entity.Interest;
-import com.springboot.monew.entity.User;
+import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.exception.NotificationErrorCode;
 import com.springboot.monew.notification.exception.NotificationException;
+import com.springboot.monew.users.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -70,9 +70,11 @@ public class Notification extends BaseEntity {
             return interest.getId();
         }
         Map<String, Object> details = new HashMap<>();
+        UUID commentLikeId = commentLike == null ? null : commentLike.getId();
+        UUID interestId = interest == null ? null : interest.getId();
         details.put("resourceType", resourceType);
-        details.put("commentLike", commentLike);
-        details.put("interest", interest);
+        details.put("commentLike", commentLikeId);
+        details.put("interest", interestId);
         throw new NotificationException(NotificationErrorCode.INVALID_DATA, details);
     }
 
