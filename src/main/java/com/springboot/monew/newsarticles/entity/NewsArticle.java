@@ -1,6 +1,8 @@
 package com.springboot.monew.newsarticles.entity;
 
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,8 +23,9 @@ public class NewsArticle {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 100)
-    private String source;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ArticleSource source;
 
     @Column(name = "original_link", nullable = false, length = 500)
     private String originalLink;
@@ -42,7 +45,8 @@ public class NewsArticle {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public NewsArticle(String source, String originalLink, String title, Instant publishedAt, String summary) {
+    @Builder
+    public NewsArticle(ArticleSource source, String originalLink, String title, Instant publishedAt, String summary) {
         this.source = source;
         this.originalLink = originalLink;
         this.title = title;
