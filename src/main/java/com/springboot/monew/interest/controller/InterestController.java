@@ -25,6 +25,6 @@ public class InterestController implements InterestApiDocs {
     @PostMapping
     public ResponseEntity<InterestDto> create(@Valid @RequestBody InterestRegisterRequest request) {
         InterestDto interestDto = interestService.create(request);
-        return ResponseEntity.created(URI.create("/api/interests")).body(interestDto);
+        return ResponseEntity.created(URI.create("/api/interests/" + interestDto.id())).body(interestDto);
     }
 }
