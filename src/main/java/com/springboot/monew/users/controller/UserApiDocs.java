@@ -2,6 +2,7 @@ package com.springboot.monew.users.controller;
 
 import com.springboot.monew.common.exception.ErrorResponse;
 import com.springboot.monew.users.dto.UserDto;
+import com.springboot.monew.users.dto.UserLoginRequest;
 import com.springboot.monew.users.dto.UserRegisterRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,11 +46,39 @@ public interface UserApiDocs {
     })
     ResponseEntity<UserDto> register(
             @Valid
-            @RequestBody(
-                    required = true,
-                    description = "회원가입 요청 정보",
-                    content = @Content(schema = @Schema(implementation = UserRegisterRequest.class))
-            )
+            @RequestBody
             UserRegisterRequest request
+    );
+
+    @Operation(
+            summary = "로그인",
+            description = "사용자 로그인을 처리합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "로그인 성공",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청 (입력값 검증 실패)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "로그인 실패 (이메일 또는 비밀번호 불일치)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 내부 오류",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    ResponseEntity<UserDto> login(
+            @Valid
+            @RequestBody
+            UserLoginRequest request
     );
     }

@@ -1,6 +1,7 @@
 package com.springboot.monew.users.service;
 
 import com.springboot.monew.users.dto.UserDto;
+import com.springboot.monew.users.dto.UserLoginRequest;
 import com.springboot.monew.users.dto.UserRegisterRequest;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
@@ -35,6 +36,23 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         return userMapper.toDto(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public UserDto login(UserLoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UserException(
+                        UserErrorCode.USER_NOT_FOUND,
+                        Map.of("email", request.email())
+                ));
+
+        if(!user.getPassword().equals(request.password())) {
+            throw new UserException(
+                    UserErrorCode.INVALID_CREDENTIALS,
+                    Map.of("email", request.email())
+            );
+        }
+        return userMapper.toDto(user);
     }
 
     private void validateDuplicateEmail(String email) {
