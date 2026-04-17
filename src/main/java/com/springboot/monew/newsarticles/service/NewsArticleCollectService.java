@@ -33,6 +33,7 @@ public class NewsArticleCollectService {
         for (ArticleCollector collector : collectors) {
             List<CollectedArticle> collectedArticles = collector.collect(keywords);
 
+            //키워드 검증.
             List<CollectedArticle> filteredArticles = collectedArticles.stream()
                             .filter(article -> containsAnyKeyword(article, keywords))       //containsAnyKeyword에서 true인것만 남겨지게 된다.
                             .toList();

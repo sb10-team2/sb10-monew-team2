@@ -32,6 +32,7 @@ public class NaverArticleCollector implements ArticleCollector {
         return keywords.stream()
                 .flatMap(keyword -> naverNewsApiClient.searchNews(keyword).stream())
                 .map(this::toCollectedArticle)
+                .distinct()     //중복제거(키워드에 따라 겹치는 기사 존재 가능)
                 .toList();
     }
 
