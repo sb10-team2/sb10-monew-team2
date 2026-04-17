@@ -1,6 +1,6 @@
 package com.springboot.monew.interest.entity;
 
-import com.springboot.monew.base.BaseUpdatableEntity;
+import com.springboot.monew.common.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
