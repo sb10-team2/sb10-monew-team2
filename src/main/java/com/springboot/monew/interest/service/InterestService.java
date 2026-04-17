@@ -13,11 +13,13 @@ import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InterestService {
@@ -46,6 +48,7 @@ public class InterestService {
             interestKeywordRepository.save(new InterestKeyword(interest, keyword));
         }
 
+        log.info("관심사 등록 완료 - interestId: {}, interestName: {}, keywordNames: {}", interest.getId(), interest.getName(), keywordNames);
         return interestDtoMapper.toInterestDto(interest, keywordNames, false);
     }
 
