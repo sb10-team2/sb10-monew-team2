@@ -1,9 +1,6 @@
 package com.springboot.monew.comment.service;
 
-import com.springboot.monew.comment.dto.CommentDto;
-import com.springboot.monew.comment.dto.CommentLikeDto;
-import com.springboot.monew.comment.dto.CommentRegisterRequest;
-import com.springboot.monew.comment.dto.CommentUpdateRequest;
+import com.springboot.monew.comment.dto.*;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.comment.mapper.CommentLikeMapper;
@@ -169,5 +166,9 @@ public class CommentService {
         // Comment 쪽 likeCount 감소 (동시성 문제 고려)
         commentRepository.decrementLikeCount(comment.getId());
         log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
+    }
+
+    public CursorPageResponseCommentDto<CommentLikeDto> list(){
+        return null;
     }
 }

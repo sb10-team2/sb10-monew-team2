@@ -1,9 +1,6 @@
 package com.springboot.monew.comment.controller;
 
-import com.springboot.monew.comment.dto.CommentDto;
-import com.springboot.monew.comment.dto.CommentLikeDto;
-import com.springboot.monew.comment.dto.CommentRegisterRequest;
-import com.springboot.monew.comment.dto.CommentUpdateRequest;
+import com.springboot.monew.comment.dto.*;
 import com.springboot.monew.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +20,8 @@ public class CommentController implements CommentApiDocs{
 
     // TODO:댓글 목록 조회 API
     @GetMapping
-    public ResponseEntity<?> list() {
-        return ResponseEntity.ok().build();
+    public CursorPageResponseCommentDto<CommentLikeDto> list() {
+        return commentService.list();
     }
 
     // 댓글 등록 API
