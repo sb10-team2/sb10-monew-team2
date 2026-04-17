@@ -25,6 +25,8 @@ public class NaverArticleCollector implements ArticleCollector {
         return ArticleSource.NAVER;
     }
 
+
+    //키워드별 검색 결과를 전부 가져오는 방식.
     @Override
     public List<CollectedArticle> collect(List<String> keywords) {
         return keywords.stream()
