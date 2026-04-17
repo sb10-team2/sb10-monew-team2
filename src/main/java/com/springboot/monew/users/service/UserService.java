@@ -38,7 +38,6 @@ public class UserService {
         return userMapper.toDto(savedUser);
     }
 
-    @Transactional(readOnly = true)
     public UserDto login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UserException(
@@ -46,12 +45,20 @@ public class UserService {
                         Map.of("email", request.email())
                 ));
 
+        if(user.isDeleted()) {
+            throw new UserException(
+                    UserErrorCode.USER_NOT_FOUND,
+                    Map.of("email", request.email())
+            );
+        }
+
         if(!user.getPassword().equals(request.password())) {
             throw new UserException(
                     UserErrorCode.INVALID_CREDENTIALS,
                     Map.of("email", request.email())
             );
         }
+
         return userMapper.toDto(user);
     }
 
