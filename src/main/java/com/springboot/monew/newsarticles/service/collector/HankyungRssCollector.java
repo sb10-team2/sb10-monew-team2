@@ -4,11 +4,13 @@ import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.RssClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 //한국경제 뉴스기사 수집기
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HankyungRssCollector implements ArticleCollector {
@@ -24,7 +26,7 @@ public class HankyungRssCollector implements ArticleCollector {
     //일단 가져오고, NewsArticleCollectService에서 키워드 필터링한다.
     @Override
     public List<CollectedArticle> collect(List<String> keywords) {
-        return rssClient.read("https://www.hankyung.com/feed/all-news")
+        List<CollectedArticle> result = rssClient.read("https://www.hankyung.com/feed/all-news")
                 .stream()
                 .filter(item -> item.link() != null && !item.link().isBlank())
                 .map(item -> new CollectedArticle(
@@ -35,5 +37,9 @@ public class HankyungRssCollector implements ArticleCollector {
                         item.description()
                 ))
                 .toList();
+
+        log.info("한국경제 수집 개수= {}", result.size());
+
+        return result;
     }
 }
