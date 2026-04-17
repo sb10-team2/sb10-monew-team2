@@ -7,7 +7,10 @@ import com.springboot.monew.entity.User;
 import com.springboot.monew.notification.exception.NotificationErrorCode;
 import com.springboot.monew.notification.exception.NotificationException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -16,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Getter
-@Setter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "notifications")
@@ -82,4 +84,10 @@ public class Notification extends BaseEntity {
         return Optional.ofNullable(commentLike);
     }
 
+    public void updateConfirmed() {
+        if (!confirmed) {
+            confirmed = true;
+            updatedAt = Instant.now();
+        }
+    }
 }
