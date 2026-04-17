@@ -57,8 +57,9 @@ public class CommentController implements CommentApiDocs{
 
     // 댓글 논리 삭제 API
     @DeleteMapping("/{commentId}")
-    public void softDelete(@PathVariable UUID commentId) {
+    public ResponseEntity<Void> softDelete(@PathVariable UUID commentId) {
         commentService.softDelete(commentId);
+        return ResponseEntity.noContent().build();
     }
 
     // 댓글 정보 수정 API
@@ -73,8 +74,9 @@ public class CommentController implements CommentApiDocs{
 
     // 댓글 물리 삭제 API
     @DeleteMapping("/{commentId}/hard")
-    public void hardDelete(@PathVariable UUID commentId) {
+    public ResponseEntity<Void> hardDelete(@PathVariable UUID commentId) {
         commentService.hardDelete(commentId);
+        return ResponseEntity.noContent().build();
     }
 
 }
