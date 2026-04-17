@@ -65,7 +65,7 @@ public class InterestService {
 
         for (String existingName : existingNames) {
             if (StringSimilarityUtil.isSimilarEnough(interestName, existingName, NAME_SIMILARITY_THRESHOLD)) {
-                throw new InterestException(InterestErrorCode.INTEREST_NAME_ALREADY_EXISTS, Map.of("name", interestName));
+                throw new InterestException(InterestErrorCode.INTEREST_NAME_SIMILARITY_CONFLICT, Map.of("name", interestName));
             }
         }
     }
