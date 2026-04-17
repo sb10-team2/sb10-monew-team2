@@ -1,10 +1,8 @@
-package com.springboot.monew.mapper;
+package com.springboot.monew.notification.mapper;
 
-import com.springboot.monew.fixture.NotificationsFixture;
+import com.springboot.monew.common.fixture.NotificationFixture;
 import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.entity.Notification;
-import com.springboot.monew.notification.mapper.NotificationMapper;
-import com.springboot.monew.notification.mapper.NotificationMapperImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,7 @@ public class NotificationMapperTest {
     @DisplayName("Notification 객체와 dto 공통 필드의 값이 같다")
     void entityIsEqualToDto() {
         // given
-        Notification notification = NotificationsFixture.createEntityWithCommentLike();
+        Notification notification = NotificationFixture.createEntityWithCommentLike();
 
         // when
         NotificationDto dto = mapper.toDto(notification);
