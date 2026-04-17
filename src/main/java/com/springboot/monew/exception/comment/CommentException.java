@@ -1,12 +1,12 @@
-package com.springboot.monew.users.exception;
+package com.springboot.monew.exception.comment;
 
 import com.springboot.monew.common.exception.ErrorCode;
 import com.springboot.monew.common.exception.MonewException;
 
 import java.util.Map;
 
-public class UserException extends MonewException {
-    public UserException(ErrorCode errorCode, Map<String, Object> details) {
+public class CommentException extends MonewException {
+    public CommentException(ErrorCode errorCode, Map<String, Object> details) {
         super(errorCode, details);
     }
 }

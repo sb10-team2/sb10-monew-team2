@@ -10,7 +10,6 @@ import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
-import com.springboot.monew.exception.ErrorCode;
 import com.springboot.monew.exception.comment.CommentErrorCode;
 import com.springboot.monew.exception.comment.CommentException;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +76,7 @@ public class CommentService {
         return commentMapper.toCommentDto(comment,likeByMe);
     }
 
+    // 댓글 좋아요
     @Transactional
     public CommentLikeDto like(UUID commentId, UUID userId){
         // 댓글 조회 (존재, SoftDelete 여부)
@@ -104,5 +104,70 @@ public class CommentService {
 
         // Comment, CommentLike -> CommentLikeDto로 변환
         return commentLikeMapper.toCommentLikeDto(commentLike);
+    }
+
+    // 댓글 논리 삭제
+    @Transactional
+    public void softDelete(UUID commentId) {
+        // 조회 -> 존재하지 않는 경우, 이미 논리 삭제한 경우
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId))
+                );
+        if (comment.isDeleted()) {
+            throw new CommentException(
+                    CommentErrorCode.COMMENT_ALREADY_DELETED,
+                    Map.of("commentId", commentId)
+            );
+
+        }
+        // 논리 삭제 (false -> true)
+        comment.delete();
+        log.info("댓글 논리 삭제 완료 - commentId: {}", commentId);
+    }
+
+    // 댓글 물리 삭제
+    @Transactional
+    public void hardDelete(UUID commentId) {
+        // 조회 - 소프트 딜릿 여부에 상관없이 삭제
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId))
+                );
+
+        commentRepository.delete(comment);
+        log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
+    }
+
+    // 댓글 좋아요 취소
+    @Transactional
+    public void unlike(UUID commentId, UUID userId) {
+        // 댓글 -> 존재, 소프트 딜릿 여부 확인
+        Comment comment = commentRepository.findByIdAndIsDeletedFalse(commentId)
+                .orElseThrow(() -> new CommentException(
+                        CommentErrorCode.COMMENT_NOT_FOUND,
+                        Map.of("commentId", commentId)
+                ));
+
+        // Todo: User -> 존재, 소프트 딜릿 여부 확인
+        // User user = userRepository.findByIdAndDeletedAt~(userId);
+
+        // Todo : 좋아요 존재 확인 (comment, user), 로직 수정해야 함.
+        CommentLike commentLike = commentLikeRepository.findCommentLikeByComment(comment)
+                .orElseThrow(
+                        () -> new CommentException(
+                                CommentErrorCode.COMMENT_LIKE_NOT_FOUND,
+                                Map.of("commentId", commentId)
+                        )
+                );
+
+        // 좋아요 삭제(하드 딜릿) -> 좋아요 취소 시 이력에서 바로 삭제되므로 하드딜릿이 맞다고 판단
+        commentLikeRepository.delete(commentLike);
+
+        // Comment 쪽 likeCount 감소 (동시성 문제 고려)
+        commentRepository.decrementLikeCount(comment.getId());
+        log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
     }
 }
