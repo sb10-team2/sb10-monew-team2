@@ -6,6 +6,7 @@ import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.service.collector.ArticleCollector;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.List;
 
 //전체 수집 실행용 서비스
 //네이버 수집, 연합뉴스 수집, 한국경제 수집...을 한번에 실행
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NewsArticleCollectService {
@@ -28,6 +30,7 @@ public class NewsArticleCollectService {
 
         //키워드를 List로 만든다.
         List<String> keywords = interestKeywordRepository.findAllKeywords();
+        log.info("키워드 리스트={}", keywords);
 
         //키워드가 들어가있는 뉴스기사를 수집해서 List로 저장한다.
         for (ArticleCollector collector : collectors) {
