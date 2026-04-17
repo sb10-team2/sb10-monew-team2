@@ -35,7 +35,7 @@ public class CommentController implements CommentApiDocs{
                 .body(commentDto);
     }
 
-    // TODO: 관심사 댓글 좋아요 API
+    // 관심사 댓글 좋아요 API
     @PostMapping("/{commentId}/comment-likes")
     public ResponseEntity<CommentLikeDto> like(
             @PathVariable UUID commentId,
@@ -46,16 +46,20 @@ public class CommentController implements CommentApiDocs{
                 .body(commentLikeDto);
     }
 
-    // TODO: 댓글 좋아요 취소 API
+    // 댓글 좋아요 취소 API
     @DeleteMapping("/{commentId}/comment-likes")
-    public ResponseEntity<?> unlike() {
-        return ResponseEntity.ok().build();
+    public void unlike(
+            @PathVariable UUID commentId,
+            @RequestHeader("Monew-Request-User-ID") UUID userId
+    ) {
+        commentService.unlike(commentId, userId);
     }
 
-    // TODO: 댓글 논리 삭제 API
+    // 댓글 논리 삭제 API
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> softDelete() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> softDelete(@PathVariable UUID commentId) {
+        commentService.softDelete(commentId);
+        return ResponseEntity.noContent().build();
     }
 
     // 댓글 정보 수정 API
@@ -68,10 +72,11 @@ public class CommentController implements CommentApiDocs{
         return ResponseEntity.ok(commentService.update(commentId, userId, request));
     }
 
-    // TODO: 댓글 물리 삭제 API
+    // 댓글 물리 삭제 API
     @DeleteMapping("/{commentId}/hard")
-    public ResponseEntity<?> hardDelete() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> hardDelete(@PathVariable UUID commentId) {
+        commentService.hardDelete(commentId);
+        return ResponseEntity.noContent().build();
     }
 
 }
