@@ -25,7 +25,7 @@ public interface UserApiDocs {
             @ApiResponse(
                     responseCode = "201",
                     description = "회원가입 성공",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",
