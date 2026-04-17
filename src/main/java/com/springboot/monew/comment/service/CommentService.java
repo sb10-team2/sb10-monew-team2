@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -168,7 +169,11 @@ public class CommentService {
         log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
     }
 
-    public CursorPageResponseCommentDto<CommentLikeDto> list(){
+    public CursorPageResponseCommentDto<CommentLikeDto> list(CommentPageRequest request, UUID userId){
+        // Comment 조회
+        List<Comment> comments = commentRepository.findAll();
+
+
         return null;
     }
 }

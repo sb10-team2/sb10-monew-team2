@@ -18,10 +18,13 @@ import java.util.UUID;
 public class CommentController implements CommentApiDocs{
     private final CommentService commentService;
 
-    // TODO:댓글 목록 조회 API
+    // 댓글 목록 조회 API
     @GetMapping
-    public CursorPageResponseCommentDto<CommentLikeDto> list() {
-        return commentService.list();
+    public CursorPageResponseCommentDto<CommentLikeDto> list(
+            CommentPageRequest request,
+            @RequestHeader("Monew-Request-User-ID") UUID userId
+    ) {
+        return commentService.list(request, userId);
     }
 
     // 댓글 등록 API
