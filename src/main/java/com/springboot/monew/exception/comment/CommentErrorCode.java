@@ -1,6 +1,6 @@
 package com.springboot.monew.exception.comment;
 
-import com.springboot.monew.exception.ErrorCode;
+import com.springboot.monew.common.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

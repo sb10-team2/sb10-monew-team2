@@ -1,9 +1,8 @@
-package com.springboot.monew.exception;
+package com.springboot.monew.common.exception;
 
 import lombok.Getter;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 
 @Getter
