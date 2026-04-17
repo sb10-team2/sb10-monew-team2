@@ -1,6 +1,6 @@
 package com.springboot.monew.fixture;
 
-import com.springboot.monew.entity.CommentLike;
+import com.springboot.monew.comment.entity.CommentLike;
 import org.instancio.Instancio;
 
 public final class CommentLikeFixture {

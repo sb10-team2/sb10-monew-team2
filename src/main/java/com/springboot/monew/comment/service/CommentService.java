@@ -90,6 +90,8 @@ public class CommentService {
 //                    Map.of("commentId", commentId, "userId", userId));
 //        }
 
+        // Todo: 알림 객체 생성
+
         // CommentLike 생성 후 save && Comment의 likeCount ++
         // Todo: User 구현 시 로직 수정
         CommentLike commentLike = new CommentLike(comment);
