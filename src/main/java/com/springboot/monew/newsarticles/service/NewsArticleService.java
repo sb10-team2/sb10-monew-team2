@@ -1,6 +1,5 @@
 package com.springboot.monew.newsarticles.service;
 
-import com.springboot.monew.newsarticles.dto.NaverNewsItem;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
@@ -9,12 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NewsArticleService {
@@ -24,19 +21,27 @@ public class NewsArticleService {
     @Transactional
     public void saveAll(List<CollectedArticle> articles) {
 
-        //기사 하나마다 existsByOriginalLink()로 DB조회 1번씩 하게됨.
-        //ex) 100개 기사 -> 100번 existsByOriginalLink 조회.
-        //개선 필요.
-        List<NewsArticle> entities = articles.stream()
+        // 1. 같은 요청 안에서 originalLink 기준 중복 제거
+        List<CollectedArticle> distinctArticles = articles.stream()
+                .filter(article -> article.originalLink() != null && !article.originalLink().isBlank())
+                .collect(Collectors.toMap(
+                        CollectedArticle::originalLink,
+                        article -> article,
+                        (existing, replacement) -> existing
+                ))
+                .values()
+                .stream()
+                .toList();
+
+        // 2. DB에 이미 존재하는 링크 제거
+        List<NewsArticle> entities = distinctArticles.stream()
                 .filter(article -> !newsArticleRepository.existsByOriginalLink(article.originalLink()))
                 .map(this::toEntity)
                 .toList();
 
         newsArticleRepository.saveAll(entities);
-
     }
 
-    //DB저장을 위해 NewsArticle Entity형으로 변환
     private NewsArticle toEntity(CollectedArticle article) {
         return NewsArticle.builder()
                 .source(article.source())
