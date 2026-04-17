@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 // 댓글 목록 조회 Request parameter
-// 요청 Dto가 너무 많아 따로 Dto로 분리하였음
+// 요청이 너무 많아 따로 Dto로 분리하였음
 public record CommentPageRequest(
         UUID articleId,
         @NotNull

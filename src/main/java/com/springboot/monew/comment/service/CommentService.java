@@ -14,9 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -171,11 +170,65 @@ public class CommentService {
         log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
     }
 
-    public CursorPageResponseCommentDto<CommentLikeDto> list(CommentPageRequest request, UUID userId){
+    // Todo: 기사의 전체 댓글 조회 -> User, Article 구현 끝나면 다시 체크 (고려해야할 것이 너무 많음)
+    @Transactional(readOnly = true)
+    public CursorPageResponseCommentDto<CommentDto> list(CommentPageRequest request, UUID userId){
+        // Todo: articleId 조회 -> 존재 + 소프드딜릿 여부
+
+        // Todo: userId 조회 -> 존재 + 소프트딜릿 여부, 검증 느낌 ?
+
         // Comment 조회
-        List<Comment> comments = commentRepository.findAll();
+        List<Comment> comments = commentRepository.findComments(
+                request.articleId(),
+                request.orderBy(),
+                request.direction(),
+                request.cursor(),
+                request.after(), // 보조 커서
+                request.limit() + 1
+        );
 
+        // commentIds로 변경
+        List<UUID> commentIds = comments.stream()
+                .map(Comment::getId)
+                .toList();
 
-        return null;
+        // Todo: 주석 해제 필요, User가 좋아요 누른 댓글 Id만 가져옴
+        Set<UUID> likeCommentIds = new HashSet<>(
+                // commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(userId, commentIds)
+        );
+
+        // hasNext 판단
+        boolean hasNext = comments.size() > request.limit();
+
+        // 조건에 따라 주커서 가져옴
+        String nextCursor = hasNext ?
+                request.orderBy().getCursor(comments.get(comments.size() - 1)) : null;
+
+        // 보조 커서 가져옴(createdAt)
+        Instant nextAfter = hasNext ?
+                comments.get(comments.size() - 1).getCreatedAt() : null;
+
+        // size
+        int size = comments.size() - 1;
+
+        // 댓글 전체 개수
+        int totalElements = 0; // Todo: countByArticleIdAndIsDeletedFalse(request.articleId());
+
+        // Dto 변환
+        List<CommentDto> content = comments.stream()
+                .map(comment -> commentMapper.toCommentDto(
+                    comment,
+                    false // Todo: likeCommentIds.contains(comment.getId())
+                ))
+                .toList();
+
+        return new CursorPageResponseCommentDto<>(
+                content,
+                nextCursor,
+                nextAfter,
+                size,
+                totalElements,
+                hasNext
+        );
     }
 }
