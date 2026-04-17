@@ -1,5 +1,6 @@
 package com.springboot.monew.users.controller;
 
+import com.springboot.monew.exception.ErrorResponse;
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserRegisterRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,22 +25,22 @@ public interface UserApiDocs {
             @ApiResponse(
                     responseCode = "201",
                     description = "회원가입 성공",
-                    content = @Content(schema = @Schema(implementation = UserDto.class))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "잘못된 요청 (입력값 검증 실패)",
-                    content = @Content(schema = @Schema(implementation = UserDto.class))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "이메일 중복",
-                    content = @Content(schema = @Schema(implementation = UserDto.class))
+                    description = "이메일 중복 또는 닉네임 중복",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserDto.class))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     ResponseEntity<UserDto> register(
