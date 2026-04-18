@@ -1,7 +1,7 @@
 package com.springboot.monew.exception.comment;
 
-import com.springboot.monew.exception.ErrorCode;
-import com.springboot.monew.exception.MonewException;
+import com.springboot.monew.common.exception.ErrorCode;
+import com.springboot.monew.common.exception.MonewException;
 
 import java.util.Map;
 
