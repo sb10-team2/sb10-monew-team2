@@ -70,4 +70,17 @@ jacocoTestReport {
         xml.required = true
         html.required = true
     }
+    def excludes = [
+            "**/dto/**",
+            "**/exception/**",
+            "**/config/**",
+            "**/mapper/**",
+            "**/*Application*",
+            "**/*Interceptor*",
+            "**/*Filter*"
+    ]
+     for(qPattern in "**/QA" .. "**/QZ"){ excludes.add(qPattern + "*") }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: excludes)
+    }))
 }

@@ -44,7 +44,7 @@ CREATE TABLE notifications
 (
     "id"               UUID PRIMARY KEY,
     "created_at"       TIMESTAMPTZ           NOT NULL,
-    "updated_at"       TIMESTAMPTZ           ,
+    "updated_at"       TIMESTAMPTZ,
     "confirmed"        BOOLEAN DEFAULT false NOT NULL,
     "content"          VARCHAR(100)          NOT NULL,
     "resource_type"    VARCHAR(10)           NOT NULL,
@@ -97,6 +97,7 @@ CREATE TABLE users
 CREATE TABLE news_articles
 (
     "id"            UUID PRIMARY KEY,
+    "created_at"    TIMESTAMPTZ  NOT NULL,
     "source"        VARCHAR(100) NOT NULL,
     "original_link" VARCHAR(500) NOT NULL,
     "title"         VARCHAR(300) NOT NULL,
@@ -194,7 +195,13 @@ ALTER TABLE notifications
     ADD CONSTRAINT "FK_NOTIFICATIONS_USER_ID" FOREIGN KEY ("user_id") REFERENCES "users" ("id") on delete cascade,
     ADD CONSTRAINT "FK_NOTIFICATIONS_INTEREST_ID" FOREIGN KEY ("interest_id") REFERENCES "interests" ("id") on delete cascade,
     ADD CONSTRAINT "FK_NOTIFICATIONS_COMMENT_LIKES_ID" FOREIGN KEY ("comment_likes_id") REFERENCES "comment_likes" ("id") on delete cascade,
-    ADD CONSTRAINT "CK_NOTIFICATIONS_RESOURCE_TYP" CHECK ( "resource_type" in ('COMMENT', 'INTEREST') );
+    ADD CONSTRAINT "CK_NOTIFICATIONS_RESOURCE_TYP" CHECK ( "resource_type" in ('COMMENT', 'INTEREST') ),
+    ADD CONSTRAINT "CK_NOTIFICATION_POLYMORPHIC_MATCH"
+        CHECK (
+            ("resource_type" = 'COMMENT' AND "comment_likes_id" IS NOT NULL AND "interest_id" IS NULL)
+                OR
+            ("resource_type" = 'INTEREST' AND "interest_id" IS NOT NULL AND "comment_likes_id" IS NULL)
+            );
 
 -- =========================
 -- subscriptions 제약조건
