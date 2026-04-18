@@ -4,6 +4,7 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 
 public final class StringSimilarityUtil {
 
+    // Levenshtein Distance(레벤슈타인 거리) 알고리즘
     private static final LevenshteinDistance LEVENSHTEIN_DISTANCE =
             LevenshteinDistance.getDefaultInstance();
 
@@ -20,11 +21,13 @@ public final class StringSimilarityUtil {
             return 1.0;
         }
 
+        // Levenshtein Distance 알고리즘 적용
         int distance = LEVENSHTEIN_DISTANCE.apply(a, b);
         return (double) (maxLength - distance) / maxLength;
     }
 
     public static boolean isSimilarEnough(String a, String b, double threshold) {
+        // 임계값과 비교 후 임계값 이상이면 true 반환
         return similarity(a, b) >= threshold;
     }
 }
