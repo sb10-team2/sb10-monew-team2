@@ -1,9 +1,12 @@
 package com.springboot.monew.notification.mapper;
 
-import com.springboot.monew.common.fixture.NotificationFixture;
+import static org.instancio.Select.field;
+
 import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.entity.Notification;
+import com.springboot.monew.notification.entity.ResourceType;
 import org.assertj.core.api.Assertions;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,20 +14,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationMapperTest {
-    private final NotificationMapper mapper = new NotificationMapperImpl();
 
-    @Test
-    @DisplayName("Notification 객체와 dto 공통 필드의 값이 같다")
-    void entityIsEqualToDto() {
-        // given
-        Notification notification = NotificationFixture.createEntityWithCommentLike();
+  private final NotificationMapper mapper = new NotificationMapperImpl();
 
-        // when
-        NotificationDto dto = mapper.toDto(notification);
+  @Test
+  @DisplayName("Notification 객체와 dto 공통 필드의 값이 같다")
+  void entityIsEqualToDto() {
+    // given
+    Notification notification = Instancio.of(Notification.class)
+        .ignore(field(Notification::getCommentLike))
+        .set(field(Notification::getResourceType), ResourceType.INTEREST)
+        .create();
 
-        // then
-        Assertions.assertThat(dto)
-                .extracting("id", "createdAt", "updatedAt", "confirmed", "content", "userId", "resourceType", "resourceId")
-                .contains(notification.getId(), notification.getCreatedAt(), notification.getUpdatedAt(), notification.getConfirmed(), notification.getContent(), notification.getUser().getId(), notification.getResourceType(), notification.getResourceId());
-    }
+    // when
+    NotificationDto dto = mapper.toDto(notification);
+
+    // then
+    Assertions.assertThat(dto)
+        .extracting("id", "createdAt", "updatedAt", "confirmed", "content", "userId",
+            "resourceType", "resourceId")
+        .contains(notification.getId(), notification.getCreatedAt(), notification.getUpdatedAt(),
+            notification.getConfirmed(), notification.getContent(), notification.getUser().getId(),
+            notification.getResourceType(), notification.getResourceId());
+  }
 }
