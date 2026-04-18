@@ -6,90 +6,99 @@ import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.exception.NotificationErrorCode;
 import com.springboot.monew.notification.exception.NotificationException;
 import com.springboot.monew.users.entity.User;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "notifications")
 public class Notification extends BaseEntity {
-    @Column(name = "updated_at")
-    private Instant updatedAt;
 
-    @Column(name = "confirmed", nullable = false)
-    private Boolean confirmed = false;
+  @Column(name = "updated_at")
+  private Instant updatedAt;
 
-    @Column(name = "content", nullable = false, length = 100)
-    private String content;
+  @Column(name = "confirmed", nullable = false)
+  private Boolean confirmed = false;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "resource_type", nullable = false, length = 10)
-    private ResourceType resourceType;
+  @Column(name = "content", nullable = false, length = 100)
+  private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "resource_type", nullable = false, length = 10)
+  private ResourceType resourceType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interest_id")
-    private Interest interest;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_likes_id")
-    private CommentLike commentLike;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "interest_id")
+  private Interest interest;
 
-    @Builder
-    public Notification(String content,
-                        ResourceType resourceType,
-                        User user,
-                        Interest interest,
-                        CommentLike commentLike) {
-        this.content = content;
-        this.resourceType = resourceType;
-        this.user = user;
-        this.interest = interest;
-        this.commentLike = commentLike;
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "comment_likes_id")
+  private CommentLike commentLike;
+
+  @Builder
+  public Notification(String content,
+      ResourceType resourceType,
+      User user,
+      Interest interest,
+      CommentLike commentLike) {
+    this.content = content;
+    this.resourceType = resourceType;
+    this.user = user;
+    this.interest = interest;
+    this.commentLike = commentLike;
+  }
+
+  @Transient
+  public UUID getResourceId() {
+    if (resourceType == ResourceType.COMMENT && commentLike != null) {
+      return commentLike.getId();
     }
-
-    @Transient
-    public UUID getResourceId() {
-        if (resourceType == ResourceType.COMMENT && commentLike != null) {
-            return commentLike.getId();
-        }
-        if (resourceType == ResourceType.INTEREST && interest != null) {
-            return interest.getId();
-        }
-        Map<String, Object> details = new HashMap<>();
-        UUID commentLikeId = commentLike == null ? null : commentLike.getId();
-        UUID interestId = interest == null ? null : interest.getId();
-        details.put("resourceType", resourceType);
-        details.put("commentLike", commentLikeId);
-        details.put("interest", interestId);
-        throw new NotificationException(NotificationErrorCode.INVALID_DATA, details);
+    if (resourceType == ResourceType.INTEREST && interest != null) {
+      return interest.getId();
     }
+    Map<String, Object> details = new HashMap<>();
+    UUID commentLikeId = commentLike == null ? null : commentLike.getId();
+    UUID interestId = interest == null ? null : interest.getId();
+    details.put("resourceType", resourceType);
+    details.put("commentLike", commentLikeId);
+    details.put("interest", interestId);
+    throw new NotificationException(NotificationErrorCode.INVALID_DATA, details);
+  }
 
-    public Optional<Interest> getInterest() {
-        return Optional.ofNullable(interest);
-    }
+  public Optional<Interest> getInterest() {
+    return Optional.ofNullable(interest);
+  }
 
-    public Optional<CommentLike> getCommentLike() {
-        return Optional.ofNullable(commentLike);
-    }
+  public Optional<CommentLike> getCommentLike() {
+    return Optional.ofNullable(commentLike);
+  }
 
-    public void updateConfirmed() {
-        if (!confirmed) {
-            confirmed = true;
-            updatedAt = Instant.now();
-        }
+  public void updateConfirmed() {
+    if (!confirmed) {
+      confirmed = true;
+      updatedAt = Instant.now();
     }
+  }
 }
