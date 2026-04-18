@@ -1,5 +1,6 @@
 package com.springboot.monew.common.repository;
 
+import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.common.entity.TestEntityManager;
 import com.springboot.monew.common.inspector.QueryInspector;
 import com.springboot.monew.config.HibernateConfig;
@@ -7,6 +8,9 @@ import com.springboot.monew.config.QueryDslConfig;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -40,6 +44,10 @@ public abstract class BaseRepositoryTest {
   protected void clear() {
     em.clear();
     queryInspector.clear();
+  }
+
+  protected <T extends BaseEntity> List<UUID> getIds(Collection<T> entities) {
+    return entities.stream().map(BaseEntity::getId).toList();
   }
 
   protected void ensureQueryCount(int count) {
