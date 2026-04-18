@@ -36,7 +36,7 @@ public class UserService {
         );
 
         User savedUser = userRepository.save(user);
-        log.info("[User] 회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
+        log.info("회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
         return userMapper.toDto(savedUser);
     }
@@ -44,7 +44,7 @@ public class UserService {
     public UserDto login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
-                    log.warn("[User] 로그인 실패: 사용자를 찾을 수 없음 - email={}", request.email());
+                    log.info("로그인 실패: 사용자를 찾을 수 없음 - email={}", request.email());
                     return new UserException(
                             UserErrorCode.USER_NOT_FOUND,
                             Map.of("email", request.email())
@@ -52,7 +52,7 @@ public class UserService {
                 });
 
         if (user.isDeleted()) {
-            log.warn("[User] 로그인 실패: 탈퇴한 사용자 - email={}", request.email());
+            log.info("로그인 실패: 탈퇴한 사용자 - email={}", request.email());
             throw new UserException(
                     UserErrorCode.USER_NOT_FOUND,
                     Map.of("email", request.email())
@@ -60,20 +60,20 @@ public class UserService {
         }
 
         if (!user.getPassword().equals(request.password())) {
-            log.warn("[User] 로그인 실패: 비밀번호 불일치 - email={}", request.email());
+            log.info("로그인 실패: 비밀번호 불일치 - email={}", request.email());
             throw new UserException(
                     UserErrorCode.INVALID_CREDENTIALS,
                     Map.of("email", request.email())
             );
         }
 
-        log.info("[User] 로그인 완료 - userId={}, email={}", user.getId(), user.getEmail());
+        log.info("로그인 완료 - userId={}, email={}", user.getId(), user.getEmail());
         return userMapper.toDto(user);
     }
 
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email)) {
-            log.warn("[User] 회원가입 실패 - email={}", email);
+            log.info("회원가입 실패 - email={}", email);
             throw new UserException(
                     UserErrorCode.DUPLICATE_EMAIL,
                     Map.of("email", email)
@@ -83,7 +83,7 @@ public class UserService {
 
     private void validateDuplicateNickname(String nickname) {
         if (userRepository.existsByNickname(nickname)) {
-            log.warn("[User] 회원가입 실패 - nickname={}", nickname);
+            log.info("회원가입 실패 - nickname={}", nickname);
             throw new UserException(
                     UserErrorCode.DUPLICATE_NICKNAME,
                     Map.of("nickname", nickname)
