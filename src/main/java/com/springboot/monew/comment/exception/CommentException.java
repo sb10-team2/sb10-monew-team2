@@ -1,4 +1,4 @@
-package com.springboot.monew.exception.comment;
+package com.springboot.monew.comment.exception;
 
 import com.springboot.monew.common.exception.ErrorCode;
 import com.springboot.monew.common.exception.MonewException;
