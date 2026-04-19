@@ -3,6 +3,7 @@ package com.springboot.monew.users.service;
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserLoginRequest;
 import com.springboot.monew.users.dto.UserRegisterRequest;
+import com.springboot.monew.users.dto.UserUpdateRequest;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -215,5 +216,132 @@ public class UserServiceTest {
                 });
         verify(userRepository).findByEmail("deleted@example.com");
         verify(userMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("닉네임 수정에 성공하면 수정된 사용자 정보를 반환한다")
+    void update_success() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newNickname");
+        User user = new User("test@example.com",  "oldNickname", "password123");
+
+        UserDto expected = new UserDto(
+                userId,
+                "test@example.com",
+                "newNickname",
+                Instant.parse("2026-04-18T00:00:00Z")
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByNickname(request.nickname())).thenReturn(false);
+        when(userMapper.toDto(user)).thenReturn(expected);
+
+        // when
+        UserDto result = userService.update(userId, userId, request);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+        assertThat(user.getNickname()).isEqualTo(request.nickname());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByNickname(request.nickname());
+        verify(userMapper).toDto(user);
+    }
+
+    @Test
+    @DisplayName("요청 사용자와 수정 대상 사용자가 다르면 USER_NOT_OWNED 예외가 발생한다.")
+    void update_userNotOwned() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UUID requestUserId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newNickname");
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(userId, requestUserId, request))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_OWNED);
+                    assertThat(exception.getDetails()).isEqualTo(
+                            Map.of("userId", userId, "requestUserId", requestUserId));
+                });
+        verify(userRepository, never()).findById(any());
+        verify(userRepository, never()).existsByNickname(anyString());
+        verify(userMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자의 닉네임을 수정하면 USER_NOT_FOUND 예외가 발생한다")
+    void update_userNotFound() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newNickname");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(userId, userId, request))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId));
+                });
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByNickname(anyString());
+        verify(userMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("이미 사용 중인 닉네임으로 수정하면 DUPLICATE_NICKNAME 예외가 발생한다")
+    void update_duplicateNickname() {
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("duplicateNickname");
+        User user = new User("test@example.com",  "oldNickname", "password123");
+
+        // given
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByNickname(request.nickname())).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(userId, userId, request))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.DUPLICATE_NICKNAME);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("nickname", request.nickname()));
+                });
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByNickname(request.nickname());
+        verify(userMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("기존 닉네임으로 수정 요청하면 중복 닉네임 조회 없이 성공한다")
+    void update_sameNickname() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("sameNickname");
+        User user = new User("test@example.com",  "sameNickname", "password123");
+
+        UserDto expected = new UserDto(
+                userId,
+                "test@example.com",
+                "sameNickname",
+                Instant.parse("2026-04-18T00:00:00Z")
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(expected);
+
+        // when
+        UserDto result = userService.update(userId, userId, request);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+        assertThat(user.getNickname()).isEqualTo(request.nickname());
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByNickname(anyString());
+        verify(userMapper).toDto(user);
     }
 }

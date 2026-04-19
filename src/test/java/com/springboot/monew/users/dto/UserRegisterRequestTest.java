@@ -171,6 +171,20 @@ public class UserRegisterRequestTest {
     }
 
     @Test
+    @DisplayName("닉네임이 20자를 초과하면 검증에 실패한다")
+    void validateNickname_fail_whenTooLong() {
+        // given
+        UserRegisterRequest request =
+                new UserRegisterRequest("test@example.com", "a".repeat(21), "ab12!@");
+
+        // when
+        Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
     @DisplayName("비밀번호가 null이면 검증에 실패한다")
     void validatePassword_fail_whenNull() {
         // given
