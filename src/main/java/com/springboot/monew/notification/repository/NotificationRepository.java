@@ -29,13 +29,13 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
   @Modifying(clearAutomatically = true)
   @Query("update Notification n "
-      + "set n.confirmed = true "
+      + "set n.confirmed = true, n.updatedAt = :updatedAt "
       + "where n.id = :id and n.user.id = :userId")
-  int updateConfirmed(UUID id, UUID userId);
+  int updateConfirmed(UUID id, UUID userId, Instant updatedAt);
 
   @Modifying(clearAutomatically = true)
   @Query("update Notification n "
-      + "set n.confirmed = true "
+      + "set n.confirmed = true, n.updatedAt = :updatedAt "
       + "where n.id in :ids and n.user.id = :userId")
-  int updateConfirmed(List<UUID> ids, UUID userId);
+  int updateConfirmed(List<UUID> ids, UUID userId, Instant updatedAt);
 }

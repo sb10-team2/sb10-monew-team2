@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum NotificationErrorCode implements ErrorCode {
   INVALID_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "N001", "유효한 데이터가 아닙니다"),
+  ALREADY_CONFIRMED(HttpStatus.BAD_REQUEST, "N002", "이미 확인한 알람입니다"),
   ;
 
   private final HttpStatus httpStatus;

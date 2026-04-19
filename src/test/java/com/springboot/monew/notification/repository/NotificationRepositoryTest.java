@@ -255,4 +255,58 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
         .hasSize(totalSize)
         .containsExactlyInAnyOrderElementsOf(notificationIdsForA);
   }
+
+  @Test
+  @DisplayName("알람 객체 업데이트 성공\n"
+      + "confirmed=false -> true, updatedAt=Instant.now()")
+  void successToUpdateConfirmed() {
+    // given
+    Instant updatedAt = Instant.now();
+    Notification expected = testEntityManager.generateNotification();
+    expected.updateConfirmed(updatedAt);
+    clear();
+
+    // when
+    notificationRepository.updateConfirmed(expected.getId(), expected.getUser().getId(),
+        updatedAt);
+    ensureQueryCount(1);
+    printQueries();
+
+    // then
+    Notification actual = notificationRepository.findById(expected.getId()).orElseThrow();
+    Assertions.assertThat(actual)
+        .usingRecursiveComparison()
+        .ignoringFields("user", "interest")
+        .withEqualsForType(this::compareInstant, Instant.class)
+        .isEqualTo(expected);
+  }
+
+  @Test
+  @DisplayName("알람 벌크 업데이트 성공\n"
+      + "confirmed=false -> true, updatedAt=Instant.now()")
+  void successToBulkUpdateConfirmed() {
+    // given
+    int num = 10;
+    Instant updatedAt = Instant.now();
+    List<Notification> expected = testEntityManager.generateNotifications(num);
+    expected.forEach(notification -> notification.updateConfirmed(updatedAt));
+    clear();
+
+    // when
+    List<UUID> ids = getIds(expected);
+    UUID userId = expected.get(0).getUser().getId();
+    int updatedSuccessCount = notificationRepository.updateConfirmed(ids, userId, updatedAt);
+    ensureQueryCount(1);
+    printQueries();
+
+    // then
+    Assertions.assertThat(updatedSuccessCount).isEqualTo(num);
+    List<Notification> actual = notificationRepository.findAll();
+    Assertions.assertThat(actual)
+        .usingRecursiveComparison()
+        .ignoringFields("user", "interest")
+        .ignoringCollectionOrder()
+        .withEqualsForType(this::compareInstant, Instant.class)
+        .isEqualTo(expected);
+  }
 }

@@ -95,10 +95,11 @@ public class Notification extends BaseEntity {
     return Optional.ofNullable(commentLike);
   }
 
-  public void updateConfirmed() {
-    if (!confirmed) {
-      confirmed = true;
-      updatedAt = Instant.now();
+  public void updateConfirmed(Instant updatedAt) {
+    if (confirmed) {
+      throw new NotificationException(NotificationErrorCode.ALREADY_CONFIRMED, getId());
     }
+    confirmed = true;
+    this.updatedAt = updatedAt;
   }
 }
