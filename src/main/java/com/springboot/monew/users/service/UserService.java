@@ -84,10 +84,21 @@ public class UserService {
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserException(
-                        UserErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> {
+                    log.info("닉네임 수정 실패: 사용자를 찾을 수 없음 - userId={}", userId);
+                    return new UserException(
+                            UserErrorCode.USER_NOT_FOUND,
+                            Map.of("userId", userId)
+                    );
+                });
+
+        if(user.isDeleted()) {
+            log.info("닉네임 수정 실패: 탈퇴한 사용자 - userId={}", userId);
+            throw new UserException(
+                    UserErrorCode.USER_NOT_FOUND,
+                    Map.of("userId", userId)
+            );
+        }
 
         if(!user.getNickname().equals(request.nickname())
                 && userRepository.existsByNickname(request.nickname())) {
