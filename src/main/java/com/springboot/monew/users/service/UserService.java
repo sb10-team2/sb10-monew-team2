@@ -3,6 +3,7 @@ package com.springboot.monew.users.service;
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserLoginRequest;
 import com.springboot.monew.users.dto.UserRegisterRequest;
+import com.springboot.monew.users.dto.UserUpdateRequest;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -37,7 +39,6 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         log.info("회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
-
         return userMapper.toDto(savedUser);
     }
 
@@ -68,6 +69,37 @@ public class UserService {
         }
 
         log.info("로그인 완료 - userId={}, email={}", user.getId(), user.getEmail());
+        return userMapper.toDto(user);
+    }
+
+    @Transactional
+    public UserDto update(UUID userId, UUID requestUserId, UserUpdateRequest request) {
+        // 다른 개발자 도구로 닉네임 수정을 막기 위해 '수정 대상 사용자'와 '요청을 보낸 사용자'가 같은지 검사
+        if(!userId.equals(requestUserId)) {
+            log.info("닉네임 수정 실패: 사용자 불일치 - userId={}, requestUserId={}", userId, requestUserId);
+            throw new UserException(
+                    UserErrorCode.USER_NOT_OWNED,
+                    Map.of("userId", userId, "requestUserId", requestUserId)
+            );
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(
+                        UserErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", userId)
+                ));
+
+        if(!user.getNickname().equals(request.nickname())
+                && userRepository.existsByNickname(request.nickname())) {
+            log.info("닉네임 수정 실패: 닉네임 중복 - nickname={}", request.nickname());
+            throw new UserException(
+                    UserErrorCode.DUPLICATE_NICKNAME,
+                    Map.of("nickname", request.nickname())
+            );
+        }
+
+        user.updateNickname(request.nickname());
+        log.info("닉네임 수정 완료 - userId={}, nickname={}", user.getId(), user.getNickname());
         return userMapper.toDto(user);
     }
 

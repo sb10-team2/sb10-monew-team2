@@ -4,7 +4,9 @@ import com.springboot.monew.common.exception.ErrorResponse;
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserLoginRequest;
 import com.springboot.monew.users.dto.UserRegisterRequest;
+import com.springboot.monew.users.dto.UserUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -14,13 +16,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import java.util.UUID;
 
 @Tag(name = "사용자 관리", description = "사용자 관련 API")
 public interface UserApiDocs {
 
     @Operation(
             summary = "회원가입",
-            description = "새로운 사용자를 등록합니다."
+            description = "새로운 사용자를 등록합니다.",
+            operationId = "register"
     )
     @ApiResponses({
             @ApiResponse(
@@ -52,7 +59,8 @@ public interface UserApiDocs {
 
     @Operation(
             summary = "로그인",
-            description = "사용자 로그인을 처리합니다."
+            description = "사용자 로그인을 처리합니다.",
+            operationId = "login"
     )
     @ApiResponses({
             @ApiResponse(
@@ -80,5 +88,49 @@ public interface UserApiDocs {
             @Valid
             @RequestBody
             UserLoginRequest request
+    );
+
+    @Operation(
+            summary = "사용자 정보 수정",
+            description = "사용자의 닉네임을 수정합니다.",
+            operationId = "update"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "사용자 정보 수정 성공",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청 (입력값 검증 실패)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "사용자 정보 수정 권한 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자 정보 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 내부 오류",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    ResponseEntity<UserDto> update(
+            @Parameter(description = "사용자 ID")
+            @PathVariable UUID userId,
+
+            @Parameter(hidden = true)
+            @RequestHeader("MoNew-Request-User-ID") UUID requestUserId,
+
+            @Valid
+            @RequestBody
+            UserUpdateRequest request
     );
     }
