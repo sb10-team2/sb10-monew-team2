@@ -1,9 +1,9 @@
 package com.springboot.monew.comment.entity;
 
 import com.springboot.monew.common.entity.BaseUpdatableEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.users.entity.User;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,17 +13,14 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access=AccessLevel.PROTECTED)
 public class Comment extends BaseUpdatableEntity {
-    // TODO: User, Article 구현 완료 시 주석 해제 예정
 
-    /*
-        @ManyToOne(fetch = FetchType.LAZY)
-        @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
-        private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, columnDefinition = "UUID")
+    private User user;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @Column(name = "article_id", nullable = false, columnDefinition = "UUID")
-        private Article article;
-     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "article_id", nullable = false, columnDefinition = "UUID")
+    private NewsArticle article;
 
     // 댓글 내용
     @Column(name = "content", nullable = false, length = 200)
@@ -38,8 +35,8 @@ public class Comment extends BaseUpdatableEntity {
     private boolean isDeleted;
 
     public Comment(
-            // User user,
-            // Article article,
+            User user,
+            // Todo: NewsArticle article,
             String content
     ) {
         this.content = content;
