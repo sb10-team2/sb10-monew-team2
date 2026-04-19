@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -131,11 +132,42 @@ public interface UserApiDocs {
             @Parameter(description = "사용자 ID")
             @PathVariable UUID userId,
 
-            @Parameter(hidden = true)
+            @Parameter(description = "요청자 ID")
             @RequestHeader("MoNew-Request-User-ID") UUID requestUserId,
 
             @Valid
             @RequestBody
             UserUpdateRequest request
+    );
+
+    @Operation(
+            summary = "사용자 논리 삭제",
+            description = "사용자 논리적으로 삭제합니다.",
+            operationId = "delete"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "사용자 삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "사용자 삭제 권한 없음"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자 정보 없음"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 내부 오류"
+            )
+    })
+    ResponseEntity<Void> delete(
+            @Parameter(description = "사용자 ID")
+            @PathVariable UUID userId,
+
+            @Parameter(description = "요청자 ID")
+            @RequestHeader("MoNew-Request-User-ID") UUID requestUserId
     );
     }
