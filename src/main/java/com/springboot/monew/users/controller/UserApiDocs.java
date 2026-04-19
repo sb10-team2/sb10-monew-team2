@@ -117,6 +117,11 @@ public interface UserApiDocs {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
+                    responseCode = "409",
+                    description = "닉네임 중복",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 내부 오류",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
