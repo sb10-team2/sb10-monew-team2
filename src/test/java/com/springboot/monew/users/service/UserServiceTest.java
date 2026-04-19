@@ -315,4 +315,33 @@ public class UserServiceTest {
         verify(userRepository).existsByNickname(request.nickname());
         verify(userMapper, never()).toDto(any());
     }
+
+    @Test
+    @DisplayName("기존 닉네임으로 수정 요청하면 중복 닉네임 조회 없이 성공한다")
+    void update_sameNickname() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("sameNickname");
+        User user = new User("test@example.com",  "sameNickname", "password123");
+
+        UserDto expected = new UserDto(
+                userId,
+                "test@example.com",
+                "sameNickname",
+                Instant.parse("2026-04-18T00:00:00Z")
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(expected);
+
+        // when
+        UserDto result = userService.update(userId, userId, request);
+
+        // then
+        assertThat(result).isEqualTo(expected);
+        assertThat(user.getNickname()).isEqualTo(request.nickname());
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByNickname(anyString());
+        verify(userMapper).toDto(user);
+    }
 }
