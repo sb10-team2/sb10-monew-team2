@@ -14,7 +14,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-    Optional<Comment> findByIdAndIsDeletedFalse(UUID id);
+    @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.id = :id AND c.isDeleted = false")
+    Optional<Comment> findByIdAndIsDeletedFalse(@Param("id") UUID id);
 
     @Modifying
     @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE  c.id = :id")

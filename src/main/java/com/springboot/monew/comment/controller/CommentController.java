@@ -20,7 +20,7 @@ public class CommentController implements CommentApiDocs{
 
     // 댓글 목록 조회 API
     @GetMapping
-    public CursorPageResponseCommentDto<CommentLikeDto> list(
+    public CursorPageResponseCommentDto<CommentDto> list(
             CommentPageRequest request,
             @RequestHeader("Monew-Request-User-ID") UUID userId
     ) {

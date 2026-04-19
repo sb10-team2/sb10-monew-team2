@@ -13,7 +13,7 @@ public record CommentLikeDto(
         UUID articleId,
         // 댓글 작성자 Id
         UUID commentUserId,
-        String commentUserNickName,
+        String commentUserNickname,
         String commentContent,
         Integer commentLikeCount,
         Instant commentCreatedAt
