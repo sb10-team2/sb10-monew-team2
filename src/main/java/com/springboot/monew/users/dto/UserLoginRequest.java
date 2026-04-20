@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "로그인 정보")
 public record UserLoginRequest(
-
         @Schema(description = "로그인 이메일")
         @NotBlank(message = "이메일은 필수입니다.")
         @Size(min = 5, max = 100, message = "이메일은 5자 이상 100자 이하여야 합니다.")

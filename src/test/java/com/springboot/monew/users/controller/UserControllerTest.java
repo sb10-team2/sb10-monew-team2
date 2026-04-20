@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.UUID;
 
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -52,8 +53,8 @@ public class UserControllerTest {
                 createdAt
         );
 
-        Mockito.when(userService.register(ArgumentMatchers.any(UserRegisterRequest.class)))
-                .thenReturn(response);
+        // Mockito.when을 클래스명 없이 간단히 사용하기 위해 static import를 하였음.
+        when(userService.register(ArgumentMatchers.any(UserRegisterRequest.class))).thenReturn(response);
 
         // when & then
         mockMvc.perform(post("/api/users")
@@ -64,5 +65,32 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.nickname").value("monew123"))
                 .andExpect(jsonPath("$.createdAt").value("2026-04-17T01:46:03.003Z"));
+
+        // 컨트롤러가 실제로 register을 호출했는지 검증하기 위해 추가
+        verify(userService).register(ArgumentMatchers.any(UserRegisterRequest.class));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 회원가입 요청이면 400 Bad Request를 반환한다")
+    void register_validationFail() throws Exception {
+        // given
+        UserRegisterRequest request = new UserRegisterRequest(
+                "invalid-email",
+                "",
+                "1234"
+        );
+
+        // when & then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.details.email").isArray())
+                .andExpect(jsonPath("$.details.nickname").isArray())
+                .andExpect(jsonPath("$.details.password").isArray());
+
+        // 컨트롤러가 실제로 register을 호출을 안했는지 검증하기 위해 추가
+        verify(userService, never()).register(ArgumentMatchers.any(UserRegisterRequest.class));
     }
 }
