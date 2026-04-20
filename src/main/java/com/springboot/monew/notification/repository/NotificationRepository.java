@@ -24,7 +24,9 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
       + "(n.createdAt = :after AND n.id > :cursor)) " +
       "ORDER BY n.createdAt DESC, n.id ASC")
   Slice<Notification> findByCursor(
-      UUID cursor, @Param("after") Instant after, @Param("userId") UUID userId,
+      @Param("cursor") UUID cursor,
+      @Param("after") Instant after,
+      @Param("userId") UUID userId,
       Pageable pageable);
 
   @Modifying(clearAutomatically = true)

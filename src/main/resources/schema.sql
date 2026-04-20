@@ -195,7 +195,6 @@ ALTER TABLE notifications
     ADD CONSTRAINT "FK_NOTIFICATIONS_USER_ID" FOREIGN KEY ("user_id") REFERENCES "users" ("id") on delete cascade,
     ADD CONSTRAINT "FK_NOTIFICATIONS_INTEREST_ID" FOREIGN KEY ("interest_id") REFERENCES "interests" ("id") on delete cascade,
     ADD CONSTRAINT "FK_NOTIFICATIONS_COMMENT_LIKES_ID" FOREIGN KEY ("comment_likes_id") REFERENCES "comment_likes" ("id") on delete cascade,
-    ADD CONSTRAINT "CK_NOTIFICATIONS_RESOURCE_TYP" CHECK ( "resource_type" in ('COMMENT', 'INTEREST') ),
     ADD CONSTRAINT "CK_NOTIFICATION_POLYMORPHIC_MATCH"
         CHECK (
             ("resource_type" = 'COMMENT' AND "comment_likes_id" IS NOT NULL AND "interest_id" IS NULL)
