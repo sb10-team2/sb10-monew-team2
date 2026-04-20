@@ -3,8 +3,10 @@ package com.springboot.monew.common.fixture;
 import static org.instancio.Select.all;
 import static org.instancio.Select.field;
 
+import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.common.entity.BaseUpdatableEntity;
+import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.users.entity.User;
@@ -24,6 +26,19 @@ public final class EntityFixtureFactory {
 
   public static <T> T get(Class<T> type) {
     return Instancio.create(getModel(type));
+  }
+
+  public static List<Comment> getCommentList(int size, NewsArticle article, User user) {
+    return Instancio.ofList(Comment.class)
+        .size(size)
+        .ignore(field(BaseEntity::getId))
+        .ignore(field(BaseEntity::getCreatedAt))
+        .ignore(field(BaseUpdatableEntity::getUpdatedAt))
+        .set(field(Comment.class, "article"), article)
+        .set(field(Comment.class, "user"), user)
+        .set(field(Comment.class, "isDeleted"), false)
+        .set(field(Comment.class, "likeCount"), 0)
+        .create();
   }
 
   @SuppressWarnings("unchecked")
