@@ -103,7 +103,7 @@ CREATE TABLE news_articles
     title         VARCHAR(300)             NOT NULL,
     published_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     summary       TEXT                     NOT NULL,
-    view_count    INTEGER                  NOT NULL DEFAULT 0,
+    view_count    INTEGER        DEFAULT 0 NOT NULL,
     is_deleted    BOOLEAN                  NOT NULL
 );
 
@@ -172,13 +172,13 @@ ALTER TABLE notifications
     ADD CONSTRAINT FK_NOTIFICATIONS_INTEREST_ID FOREIGN KEY (interest_id) REFERENCES interests (id) ON DELETE CASCADE;
 ALTER TABLE notifications
     ADD CONSTRAINT FK_NOTIFICATIONS_COMMENT_LIKES_ID FOREIGN KEY (comment_likes_id) REFERENCES comment_likes (id) ON DELETE CASCADE;
--- ALTER TABLE notifications
---     ADD CONSTRAINT chk_notification_polymorphic_match
---         CHECK (
---             (resource_type = 'COMMENT' AND comment_likes_id IS NOT NULL AND interest_id IS NULL)
---                 OR
---             (resource_type = 'INTEREST' AND interest_id IS NOT NULL AND comment_likes_id IS NULL)
---             );
+ALTER TABLE notifications
+    ADD CONSTRAINT chk_notification_polymorphic_match
+        CHECK (
+            (resource_type = 'COMMENT' AND comment_likes_id IS NOT NULL AND interest_id IS NULL)
+                OR
+            (resource_type = 'INTEREST' AND interest_id IS NOT NULL AND comment_likes_id IS NULL)
+            );
 -- =========================
 -- subscriptions 제약조건
 -- =========================
