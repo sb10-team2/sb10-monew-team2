@@ -15,6 +15,7 @@ import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,11 +54,7 @@ public class InterestService {
 
         // 요청 받은 키워드 목록 순회
         for (String keywordName : keywordNames) {
-            // 새로운 키워드라면 저장
-            Keyword keyword = keywordRepository.findByName(keywordName)
-                    .orElseGet(() -> keywordRepository.save(new Keyword(keywordName)));
-
-            // 관심사-키워드 연결 저장
+            Keyword keyword = getOrCreateKeyword(keywordName);
             interestKeywordRepository.save(new InterestKeyword(interest, keyword));
         }
 
@@ -88,11 +85,7 @@ public class InterestService {
 
         // 요청 받은 키워드 목록 순회
         for (String keywordName : keywordNames) {
-            // 새로운 키워드라면 저장
-            Keyword keyword = keywordRepository.findByName(keywordName)
-                    .orElseGet(() -> keywordRepository.save(new Keyword(keywordName)));
-
-            // 관심사-키워드 연결 저장
+            Keyword keyword = getOrCreateKeyword(keywordName);
             interestKeywordRepository.save(new InterestKeyword(interest, keyword));
         }
 
@@ -102,6 +95,21 @@ public class InterestService {
         log.info("관심사 수정 완료 - interestId: {}, keywordNames: {}", interest.getId(), keywordNames);
         return interestDtoMapper.toInterestDto(interest, keywordNames, false);
     }
+
+  private Keyword getOrCreateKeyword(String keywordName) {
+    return keywordRepository.findByName(keywordName)
+        .orElseGet(() -> saveKeywordSafely(keywordName));
+  }
+
+  private Keyword saveKeywordSafely(String keywordName) {
+    try {
+      return keywordRepository.saveAndFlush(new Keyword(keywordName));
+    } catch (DataIntegrityViolationException e) {
+      log.debug("키워드 동시 생성 충돌 발생. 기존 키워드 재조회: {}", keywordName);
+      return keywordRepository.findByName(keywordName)
+          .orElseThrow(() -> e);
+    }
+  }
 
     private void validateDuplicateInterestName(String interestName) {
         // 관심사 이름이 이미 존재하면 예외 발생
