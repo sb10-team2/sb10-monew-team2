@@ -9,6 +9,7 @@ import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -40,12 +41,14 @@ public class CommentService {
     // Article article = articleRepository.findById(request.articleId())
     // .orElseThrow(커스텀 예외);
 
+    NewsArticle article = new NewsArticle("임시", "임시", "임시", Instant.now(), "임시");
+
     // TODO: Article 논리 삭제 check
 
     User user = getActiveUser(request.userId());
 
     // TODO: Article 추가
-    Comment comment = new Comment(user, request.content());
+    Comment comment = new Comment(user, article, request.content());
     commentRepository.save(comment);
     log.info(
         "댓글 등록 완료 - commentId: {}, articleId: {}, userId: {}",
@@ -157,8 +160,8 @@ public class CommentService {
     List<Comment> comments =
         commentRepository.findComments(
             request.articleId(),
-            request.orderBy(),
-            request.direction(),
+            request.orderBy().name(),
+            request.direction().name(),
             request.cursor(),
             request.after(), // 보조 커서
             request.limit() + 1);
