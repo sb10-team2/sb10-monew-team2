@@ -2,6 +2,7 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.newsarticles.dto.NaverNewsItem;
 import com.springboot.monew.newsarticles.dto.response.NaverNewsResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -9,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class NaverNewsApiClient {
     private final RestClient restClient;
 
@@ -18,9 +20,6 @@ public class NaverNewsApiClient {
     @Value("${naver.api.secret}")
     private String clientSecret;
 
-    public NaverNewsApiClient(RestClient restClient) {
-        this.restClient = restClient;
-    }
 
     public List<NaverNewsItem> searchNews(String query) {
         NaverNewsResponse response = restClient.get()
