@@ -9,7 +9,8 @@ import org.mapstruct.Mapping;
 
 @Mapper(config = CommonMapperConfig.class)
 public interface NotificationMapper extends BaseMapper<Notification, NotificationDto> {
-    @Override
-    @Mapping(target = "userId", source = "user.id")
-    NotificationDto toDto(Notification entity);
+
+  @Override
+  @Mapping(target = "userId", source = "user.id")
+  NotificationDto toDto(Notification entity);
 }

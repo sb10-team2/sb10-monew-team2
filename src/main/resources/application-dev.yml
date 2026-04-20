@@ -1,9 +1,9 @@
 spring:
-#  mvc:
-#    servlet:
-#      context-path:
+  #  mvc:
+  #    servlet:
+  #      context-path:
 
-# 각자 로컬 설정
+  # 각자 로컬 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/monew
     username: monew
