@@ -186,20 +186,7 @@ public class InterestService {
         .map(Keyword::getId)
         .toList();
 
-    // 아직 참조 중인 키워드가 있는지 한번에 조회
-    Set<UUID> referencedKeywordIds = new HashSet<>(
-        interestKeywordRepository.findReferencedKeywordIds(keywordIds)
-    );
-
-    // 더 이상 관심사 연결이 없는 키워드만 추출
-    List<Keyword> orphanKeywords = keywords.stream()
-        .filter(keyword -> !referencedKeywordIds.contains(keyword.getId()))
-        .toList();
-
-    // 더 이상 관심사 연결이 없는 키워드가 존재한다면 삭제
-    if (!orphanKeywords.isEmpty()) {
-      keywordRepository.deleteAll(orphanKeywords);
-    }
+    keywordRepository.deleteOrphanKeywordsByIds(keywordIds);
   }
 
 }
