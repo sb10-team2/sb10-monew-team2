@@ -58,24 +58,24 @@ public class Notification extends BaseEntity {
   private CommentLike commentLike;
 
   @Builder
-  public Notification(String content,
-      ResourceType resourceType,
+  public Notification(ResourceType resourceType,
       User user,
       Interest interest,
       CommentLike commentLike) {
-    this.content = content;
     this.resourceType = resourceType;
     this.user = user;
     this.interest = interest;
     this.commentLike = commentLike;
+    validateDomainConstraint();
+    initContent();
   }
 
   @Transient
   public UUID getResourceId() {
-    if (resourceType == ResourceType.COMMENT && commentLike != null) {
+    if (isCommentLikeNotification()) {
       return commentLike.getId();
     }
-    if (resourceType == ResourceType.INTEREST && interest != null) {
+    if (isInterestNotification()) {
       return interest.getId();
     }
     Map<String, Object> details = new HashMap<>();
@@ -101,5 +101,37 @@ public class Notification extends BaseEntity {
     }
     confirmed = true;
     this.updatedAt = updatedAt;
+  }
+
+  private void initContent() {
+    String commentLikeMessage = "%s님이 나의 댓글을 좋아합니다.";
+    String interestMessage = "%s와 관련된 기사가 %s건 등록되었습니다.";
+    if (isInterestNotification()) {
+      content = interestMessage.formatted(interest.getName(), interest.getArticleCount());
+      return;
+    }
+    content = commentLikeMessage.formatted(commentLike.getUser().getNickname());
+  }
+
+  private void validateDomainConstraint() {
+    if (user == null) {
+      throw new NotificationException(NotificationErrorCode.MISSING_REQUIRED_FIELD,
+          "User를 찾을 수 없습니다");
+    }
+    if (isInterestNotification()) {
+      return;
+    }
+    if (isCommentLikeNotification()) {
+      return;
+    }
+    throw new NotificationException(NotificationErrorCode.DOMAIN_CONSTRAINT_VIOLATED);
+  }
+
+  private boolean isInterestNotification() {
+    return resourceType == ResourceType.INTEREST && interest != null && commentLike == null;
+  }
+
+  private boolean isCommentLikeNotification() {
+    return resourceType == ResourceType.COMMENT && commentLike != null && interest == null;
   }
 }
