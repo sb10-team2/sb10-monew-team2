@@ -13,8 +13,10 @@ import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +77,7 @@ public class InterestService {
     validateDuplicateKeywords(keywordNames);
 
     // 해당 관심사의 연결 목록 조회
-    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterest(
+    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
         interest);
     // 해당 관심사의 기존 키워드 목록 추출
     List<Keyword> oldKeywords = existingInterestKeywords.stream()
@@ -106,7 +108,7 @@ public class InterestService {
             Map.of("interestId", interestId)));
 
     // 해당 관심사의 연결 목록 조회
-    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterest(
+    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
         interest);
     // 해당 관심사의 기존 키워드 목록 추출
     List<Keyword> oldKeywords = existingInterestKeywords.stream()
@@ -118,7 +120,7 @@ public class InterestService {
     // 관심사 삭제
     interestRepository.delete(interest);
 
-    // 이전 키워드 목록을 순회하며 더 이상 연결된 관심사가 없다면 삭제
+    // 관심사와 연결되어 있던 키워드 목록을 순회하며 더 이상 연결된 관심사가 없다면 삭제
     deleteOrphanKeywords(oldKeywords);
 
     log.info("관심사 삭제 완료 - interestId={}, interestName={}", interest.getId(), interest.getName());
@@ -175,12 +177,28 @@ public class InterestService {
   }
 
   private void deleteOrphanKeywords(List<Keyword> keywords) {
-    for (Keyword keyword : keywords) {
-      // 해당 키워드와 연결된 관심사가 존재하지 않는다면
-      if (!interestKeywordRepository.existsByKeyword(keyword)) {
-        // 키워드 삭제
-        keywordRepository.delete(keyword);
-      }
+    if (keywords.isEmpty()) {
+      return;
+    }
+
+    // 키워드 객체 리스트에서 id를 추출하여 id 리스트로 변환
+    List<UUID> keywordIds = keywords.stream()
+        .map(Keyword::getId)
+        .toList();
+
+    // 아직 참조 중인 키워드가 있는지 한번에 조회
+    Set<UUID> referencedKeywordIds = new HashSet<>(
+        interestKeywordRepository.findReferencedKeywordIds(keywordIds)
+    );
+
+    // 더 이상 관심사 연결이 없는 키워드만 추출
+    List<Keyword> orphanKeywords = keywords.stream()
+        .filter(keyword -> !referencedKeywordIds.contains(keyword.getId()))
+        .toList();
+
+    // 더 이상 관심사 연결이 없는 키워드가 존재한다면 삭제
+    if (!orphanKeywords.isEmpty()) {
+      keywordRepository.deleteAll(orphanKeywords);
     }
   }
 
