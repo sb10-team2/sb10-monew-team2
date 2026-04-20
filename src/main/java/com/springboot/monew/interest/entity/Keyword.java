@@ -11,22 +11,22 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-        name = "keywords",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "UK_KEYWORDS_NAME",
-                        columnNames = "name"
-                )
-        }
+    name = "keywords",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "UK_KEYWORDS_NAME",
+            columnNames = "name"
+        )
+    }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Keyword extends BaseEntity {
 
-    @Column(name = "name", nullable = false, length = 100)
-    String name;
+  @Column(name = "name", nullable = false, length = 100)
+  String name;
 
-    public Keyword(String name) {
-        this.name = name;
-    }
+  public Keyword(String name) {
+    this.name = name;
+  }
 }
