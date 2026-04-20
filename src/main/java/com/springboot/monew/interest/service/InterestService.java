@@ -66,7 +66,7 @@ public class InterestService {
     private void validateDuplicateInterestName(String interestName) {
         // 관심사 이름이 이미 존재하면 예외 발생
         if (interestRepository.existsByName(interestName)) {
-            throw new InterestException(InterestErrorCode.INTEREST_NAME_ALREADY_EXISTS, Map.of("name", interestName));
+            throw new InterestException(InterestErrorCode.INTEREST_NAME_DUPLICATION, Map.of("name", interestName));
         }
     }
 
@@ -78,7 +78,7 @@ public class InterestService {
         for (String existingName : existingNames) {
             // 관심사 이름 유사도 체크
             if (StringSimilarityUtil.isSimilarEnough(interestName, existingName, NAME_SIMILARITY_THRESHOLD)) {
-                throw new InterestException(InterestErrorCode.INTEREST_NAME_SIMILARITY_CONFLICT, Map.of("name", interestName));
+                throw new InterestException(InterestErrorCode.INTEREST_NAME_DUPLICATION, Map.of("name", interestName));
             }
         }
     }
