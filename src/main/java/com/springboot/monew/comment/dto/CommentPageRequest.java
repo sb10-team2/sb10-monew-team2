@@ -13,6 +13,7 @@ import java.util.UUID;
 // 댓글 목록 조회 Request parameter
 // 요청이 너무 많아 따로 Dto로 분리하였음
 public record CommentPageRequest(
+        @NotNull
         UUID articleId,
         @NotNull
         CommentOrderBy orderBy,
@@ -22,7 +23,9 @@ public record CommentPageRequest(
         Instant after,
         @Min(1)
         @Max(100)
-        @DefaultValue("50")
-        int limit
+        Integer limit
 ) {
+        public CommentPageRequest {
+                if (limit == null) limit = 50;
+        }
 }

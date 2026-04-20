@@ -34,22 +34,28 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
     // Todo: users 쪽 Join 테이블 필요해보임 -> users 쪽 완전 구현 완료 시에 다시 check, 인덱스 고려
     @Query(value = """
-      SELECT * FROM comments
-      WHERE article_id = :articleId
-      AND is_deleted = false
-      AND (:cursor IS NULL OR
-          CASE WHEN :orderBy = 'LIKE_COUNT' THEN
-              (like_count < :cursor OR (like_count = :cursor AND created_at < :after))
-          ELSE
-              created_at < :after
-          END
-      )
-      ORDER BY
-          CASE WHEN :orderBy = 'LIKE_COUNT' AND :direction = 'DESC' THEN like_count END DESC,
-          CASE WHEN :orderBy = 'LIKE_COUNT' AND :direction = 'ASC' THEN like_count END ASC,
-          created_at DESC
-      LIMIT :limit
-      """, nativeQuery = true)
+    SELECT * FROM comments
+    WHERE article_id = :articleId
+    AND is_deleted = false
+    AND (:cursor IS NULL OR
+        CASE
+            WHEN :orderBy = 'likeCount' AND :direction = 'DESC' THEN
+                (like_count < CAST(:cursor AS INTEGER) OR (like_count = CAST(:cursor AS INTEGER) AND created_at < :after))
+            WHEN :orderBy = 'likeCount' AND :direction = 'ASC' THEN
+                (like_count > CAST(:cursor AS INTEGER) OR (like_count = CAST(:cursor AS INTEGER) AND created_at > :after))
+            WHEN :direction = 'DESC' THEN
+                created_at < :after
+            ELSE
+                created_at > :after
+        END
+    )
+    ORDER BY
+        CASE WHEN :orderBy = 'likeCount' AND :direction = 'DESC' THEN like_count END DESC,
+        CASE WHEN :orderBy = 'likeCount' AND :direction = 'ASC' THEN like_count END ASC,
+        CASE WHEN :direction = 'DESC' THEN created_at END DESC,
+        CASE WHEN :direction = 'ASC' THEN created_at END ASC
+    LIMIT :limit
+    """, nativeQuery = true)
     List<Comment> findComments(
             @Param("articleId") UUID articleId,
             @Param("orderBy") CommentOrderBy orderBy,

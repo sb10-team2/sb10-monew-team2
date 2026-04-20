@@ -21,7 +21,7 @@ public class CommentController implements CommentApiDocs{
     // 댓글 목록 조회 API
     @GetMapping
     public CursorPageResponseCommentDto<CommentDto> list(
-            CommentPageRequest request,
+            @Valid CommentPageRequest request,
             @RequestHeader("Monew-Request-User-ID") UUID userId
     ) {
         return commentService.list(request, userId);

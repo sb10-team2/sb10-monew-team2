@@ -39,6 +39,8 @@ public class Comment extends BaseUpdatableEntity {
             // Todo: NewsArticle article,
             String content
     ) {
+        this.user = user;
+        // Todo: this.article = article;
         this.content = content;
         this.likeCount = 0;
         this.isDeleted = false;

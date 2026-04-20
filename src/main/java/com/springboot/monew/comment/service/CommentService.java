@@ -161,6 +161,11 @@ public class CommentService {
         // hasNext 판단
         boolean hasNext = comments.size() > request.limit();
 
+        // hasNext true면 마지막 항목 자름
+        if (hasNext) {
+            comments = comments.subList(0, request.limit());
+        }
+
         // 조건에 따라 주커서 가져옴
         String nextCursor = hasNext ?
                 request.orderBy().getCursor(comments.get(comments.size() - 1)) : null;
@@ -170,7 +175,7 @@ public class CommentService {
                 comments.get(comments.size() - 1).getCreatedAt() : null;
 
         // size
-        int size = comments.size() - 1;
+        int size = comments.size();
 
         // 댓글 전체 개수
         int totalElements = 0; // Todo: countByArticleIdAndIsDeletedFalse(request.articleId());
