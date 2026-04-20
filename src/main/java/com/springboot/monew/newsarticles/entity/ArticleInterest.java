@@ -1,6 +1,7 @@
 package com.springboot.monew.newsarticles.entity;
 
 import com.springboot.monew.common.entity.BaseEntity;
+import com.springboot.monew.interest.entity.Interest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,9 +39,9 @@ public class ArticleInterest extends BaseEntity {
             nullable = false,
             foreignKey = @ForeignKey(name = "FK_ARTICLE_INTERESTS_INTEREST")
     )
-    private Interests interest;
+    private Interest interest;
 
-    public ArticleInterest(NewsArticle newsArticles, Interests interest) {
+    public ArticleInterest(NewsArticle newsArticles, Interest interest) {
         this.newsArticle = newsArticles;
         this.interest = interest;
     }
