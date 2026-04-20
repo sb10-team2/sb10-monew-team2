@@ -10,6 +10,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,5 +38,11 @@ public class InterestController implements InterestApiDocs {
       @Valid @RequestBody InterestUpdateRequest request) {
     InterestDto interestDto = interestService.update(interestId, request);
     return ResponseEntity.ok(interestDto);
+  }
+
+  @DeleteMapping("/{interestId}")
+  public ResponseEntity<Void> delete(@PathVariable UUID interestId) {
+    interestService.delete(interestId);
+    return ResponseEntity.noContent().build();
   }
 }

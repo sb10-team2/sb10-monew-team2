@@ -98,6 +98,32 @@ public class InterestService {
     return interestDtoMapper.toInterestDto(interest, keywordNames, false);
   }
 
+  @Transactional
+  public void delete(UUID interestId) {
+    // 관심사 조회, 존재하지 않는 관심사라면 예외 발생
+    Interest interest = interestRepository.findById(interestId)
+        .orElseThrow(() -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+            Map.of("interestId", interestId)));
+
+    // 해당 관심사의 연결 목록 조회
+    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterest(
+        interest);
+    // 해당 관심사의 기존 키워드 목록 추출
+    List<Keyword> oldKeywords = existingInterestKeywords.stream()
+        .map(InterestKeyword::getKeyword)
+        .toList();
+
+    // 조회한 관심사-키워드 연결 삭제
+    interestKeywordRepository.deleteAll(existingInterestKeywords);
+    // 관심사 삭제
+    interestRepository.delete(interest);
+
+    // 이전 키워드 목록을 순회하며 더 이상 연결된 관심사가 없다면 삭제
+    deleteOrphanKeywords(oldKeywords);
+
+    log.info("관심사 삭제 완료 - interestId={}, interestName={}", interest.getId(), interest.getName());
+  }
+
   private Keyword getOrCreateKeyword(String keywordName) {
     return keywordRepository.findByName(keywordName)
         .orElseGet(() -> saveKeywordSafely(keywordName));
