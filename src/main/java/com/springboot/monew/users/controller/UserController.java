@@ -52,4 +52,13 @@ public class UserController implements UserApiDocs {
         UserDto userDto = userService.update(userId, requestUserId, request);
         return ResponseEntity.ok(userDto);
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID userId,
+            @RequestHeader("MoNew-Request-User-ID") UUID requestUserId
+    )  {
+        userService.delete(userId, requestUserId);
+        return ResponseEntity.noContent().build();
+    }
 }
