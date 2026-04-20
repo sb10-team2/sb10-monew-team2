@@ -13,8 +13,10 @@ import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +77,7 @@ public class InterestService {
     validateDuplicateKeywords(keywordNames);
 
     // 해당 관심사의 연결 목록 조회
-    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterest(
+    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
         interest);
     // 해당 관심사의 기존 키워드 목록 추출
     List<Keyword> oldKeywords = existingInterestKeywords.stream()
@@ -96,6 +98,32 @@ public class InterestService {
 
     log.info("관심사 수정 완료 - interestId: {}, keywordNames: {}", interest.getId(), keywordNames);
     return interestDtoMapper.toInterestDto(interest, keywordNames, false);
+  }
+
+  @Transactional
+  public void delete(UUID interestId) {
+    // 관심사 조회, 존재하지 않는 관심사라면 예외 발생
+    Interest interest = interestRepository.findById(interestId)
+        .orElseThrow(() -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+            Map.of("interestId", interestId)));
+
+    // 해당 관심사의 연결 목록 조회
+    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
+        interest);
+    // 해당 관심사의 기존 키워드 목록 추출
+    List<Keyword> oldKeywords = existingInterestKeywords.stream()
+        .map(InterestKeyword::getKeyword)
+        .toList();
+
+    // 조회한 관심사-키워드 연결 삭제
+    interestKeywordRepository.deleteAll(existingInterestKeywords);
+    // 관심사 삭제
+    interestRepository.delete(interest);
+
+    // 관심사와 연결되어 있던 키워드 목록을 순회하며 더 이상 연결된 관심사가 없다면 삭제
+    deleteOrphanKeywords(oldKeywords);
+
+    log.info("관심사 삭제 완료 - interestId={}, interestName={}", interest.getId(), interest.getName());
   }
 
   private Keyword getOrCreateKeyword(String keywordName) {
@@ -149,13 +177,16 @@ public class InterestService {
   }
 
   private void deleteOrphanKeywords(List<Keyword> keywords) {
-    for (Keyword keyword : keywords) {
-      // 해당 키워드와 연결된 관심사가 존재하지 않는다면
-      if (!interestKeywordRepository.existsByKeyword(keyword)) {
-        // 키워드 삭제
-        keywordRepository.delete(keyword);
-      }
+    if (keywords.isEmpty()) {
+      return;
     }
+
+    // 키워드 객체 리스트에서 id를 추출하여 id 리스트로 변환
+    List<UUID> keywordIds = keywords.stream()
+        .map(Keyword::getId)
+        .toList();
+
+    keywordRepository.deleteOrphanKeywordsByIds(keywordIds);
   }
 
 }
