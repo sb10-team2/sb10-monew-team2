@@ -9,6 +9,8 @@ import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.mapper.UserMapper;
 import com.springboot.monew.users.repository.UserRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
+  // 사용자 회원가입
   @Transactional
   public UserDto register(UserRegisterRequest request) {
     validateDuplicateEmail(request.email());
@@ -41,6 +44,7 @@ public class UserService {
     return userMapper.toDto(savedUser);
   }
 
+  // 사용자 로그인
   public UserDto login(UserLoginRequest request) {
     User user = userRepository.findByEmail(request.email())
         .orElseThrow(() -> {
@@ -71,6 +75,7 @@ public class UserService {
     return userMapper.toDto(user);
   }
 
+  // 닉네임 수정
   @Transactional
   public UserDto update(UUID userId, UUID requestUserId, UserUpdateRequest request) {
     // 다른 개발자 도구로 닉네임 수정을 막기 위해 '수정 대상 사용자'와 '요청을 보낸 사용자'가 같은지 검사
@@ -107,6 +112,7 @@ public class UserService {
     return userMapper.toDto(user);
   }
 
+  // 논리 삭제
   @Transactional
   public void delete(UUID userId, UUID requestUserId) {
     validateOwner(userId, requestUserId);
@@ -130,6 +136,40 @@ public class UserService {
 
     user.delete();
     log.info("사용자 탈퇴 완료 - userId={}", user.getId());
+  }
+
+  // 수동 물리 삭제
+  @Transactional
+  public void hardDelete(UUID userId, UUID requestUserId) {
+    validateOwner(userId, requestUserId);
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("사용자 물리 삭제 실패: 사용자를 찾을 수 없음 - userId={}", userId);
+          return new UserException(
+              UserErrorCode.USER_NOT_FOUND,
+              Map.of("userId", userId)
+          );
+        });
+
+    userRepository.delete(user);
+    log.info("사용자 물리 삭제 완료 - userId={}", userId);
+  }
+
+  // 24시간 후 자동 물리 삭제, 몇 명이 삭제되었는지 확인할 수 있도록 반환 타입을 int로 설정
+  @Transactional
+  public int purgeDeletedUsersOlderThan(Instant cutoff) {
+    List<User> users = userRepository.findUsersDeletedBefore(cutoff);
+
+    if (users.isEmpty()) {
+      log.info("물리 삭제 대상 사용자 없음 - cutoff={}", cutoff);
+      return 0;
+    }
+
+    userRepository.deleteAll(users);
+
+    log.info("논리 삭제 후 24시간 경과 사용자 물리 삭제 완료 - count={}, cutoff={}", users.size(), cutoff);
+    return users.size();
   }
 
   private void validateDuplicateEmail(String email) {

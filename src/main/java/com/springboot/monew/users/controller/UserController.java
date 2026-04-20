@@ -66,4 +66,13 @@ public class UserController implements UserApiDocs {
     userService.delete(userId, requestUserId);
     return ResponseEntity.noContent().build();
   }
+
+  @DeleteMapping("/{userId}/hard")
+  public ResponseEntity<Void> hardDelete(
+      @PathVariable UUID userId,
+      @RequestHeader("Monew-Request-User-ID") UUID requestUserId
+  ) {
+    userService.hardDelete(userId, requestUserId);
+    return ResponseEntity.noContent().build();
+  }
 }
