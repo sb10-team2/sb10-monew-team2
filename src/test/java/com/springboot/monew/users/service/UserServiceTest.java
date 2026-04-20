@@ -293,6 +293,30 @@ public class UserServiceTest {
     }
 
     @Test
+    @DisplayName("삭제된 사용자의 닉네임을 수정하면 USER_NOT_FOUND 예외가 발생한다.")
+    void update_deletedUser() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newNickname");
+        User deletedUser = new User("deleted@example.com", "monew123", "password123");
+        deletedUser.delete();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(deletedUser));
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(userId, userId, request))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId));
+                });
+
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByNickname(anyString());
+    }
+
+    @Test
     @DisplayName("이미 사용 중인 닉네임으로 수정하면 DUPLICATE_NICKNAME 예외가 발생한다")
     void update_duplicateNickname() {
         UUID userId = UUID.randomUUID();
@@ -343,5 +367,84 @@ public class UserServiceTest {
         verify(userRepository).findById(userId);
         verify(userRepository, never()).existsByNickname(anyString());
         verify(userMapper).toDto(user);
+    }
+
+    @Test
+    @DisplayName("사용자 삭제에 성공하면 deletedAt이 설정된다")
+    void delete_success() {
+        // given
+        UUID userId = UUID.randomUUID();
+        User user = new User("test@example.com", "monew123", "password123");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        // 삭제 되기 전 확인 검증용
+        assertThat(user.isDeleted()).isFalse();
+
+        // when
+        userService.delete(userId, userId);
+
+        // then
+        assertThat(user.isDeleted()).isTrue();
+        verify(userRepository).findById(userId);
+    }
+
+    @Test
+    @DisplayName("요청 사용자와 삭제 대상 사용자가 다르면 USER_NOT_OWNED 예외가 발생한다")
+    void delete_userNotOwned() {
+        // given
+        UUID userId = UUID.randomUUID();
+        UUID requestUserId = UUID.randomUUID();
+
+        // when & then
+        assertThatThrownBy(() -> userService.delete(userId, requestUserId))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_OWNED);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId, "requestUserId", requestUserId));
+                });
+        verify(userRepository, never()).findById(any());
+        verify(userMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자를 삭제하면 USER_NOT_FOUND 예외가 발생한다")
+    void delete_userNotFound() {
+        // given
+        UUID userId = UUID.randomUUID();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.delete(userId, userId))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId));
+                });
+        verify(userRepository).findById(userId);
+    }
+
+    @Test
+    @DisplayName("이미 삭제된 사용자를 삭제하면 USER_NOT_FOUND 예외가 발생한다")
+    void delete_deletedUser() {
+        // given
+        UUID userId = UUID.randomUUID();
+        User deletedUser = new User("deleted@example.com", "monew123", "password123");
+        deletedUser.delete();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(deletedUser));
+
+        // when & then
+        assertThatThrownBy(() -> userService.delete(userId, userId))
+                .isInstanceOf(UserException.class)
+                .satisfies(throwable -> {
+                    UserException exception = (UserException) throwable;
+                    assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                    assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId));
+                });
+        verify(userRepository).findById(userId);
+        assertThat(deletedUser.isDeleted()).isTrue();
     }
 }

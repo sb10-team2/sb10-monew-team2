@@ -75,13 +75,7 @@ public class UserService {
     @Transactional
     public UserDto update(UUID userId, UUID requestUserId, UserUpdateRequest request) {
         // 다른 개발자 도구로 닉네임 수정을 막기 위해 '수정 대상 사용자'와 '요청을 보낸 사용자'가 같은지 검사
-        if(!userId.equals(requestUserId)) {
-            log.warn("닉네임 수정 실패: 사용자 불일치 - userId={}, requestUserId={}", userId, requestUserId);
-            throw new UserException(
-                    UserErrorCode.USER_NOT_OWNED,
-                    Map.of("userId", userId, "requestUserId", requestUserId)
-            );
-        }
+        validateOwner(userId, requestUserId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
@@ -114,6 +108,31 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
+    @Transactional
+    public void delete(UUID userId, UUID requestUserId) {
+        validateOwner(userId, requestUserId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("사용자 탈퇴 실패: 사용자를 찾을 수 없음 - userId={}", userId);
+                    return new UserException(
+                            UserErrorCode.USER_NOT_FOUND,
+                            Map.of("userId", userId)
+                    );
+                });
+
+        if (user.isDeleted()) {
+            log.warn("사용자 탈퇴 실패: 탈퇴한 사용자 - userId={}", userId);
+            throw new UserException(
+                    UserErrorCode.USER_NOT_FOUND,
+                    Map.of("userId", userId)
+            );
+        }
+
+        user.delete();
+        log.info("사용자 탈퇴 완료 - userId={}", user.getId());
+    }
+
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email)) {
             log.warn("회원가입 실패 - email={}", email);
@@ -130,6 +149,16 @@ public class UserService {
             throw new UserException(
                     UserErrorCode.DUPLICATE_NICKNAME,
                     Map.of("nickname", nickname)
+            );
+        }
+    }
+
+    private void validateOwner(UUID userId, UUID requestUserId) {
+        if(!userId.equals(requestUserId)) {
+            log.warn("사용자 권한 검증 실패: 사용자 불일치 - userId={}, requestUserId={}", userId, requestUserId);
+            throw new UserException(
+                    UserErrorCode.USER_NOT_OWNED,
+                    Map.of("userId", userId, "requestUserId", requestUserId)
             );
         }
     }
