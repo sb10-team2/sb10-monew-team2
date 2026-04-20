@@ -2,6 +2,7 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class NewsArticleService {
 
     private final NewsArticleRepository newsArticleRepository;
+    private final NewsArticleMapper newsArticleMapper;
 
     @Transactional
     public void saveAll(List<CollectedArticle> articles) {
@@ -35,20 +37,12 @@ public class NewsArticleService {
 
         // 2. DB에 이미 존재하는 링크 제거
         List<NewsArticle> entities = distinctArticles.stream()
-                .filter(article -> !newsArticleRepository.existsByOriginalLink(article.originalLink()))
-                .map(this::toEntity)
-                .toList();
+            .filter(article -> !newsArticleRepository.existsByOriginalLink(article.originalLink()))
+            .map(newsArticleMapper::toEntity)
+            .toList();
 
         newsArticleRepository.saveAll(entities);
     }
 
-    private NewsArticle toEntity(CollectedArticle article) {
-        return NewsArticle.builder()
-                .source(article.source())
-                .originalLink(article.originalLink())
-                .title(article.title())
-                .publishedAt(article.publishedAt())
-                .summary(article.summary())
-                .build();
-    }
+
 }
