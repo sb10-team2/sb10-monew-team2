@@ -1,5 +1,6 @@
 package com.springboot.monew.newsarticles.entity;
 
+import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -17,11 +18,7 @@ import java.util.UUID;
                 @UniqueConstraint(name = "UK_NEWS_ARTICLES_ORIGINAL_LINK", columnNames = "original_link")
         }
 )
-public class NewsArticle {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class NewsArticle extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
