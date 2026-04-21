@@ -159,6 +159,22 @@ class CommentControllerTest {
   }
 
   @Test
+  @DisplayName("Monew-Request-User-ID 헤더 누락 시 401을 반환한다")
+  void update_실패_헤더누락() throws Exception {
+    // given
+    UUID commentId = UUID.randomUUID();
+    CommentUpdateRequest request = new CommentUpdateRequest("수정한 댓글");
+
+    // when & then
+    mockMvc.perform(patch("/api/comments/{commentId}", commentId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnauthorized());
+
+    then(commentService).should(never()).update(any(), any(), any());
+  }
+
+  @Test
   @DisplayName("댓글 물리 삭제 시 204를 반환한다.")
   void hardDelete_성공() throws Exception {
     // given
