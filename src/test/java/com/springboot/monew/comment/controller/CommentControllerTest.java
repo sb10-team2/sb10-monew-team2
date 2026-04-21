@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,8 +68,8 @@ class CommentControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(response.id().toString()));
-
+        .andExpect(jsonPath("$.id").value(response.id().toString()))
+        .andExpect(header().string("Location", "/api/comments/" + response.id()));
   }
 
   @Test
@@ -155,7 +156,6 @@ class CommentControllerTest {
 
     // 잘못된 요청일 경우 service 실행 X
     then(commentService).should(never()).update(commentId, userId, request);
-    // then
   }
 
   @Test
