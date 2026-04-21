@@ -165,7 +165,7 @@ class NotificationTest {
             Notification.builder()
                 .user(user)
                 .commentLike(commentLike)
-                .resourceType(ResourceType.INTEREST)
+                .resourceType(ResourceType.COMMENT)
                 .build())
         .isInstanceOf(NotificationException.class);
   }

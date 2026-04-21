@@ -2,6 +2,7 @@ package com.springboot.monew.notification.repository;
 
 import com.springboot.monew.notification.entity.Notification;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -31,14 +32,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Modifying(clearAutomatically = true)
   @Query("update Notification n "
       + "set n.confirmed = true, n.updatedAt = :updatedAt "
-      + "where n.id = :id and n.user.id = :userId")
-  int updateConfirmed(UUID id, UUID userId, Instant updatedAt);
-
-  @Modifying(clearAutomatically = true)
-  @Query("update Notification n "
-      + "set n.confirmed = true, n.updatedAt = :updatedAt "
-      + "where n.user.id = :userId")
-  int updateConfirmed(UUID userId, Instant updatedAt);
+      + "where n.user.id = :userId and n.confirmed = false")
+  int bulkUpdateConfirmed(UUID userId, Instant updatedAt);
 
   long countAllByUser_IdAndConfirmedIsFalse(UUID userId);
 }

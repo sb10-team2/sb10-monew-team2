@@ -7,6 +7,8 @@ import com.springboot.monew.notification.dto.NotificationFindRequest;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.event.CommentLikeNotificationEvent;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
+import com.springboot.monew.notification.exception.NotificationErrorCode;
+import com.springboot.monew.notification.exception.NotificationException;
 import com.springboot.monew.notification.mapper.NotificationMapper;
 import com.springboot.monew.notification.repository.NotificationRepository;
 import java.time.Instant;
@@ -44,33 +46,32 @@ public class NotificationService {
     Pageable pageable = PageRequest.of(0, request.getLimit());
     Slice<Notification> results = notificationRepository.findByCursor(request.getCursor(),
         request.getAfter(), userId, pageable);
-    return toCursorPage(results);
+    return toCursorPage(results, userId);
   }
 
   public void update(UUID id, UUID userId) {
-    notificationRepository.updateConfirmed(id, userId, Instant.now());
+    Notification notification = notificationRepository.findById(id).orElseThrow(
+        () -> new NotificationException(NotificationErrorCode.NOTIFICATION_NOT_FOUND, id)
+    );
+    notification.updateConfirmed(Instant.now());
   }
 
   public void update(UUID userId) {
-    notificationRepository.updateConfirmed(userId, Instant.now());
+    notificationRepository.bulkUpdateConfirmed(userId, Instant.now());
   }
 
-  private CursorPageResponse<NotificationDto> toCursorPage(Slice<Notification> results) {
+  private CursorPageResponse<NotificationDto> toCursorPage(Slice<Notification> results,
+      UUID userId) {
+    List<Notification> entities = results.getContent();
     boolean hasNext = results.hasNext();
-    List<Notification> entities = List.of();
     String nextCursor = null;
     String nextAfter = null;
-    int size = 0;
-    long totalElements = 0;
-    if (hasNext) {
-      entities = results.getContent();
-      size = entities.size();
+    int size = entities.size();
+    long totalElements = notificationRepository.countAllByUser_IdAndConfirmedIsFalse(userId);
+    if (hasNext && !entities.isEmpty()) {
       Notification lastNotification = entities.get(size - 1);
       nextCursor = lastNotification.getId().toString();
-      Instant createdAt = lastNotification.getCreatedAt();
-      nextAfter = TimeConverter.toDatetime(createdAt).toString();
-      totalElements = notificationRepository.countAllByUser_IdAndConfirmedIsFalse(
-          lastNotification.getUser().getId());
+      nextAfter = TimeConverter.toDatetime(lastNotification.getCreatedAt()).toString();
     }
     return new CursorPageResponse<>(
         notificationMapper.toDto(entities),

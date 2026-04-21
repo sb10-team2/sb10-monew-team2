@@ -258,31 +258,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
-  @DisplayName("알람 객체 업데이트 성공\n"
-      + "confirmed=false -> true, updatedAt=Instant.now()")
-  void successToUpdateConfirmed() {
-    // given
-    Instant updatedAt = Instant.now();
-    Notification expected = testEntityManager.generateNotification();
-    expected.updateConfirmed(updatedAt);
-    clear();
-
-    // when
-    notificationRepository.updateConfirmed(expected.getId(), expected.getUser().getId(),
-        updatedAt);
-    ensureQueryCount(1);
-    printQueries();
-
-    // then
-    Notification actual = notificationRepository.findById(expected.getId()).orElseThrow();
-    Assertions.assertThat(actual)
-        .usingRecursiveComparison()
-        .ignoringFields("user", "interest")
-        .withEqualsForType(this::compareInstant, Instant.class)
-        .isEqualTo(expected);
-  }
-
-  @Test
   @DisplayName("알람 벌크 업데이트 성공\n"
       + "confirmed=false -> true, updatedAt=Instant.now()")
   void successToBulkUpdateConfirmed() {
@@ -296,7 +271,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     // when
     List<UUID> ids = getIds(expected);
     UUID userId = expected.get(0).getUser().getId();
-    int updatedSuccessCount = notificationRepository.updateConfirmed(userId, updatedAt);
+    int updatedSuccessCount = notificationRepository.bulkUpdateConfirmed(userId, updatedAt);
     ensureQueryCount(1);
     printQueries();
 
