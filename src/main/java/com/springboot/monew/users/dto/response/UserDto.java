@@ -1,4 +1,4 @@
-package com.springboot.monew.users.dto;
+package com.springboot.monew.users.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
