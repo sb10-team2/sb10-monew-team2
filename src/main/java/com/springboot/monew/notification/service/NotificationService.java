@@ -60,6 +60,10 @@ public class NotificationService {
     notificationRepository.bulkUpdateConfirmed(userId, Instant.now());
   }
 
+  public long deleteByChunk(Instant threshold, int chunk) {
+    return notificationRepository.deleteOutdatedByChunk(threshold, chunk);
+  }
+
   private CursorPageResponse<NotificationDto> toCursorPage(Slice<Notification> results,
       UUID userId) {
     List<Notification> entities = results.getContent();
