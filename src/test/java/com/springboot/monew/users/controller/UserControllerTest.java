@@ -13,10 +13,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.springboot.monew.users.dto.UserDto;
-import com.springboot.monew.users.dto.UserLoginRequest;
-import com.springboot.monew.users.dto.UserRegisterRequest;
-import com.springboot.monew.users.dto.UserUpdateRequest;
+import com.springboot.monew.users.dto.request.UserLoginRequest;
+import com.springboot.monew.users.dto.request.UserRegisterRequest;
+import com.springboot.monew.users.dto.request.UserUpdateRequest;
+import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.service.UserService;
 import java.time.Instant;
 import java.util.UUID;
@@ -170,7 +170,8 @@ public class UserControllerTest {
         createdAt
     );
 
-    given(userService.update(eq(userId), eq(userId), any(UserUpdateRequest.class))).willReturn(expected);
+    given(userService.update(eq(userId), eq(userId), any(UserUpdateRequest.class))).willReturn(
+        expected);
 
     // when & then
     mockMvc.perform(patch("/api/users/{userId}", userId)
