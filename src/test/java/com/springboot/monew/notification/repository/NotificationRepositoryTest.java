@@ -1,10 +1,13 @@
 package com.springboot.monew.notification.repository;
 
 import com.springboot.monew.common.repository.BaseRepositoryTest;
+import com.springboot.monew.common.utils.TimeConverter;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +38,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void successToCreateByInterestAndFind() {
     // given
     Notification expected = Notification.builder()
-        .content("successToCreateByInterestAndFind")
         .resourceType(ResourceType.INTEREST)
         .user(testEntityManager.generateUser())
         .interest(testEntityManager.generateInterest())
@@ -65,7 +67,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void failToCreateWithNonExistingUser() {
     // given
     Notification expected = Notification.builder()
-        .content("failToCreateWithNonExistingUser")
         .user(testEntityManager.getProxyUser())
         .interest(testEntityManager.generateInterest())
         .resourceType(ResourceType.INTEREST)
@@ -85,7 +86,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void failToCreateWithNonExistingInterest() {
     // given
     Notification expected = Notification.builder()
-        .content("failToCreateWithNonExistingInterest")
         .user(testEntityManager.generateUser())
         .interest(testEntityManager.getProxyInterest())
         .resourceType(ResourceType.INTEREST)
@@ -105,7 +105,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void successToCreateWithCommentLikeAndFind() {
     // given
     Notification expected = Notification.builder()
-        .content("successToCreateWithCommentLikeAndFind")
         .user(testEntityManager.generateUser())
         .commentLike(testEntityManager.generateCommentLike())
         .resourceType(ResourceType.COMMENT)
@@ -135,7 +134,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void failToCreateWithNonExistingCommentLike() {
     // given
     Notification expected = Notification.builder()
-        .content("failToCreateWithNonExistingCommentLike")
         .user(testEntityManager.generateUser())
         .commentLike(testEntityManager.getProxyCommentLike())
         .resourceType(ResourceType.COMMENT)
@@ -155,7 +153,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   void failToCreateDueToMismatchResourceType() {
     // given
     Notification expected = Notification.builder()
-        .content("failToCreateDueToMismatchResourceType")
         .user(testEntityManager.generateUser())
         .commentLike(testEntityManager.generateCommentLike())
         .resourceType(ResourceType.INTEREST)
@@ -223,7 +220,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     clear();
 
     UUID cursor = null;
-    Instant after = null;
+    LocalDateTime after = null;
     List<UUID> allFetchedIds = new ArrayList<>();
     boolean hasNext = true;
 
@@ -246,7 +243,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
       hasNext = result.hasNext();
       if (hasNext && !actual.isEmpty()) {
         cursor = actual.get(actual.size() - 1).getId();
-        after = actual.get(actual.size() - 1).getCreatedAt();
+        after = TimeConverter.toDatetime(actual.get(actual.size() - 1).getCreatedAt());
       }
     }
 
