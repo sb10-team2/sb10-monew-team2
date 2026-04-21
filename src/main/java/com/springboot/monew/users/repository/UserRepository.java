@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
           select  u
           from User u
           where u.deletedAt is not null
-            and u.deletedAt < :cutoff
+            and u.deletedAt <= :cutoff
       """)
   List<User> findUsersDeletedBefore(@Param("cutoff") Instant cutoff);
 
