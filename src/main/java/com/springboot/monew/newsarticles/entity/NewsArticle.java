@@ -1,11 +1,11 @@
 package com.springboot.monew.newsarticles.entity;
 
+import com.springboot.monew.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -15,11 +15,7 @@ import java.util.UUID;
                 @UniqueConstraint(name = "UK_NEWS_ARTICLES_ORIGINAL_LINK", columnNames = "original_link")
         }
 )
-public class NewsArticle {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class NewsArticle extends BaseEntity {
 
     @Column(nullable = false, length = 100)
     private String source;
