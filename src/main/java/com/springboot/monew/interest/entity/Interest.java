@@ -4,10 +4,12 @@ import com.springboot.monew.common.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(
@@ -28,6 +30,10 @@ public class Interest extends BaseUpdatableEntity {
 
   @Column(name = "subscriber_count", nullable = false)
   private long subscriberCount;
+
+  @Setter
+  @Transient
+  private long articleCount;
 
   public Interest(String name) {
     this.name = name;
