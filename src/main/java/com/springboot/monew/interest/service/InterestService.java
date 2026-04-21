@@ -14,6 +14,7 @@ import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,24 +78,46 @@ public class InterestService {
     validateDuplicateKeywords(keywordNames);
 
     // 해당 관심사의 연결 목록 조회
-    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
-        interest);
-    // 해당 관심사의 기존 키워드 목록 추출
-    List<Keyword> oldKeywords = existingInterestKeywords.stream()
+    List<InterestKeyword> existingInterestKeywords =
+        interestKeywordRepository.findAllByInterestWithKeyword(interest);
+
+    // 연결 내용을 키워드 이름 기준으로 빠르게 조회하기 위해 (키워드 이름, 관심사-키워드 연결 엔티티)) 형태로 맵 생성
+    Map<String, InterestKeyword> existingInterestKeywordMap = new LinkedHashMap<>();
+    for (InterestKeyword interestKeyword : existingInterestKeywords) {
+      existingInterestKeywordMap.put(interestKeyword.getKeyword().getName(), interestKeyword);
+    }
+
+    // 요청 키워드 목록을 Set으로 생성
+    Set<String> requestedKeywordNames = new HashSet<>(keywordNames);
+
+    // 요청 목록에 없는 키워드만 선별하여 삭제 대상으로 생성
+    List<InterestKeyword> interestKeywordsToDelete = existingInterestKeywords.stream()
+        .filter(interestKeyword -> !requestedKeywordNames.contains(
+            interestKeyword.getKeyword().getName()))
+        .toList();
+
+    // 삭제 대상에 포함된 키워드 중 고아 객체 수집
+    List<Keyword> orphanCandidateKeywords = interestKeywordsToDelete.stream()
         .map(InterestKeyword::getKeyword)
         .toList();
 
-    // 조회한 관심사-키워드 연결 삭제
-    interestKeywordRepository.deleteAll(existingInterestKeywords);
+    // 삭제 대상이 있으면 삭제
+    if (!interestKeywordsToDelete.isEmpty()) {
+      interestKeywordRepository.deleteAll(interestKeywordsToDelete);
+    }
 
-    // 요청 받은 키워드 목록 순회
+    // 요청 목록을 순회하며 기존 연결이 없는 새로운 키워드만 새롭게 생성
     for (String keywordName : keywordNames) {
+      if (existingInterestKeywordMap.containsKey(keywordName)) {
+        continue;
+      }
+
       Keyword keyword = getOrCreateKeyword(keywordName);
       interestKeywordRepository.save(new InterestKeyword(interest, keyword));
     }
 
-    // 이전 키워드 목록을 순회하며 더 이상 연결된 관심사가 없다면 삭제
-    deleteOrphanKeywords(oldKeywords);
+    // 더 이상 연결된 관심사가 없는 키워드는 삭제
+    deleteOrphanKeywords(orphanCandidateKeywords);
 
     log.info("관심사 수정 완료 - interestId: {}, keywordNames: {}", interest.getId(), keywordNames);
     return interestDtoMapper.toInterestDto(interest, keywordNames, false);
