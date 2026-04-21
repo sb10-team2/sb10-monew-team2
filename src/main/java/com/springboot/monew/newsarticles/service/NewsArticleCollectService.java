@@ -1,10 +1,17 @@
 package com.springboot.monew.newsarticles.service;
 
+import com.springboot.monew.interest.dto.response.InterestKeywordInfo;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
+import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
 import com.springboot.monew.newsarticles.service.collector.ArticleCollector;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,32 +35,55 @@ public class NewsArticleCollectService {
     @Transactional
     public void collectAll() {
 
-        //키워드를 List로 만든다.
-        List<String> keywords = interestKeywordRepository.findAllKeywords();
+        //(관심사 id, 키워드) 리스트
+        List<InterestKeywordInfo> infos = interestKeywordRepository.findAllInterestKeywordInfos();
+
+        //keyword -> interestIds
+        //{"키워드" -> [관심사 ID]}식으로 변경
+        // 하나의 키워드가 여러 관심사에 연결될 수도 있다.
+        // "ai" ->[기술, 스타트업, 투자] 이런식으로 ..
+        Map<String, Set<UUID>> keywordToInterestIds = infos.stream()
+            .collect(Collectors.groupingBy(
+                info -> info.keywordName().toLowerCase(),
+                Collectors.mapping(InterestKeywordInfo::interestId, Collectors.toSet())     //interestId 꺼낸다음에 Set으로 모아라.
+            ));
+
+        //키워드 리스트 추출
+        List<String> keywords = new ArrayList<>(keywordToInterestIds.keySet());
+
         log.info("키워드 리스트={}", keywords);
 
-        //키워드가 들어가있는 뉴스기사를 수집해서 List로 저장한다.
         for (ArticleCollector collector : collectors) {
             List<CollectedArticle> collectedArticles = collector.collect(keywords);
 
-            //키워드 검증.
-            List<CollectedArticle> filteredArticles = collectedArticles.stream()
-                            .filter(article -> containsAnyKeyword(article, keywords))       //containsAnyKeyword에서 true인것만 남겨지게 된다.
-                            .toList();
+            List<CollectedArticleWithInterest> matchedArticles = collectedArticles.stream()
+                .map(article -> {
+                    Set<UUID> matchedInterestIds = findMatchedInterestIds(article, keywordToInterestIds);
 
-            newsArticleService.saveAll(filteredArticles);
+                    return new CollectedArticleWithInterest(article, matchedInterestIds);
+                })
+                .filter(item -> !item.interestIds().isEmpty())
+                .toList();
+
+            newsArticleService.saveAll(matchedArticles);
+
         }
     }
 
-    //title이나, 내용에 keyword가 있는지 check
-    private boolean containsAnyKeyword(CollectedArticle article, List<String> keywords) {
-        String title = article.title() == null ? "" : article.title().toLowerCase();
-        String content = article.summary() == null ? "" : article.summary().toLowerCase();
+    private Set<UUID> findMatchedInterestIds(
+        CollectedArticle article,
+        Map<String, Set<UUID>> keywordToInterestIds
+    ) {
+        String text = (article.title() + " " + article.summary()).toLowerCase();
 
-        return keywords.stream()
-                .map(String::toLowerCase)
-                .anyMatch(keyword -> title.contains(keyword) || content.contains(keyword));
+        //"손흥민" -> [축구, 운동선수] 이런식으로 키워드 -> [관심사1, 관심사2 ..] 이런형태
+        //제목과 요약에 해당 키워드가 있으면 그 article은 관심사1, 관심사 2 ... 이런식으로 매칭이 된다.
+        // (기사1, [관심사1]), (기사2, [관심사1, 관심사2]) 이런식의 결과 return
+        return keywordToInterestIds.entrySet().stream()
+            .filter(entry -> text.contains(entry.getKey()))
+            .flatMap(entry -> entry.getValue().stream())
+            .collect(Collectors.toSet());
     }
-
-
 }
+
+

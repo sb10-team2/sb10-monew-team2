@@ -6,4 +6,5 @@ public record InterestKeywordInfo(
     UUID interestId,
     String keywordName
 ){
+
 }
