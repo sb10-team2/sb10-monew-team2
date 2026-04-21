@@ -1,0 +1,100 @@
+package com.springboot.monew.comment.service;
+
+import com.springboot.monew.comment.dto.CommentLikeDto;
+import com.springboot.monew.comment.entity.Comment;
+import com.springboot.monew.comment.entity.CommentLike;
+import com.springboot.monew.comment.exception.CommentErrorCode;
+import com.springboot.monew.comment.exception.CommentException;
+import com.springboot.monew.comment.mapper.CommentLikeMapper;
+import com.springboot.monew.comment.repository.CommentLikeRepository;
+import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.exception.UserErrorCode;
+import com.springboot.monew.users.exception.UserException;
+import com.springboot.monew.users.repository.UserRepository;
+import java.util.Map;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class CommentLikeService {
+  private final CommentLikeRepository commentLikeRepository;
+  private final CommentRepository commentRepository;
+  private final CommentLikeMapper commentLikeMapper;
+  private final UserRepository userRepository;
+
+  // 좋아요
+  @Transactional
+  public CommentLikeDto like(UUID commentId, UUID userId) {
+    Comment comment = getActiveComment(commentId);
+    User user = getActiveUser(userId);
+
+    // 중복 좋아요 check
+    if (commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
+      throw new CommentException(
+          CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS,
+          Map.of("commentId", commentId, "userId", userId));
+    }
+
+    // Todo: 알림 객체 생성
+
+    CommentLike commentLike = new CommentLike(comment, user);
+    commentLikeRepository.save(commentLike);
+    log.debug("likeCount 증가 전 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
+    commentRepository.incrementLikeCount(comment.getId());
+    log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
+    log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
+
+    return commentLikeMapper.toCommentLikeDto(commentLike);
+  }
+
+  // 댓글 좋아요 취소
+  @Transactional
+  public void unlike(UUID commentId, UUID userId) {
+    Comment comment = getActiveComment(commentId);
+    User user = getActiveUser(userId);
+
+    // 좋아요 존재 확인
+    CommentLike commentLike =
+        commentLikeRepository
+            .findCommentLikeByCommentAndUser(comment, user)
+            .orElseThrow(
+                () ->
+                    new CommentException(
+                        CommentErrorCode.COMMENT_LIKE_NOT_FOUND, Map.of("commentId", commentId)));
+
+    // 좋아요 삭제(하드 딜릿) -> 좋아요 취소 시 이력에서 바로 삭제되므로 하드딜릿이 맞다고 판단
+    commentLikeRepository.delete(commentLike);
+    commentRepository.decrementLikeCount(comment.getId());
+    log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
+  }
+
+  // 활성 댓글만 조회 (논리삭제된 것 제외)
+  private Comment getActiveComment(UUID commentId) {
+    return commentRepository
+        .findByIdAndIsDeletedFalse(commentId)
+        .orElseThrow(
+            () ->
+                new CommentException(
+                    CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+  }
+
+  // 활성 유저 조회 (존재 + 논리삭제 체크)
+  private User getActiveUser(UUID userId) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(
+                () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+    if (user.isDeleted()) {
+      throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+    }
+    return user;
+  }
+
+}

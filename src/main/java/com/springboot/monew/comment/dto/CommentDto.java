@@ -10,6 +10,6 @@ public record CommentDto(
     UUID userId,
     String userNickname,
     String content,
-    Integer likeCount,
+    Long likeCount,
     Boolean likeByMe,
     Instant createdAt) {}

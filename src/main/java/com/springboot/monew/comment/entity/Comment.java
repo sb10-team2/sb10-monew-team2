@@ -28,7 +28,7 @@ public class Comment extends BaseUpdatableEntity {
 
   // 좋아요 수
   @Column(name = "like_count", nullable = false)
-  private int likeCount;
+  private long likeCount;
 
   // 삭제 여부 -> 논리 삭제
   @Column(name = "is_deleted", nullable = false)
