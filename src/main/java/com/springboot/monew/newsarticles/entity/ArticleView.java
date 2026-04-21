@@ -1,6 +1,7 @@
 package com.springboot.monew.newsarticles.entity;
 
 import com.springboot.monew.common.entity.BaseEntity;
+import com.springboot.monew.users.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,17 +30,17 @@ public class ArticleView extends BaseEntity {
     )
     private NewsArticle newsArticle;
 
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-//    @JoinColumn(
-//            name = "user_id",
-//            nullable = false,
-//            foreignKey = @ForeignKey(name = "FK_ARTICLE_VIEWS_USER")
-//    )
-//    private Users user;
-//
-//    public ArticleView(NewsArticle newsArticle, Users user) {
-//        this.newsArticle = newsArticle;
-//        this.user = user;
-//    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "FK_ARTICLE_VIEWS_USER")
+    )
+    private User user;
+
+    public ArticleView(NewsArticle newsArticle, User user) {
+        this.newsArticle = newsArticle;
+        this.user = user;
+    }
 
 }

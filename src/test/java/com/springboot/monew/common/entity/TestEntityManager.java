@@ -1,13 +1,16 @@
 package com.springboot.monew.common.entity;
 
+import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.fixture.EntityFixtureFactory;
 import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.users.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +42,29 @@ public class TestEntityManager {
 
   public User generateUser() {
     return persistAndFlushWithRecursive(get(User.class));
+  }
+
+  public NewsArticle generateNewsArticle() {
+    NewsArticle article = new NewsArticle(
+        "source-" + UUID.randomUUID(),
+        "https://test.com/" + UUID.randomUUID(),
+        "테스트 기사 제목",
+        Instant.now(),
+        "테스트 요약"
+    );
+    em.persist(article);
+    em.flush();
+    return article;
+  }
+
+  public Comment generateComment() {
+    return persistAndFlushWithRecursive(get(Comment.class));
+  }
+
+  public List<Comment> generateComments(int size, NewsArticle article) {
+    User sharedUser = generateUser();
+    return persistAndFlushWithRecursive(
+        EntityFixtureFactory.getCommentList(size, article, sharedUser));
   }
 
   public User getProxyUser() {
@@ -102,6 +128,9 @@ public class TestEntityManager {
         }
       }
       currentClazz = currentClazz.getSuperclass(); // 부모 클래스로 올라감
+    }
+    if (em.contains(object)) {
+      return;
     }
     em.persist(object);
   }

@@ -14,7 +14,7 @@ public class NotificationFixtureBuilder {
 
   private int size = 10;
   private ResourceType resourceType = ResourceType.INTEREST;
-  private User user; // 💡 공유할 유저를 받을 필드 추가!
+  private User user;
 
   private NotificationFixtureBuilder() {}
 
@@ -32,7 +32,6 @@ public class NotificationFixtureBuilder {
     return this;
   }
 
-  // 💡 팩토리로부터 유저를 전달받는 메서드!
   public NotificationFixtureBuilder user(User user) {
     this.user = user;
     return this;
@@ -53,7 +52,6 @@ public class NotificationFixtureBuilder {
         .set(field(Notification::getConfirmed), false)
         .set(field(Notification::getResourceType), this.resourceType);
 
-    // 💡 팩토리에서 유저를 넘겨줬다면, 모든 알림에 그 유저를 강제 주입!
     if (this.user != null) {
       api.set(field(Notification::getUser), this.user);
     }

@@ -14,28 +14,28 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-        name = "subscriptions",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "UK_SUBSCRIPTIONS_USER_ID_INTEREST_ID",
-                        columnNames = {"user_id", "interest_id"}
-                )
-        }
+    name = "subscriptions",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "UK_SUBSCRIPTIONS_USER_ID_INTEREST_ID",
+            columnNames = {"user_id", "interest_id"}
+        )
+    }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Subscription extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "interest_id", nullable = false)
-    private Interest interest;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "interest_id", nullable = false)
+  private Interest interest;
 
-    public Subscription(User user, Interest interest) {
-        this.user = user;
-        this.interest = interest;
-    }
+  public Subscription(User user, Interest interest) {
+    this.user = user;
+    this.interest = interest;
+  }
 }

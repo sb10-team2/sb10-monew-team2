@@ -14,4 +14,12 @@ public class NotificationException extends MonewException {
   public NotificationException(ErrorCode errorCode, UUID id) {
     this(errorCode, Map.of("id", id));
   }
+
+  public NotificationException(ErrorCode errorCode) {
+    this(errorCode, Map.of());
+  }
+
+  public NotificationException(ErrorCode errorCode, String detailMessage) {
+    this(errorCode, Map.of("detailMessage", detailMessage));
+  }
 }

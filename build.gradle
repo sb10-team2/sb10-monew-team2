@@ -85,7 +85,8 @@ jacocoTestReport {
             "**/mapper/**",
             "**/*Application*",
             "**/*Interceptor*",
-            "**/*Filter*"
+            "**/*Filter*",
+            "**/Q*.class"
     ]
      for(qPattern in "**/QA" .. "**/QZ"){ excludes.add(qPattern + "*") }
     classDirectories.setFrom(files(classDirectories.files.collect {
