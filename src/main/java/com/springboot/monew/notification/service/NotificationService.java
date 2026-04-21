@@ -47,6 +47,14 @@ public class NotificationService {
     return toCursorPage(results);
   }
 
+  public void update(UUID id, UUID userId) {
+    notificationRepository.updateConfirmed(id, userId, Instant.now());
+  }
+
+  public void update(UUID userId) {
+    notificationRepository.updateConfirmed(userId, Instant.now());
+  }
+
   private CursorPageResponse<NotificationDto> toCursorPage(Slice<Notification> results) {
     boolean hasNext = results.hasNext();
     List<Notification> entities = List.of();

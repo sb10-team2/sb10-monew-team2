@@ -7,7 +7,6 @@ import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -292,7 +291,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     // when
     List<UUID> ids = getIds(expected);
     UUID userId = expected.get(0).getUser().getId();
-    int updatedSuccessCount = notificationRepository.updateConfirmed(ids, userId, updatedAt);
+    int updatedSuccessCount = notificationRepository.updateConfirmed(userId, updatedAt);
     ensureQueryCount(1);
     printQueries();
 

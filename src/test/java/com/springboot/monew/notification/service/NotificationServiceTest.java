@@ -146,17 +146,4 @@ class NotificationServiceTest {
         .contains(size, hasNext, totalElements, last.getId().toString(),
             TimeConverter.toDatetime(last.getCreatedAt()).toString());
   }
-
-  @Test
-  @DisplayName("한 유저의 확인하지 않은 모든 알람 중 단일 알람 확인 성공")
-  void successToUpdateConfirmed() {
-
-  }
-
-  @Test
-  @DisplayName("한 유저의 확인하지 않은 모든 알람 확인 성공")
-  void successToBulkUpdateConfirmed() {
-
-  }
-
 }
