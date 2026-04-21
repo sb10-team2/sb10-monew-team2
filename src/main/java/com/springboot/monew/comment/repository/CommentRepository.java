@@ -1,8 +1,6 @@
 package com.springboot.monew.comment.repository;
 
 import com.springboot.monew.comment.entity.Comment;
-import com.springboot.monew.comment.entity.CommentDirection;
-import com.springboot.monew.comment.entity.CommentOrderBy;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -61,8 +59,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
       nativeQuery = true)
   List<Comment> findComments(
       @Param("articleId") UUID articleId,
-      @Param("orderBy") CommentOrderBy orderBy,
-      @Param("direction") CommentDirection direction,
+      @Param("orderBy") String orderBy,
+      @Param("direction") String direction,
       @Param("cursor") String cursor,
       @Param("after") Instant after,
       @Param("limit") int limit);
