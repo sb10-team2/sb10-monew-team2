@@ -27,9 +27,6 @@ class CommentLikeControllerTest {
   @Autowired
   MockMvc mockMvc;
 
-  @Autowired
-  ObjectMapper objectMapper;
-
   @MockitoBean
   private CommentLikeService commentLikeService;
 
