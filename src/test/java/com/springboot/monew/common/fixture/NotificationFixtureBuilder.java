@@ -49,7 +49,6 @@ public class NotificationFixtureBuilder {
     api.ignore(field(Notification::getId))
         .ignore(field(Notification::getCreatedAt))
         .ignore(field(Notification::getUpdatedAt))
-        .ignore(field(Notification::getContent))
         .set(field(Notification::getConfirmed), false)
         .set(field(Notification::getResourceType), this.resourceType);
 

@@ -3,6 +3,7 @@ package com.springboot.monew.notification.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Getter;
@@ -12,8 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 public final class NotificationFindRequest {
 
   private final UUID cursor;
-  @DateTimeFormat
-  private final LocalDateTime after;
+  private final Instant after;
   @Min(1)
   @NotNull
   private final int limit;
@@ -22,7 +22,7 @@ public final class NotificationFindRequest {
 
   public NotificationFindRequest(
       @JsonProperty("cursor") UUID cursor,
-      @JsonProperty("after") LocalDateTime after,
+      @JsonProperty("after") Instant after,
       @JsonProperty("limit") int limit,
       @JsonProperty("Monew-Request-User-ID") UUID userId) {
     this.cursor = cursor;

@@ -2,7 +2,6 @@ package com.springboot.monew.notification.repository;
 
 import com.springboot.monew.notification.entity.Notification;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -25,7 +24,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
       "ORDER BY n.createdAt DESC, n.id ASC")
   Slice<Notification> findByCursor(
       @Param("cursor") UUID cursor,
-      @Param("after") LocalDateTime after,
+      @Param("after") Instant after,
       @Param("userId") UUID userId,
       Pageable pageable);
 

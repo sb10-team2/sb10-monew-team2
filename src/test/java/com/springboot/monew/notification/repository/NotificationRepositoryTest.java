@@ -1,16 +1,17 @@
 package com.springboot.monew.notification.repository;
 
+import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.repository.BaseRepositoryTest;
-import com.springboot.monew.common.utils.TimeConverter;
+import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class NotificationRepositoryTest extends BaseRepositoryTest {
 
@@ -86,7 +88,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     // given
     Notification expected = Notification.builder()
         .user(testEntityManager.generateUser())
-        .interest(testEntityManager.getProxyInterest())
+        .interest(Instancio.create(Interest.class))
         .resourceType(ResourceType.INTEREST)
         .build();
 
@@ -134,7 +136,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     // given
     Notification expected = Notification.builder()
         .user(testEntityManager.generateUser())
-        .commentLike(testEntityManager.getProxyCommentLike())
+        .commentLike(Instancio.create(CommentLike.class))
         .resourceType(ResourceType.COMMENT)
         .build();
 
@@ -148,14 +150,17 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("comment_like_id가 존재하면 resource_type은 'COMMENT'이어야 한다\n"
-      + "domain integrity violation")
+      + "domain integrity violation\n"
+      + "객체 생성 단계에서 위 과정을 검사한다\n"
+      + "그래서 객체를 만들고 reflection으로 값을 주입 하겠다")
   void failToCreateDueToMismatchResourceType() {
     // given
     Notification expected = Notification.builder()
         .user(testEntityManager.generateUser())
         .commentLike(testEntityManager.generateCommentLike())
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.COMMENT)
         .build();
+    ReflectionTestUtils.setField(expected, "resourceType", ResourceType.INTEREST);
 
     // when & then
     Assertions.assertThatThrownBy(() -> notificationRepository.saveAndFlush(expected))
@@ -219,7 +224,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     clear();
 
     UUID cursor = null;
-    LocalDateTime after = null;
+    Instant after = null;
     List<UUID> allFetchedIds = new ArrayList<>();
     boolean hasNext = true;
 
@@ -242,7 +247,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
       hasNext = result.hasNext();
       if (hasNext && !actual.isEmpty()) {
         cursor = actual.get(actual.size() - 1).getId();
-        after = TimeConverter.toDatetime(actual.get(actual.size() - 1).getCreatedAt());
+        after = actual.get(actual.size() - 1).getCreatedAt();
       }
     }
 
