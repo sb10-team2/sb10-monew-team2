@@ -1,6 +1,7 @@
 package com.springboot.monew.newsarticles.entity;
 
 import com.springboot.monew.common.entity.BaseEntity;
+import com.springboot.monew.interest.entity.Interest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
                 )
         }
 )
-public class ArticleInterest extends BaseEntity {
+public class  ArticleInterest extends BaseEntity {
 
     // 관심사 N : 뉴스기사 1
     // 지연로딩: 지금 당장 필요 없으니까 나중에 진짜 쓸때 가져옴.
@@ -32,18 +33,18 @@ public class ArticleInterest extends BaseEntity {
     )
     private NewsArticle newsArticle;
 
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-//    @JoinColumn(
-//            name = "interest_id",
-//            nullable = false,
-//            foreignKey = @ForeignKey(name = "FK_ARTICLE_INTERESTS_INTEREST")
-//    )
-//    private Interests interest;
-//
-//    public ArticleInterest(NewsArticle newsArticles, Interests interest) {
-//        this.newsArticle = newsArticles;
-//        this.interest = interest;
-//    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "interest_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "FK_ARTICLE_INTERESTS_INTEREST")
+    )
+    private Interest interest;
+
+    public ArticleInterest(NewsArticle newsArticles, Interest interest) {
+        this.newsArticle = newsArticles;
+        this.interest = interest;
+    }
 
 
 
