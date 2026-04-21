@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -50,6 +51,20 @@ public class GlobalExceptionHandler {
     log.warn("[MethodArgumentNotValidException] {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(ErrorResponse.from(HttpStatus.BAD_REQUEST, details, ex));
+  }
+
+  /*
+  Monew-Request-User-Id 헤더 -> 인증 목적으로 사용하기에 UNAUTHORIZED가 맞다고 판단
+  - 로그인 이후 Monew-Request-User-ID 헤더로 로그인한 유저 식별
+  - 로그인/회원가입은 인증 전 단계라 헤더 없음
+  - 그 외 모든 엔드포인트는 @RequestHeader 선언 → 헤더 누락 시 MissingRequestHeaderException 발생 → 401 Unauthorized 반환
+  - 현재는 단일 헤더만 사용하는 구조라 위 방식으로 처리하지만, 추후 Spring Security로 인증 로직 이관 예정 (강사님 말씀)
+   */
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingHeader(MissingRequestHeaderException ex) {
+    log.warn("[MissingRequestHeaderException] {}", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(ErrorResponse.from(HttpStatus.UNAUTHORIZED, ex));
   }
 
   // 클라이언트 요청 오류
