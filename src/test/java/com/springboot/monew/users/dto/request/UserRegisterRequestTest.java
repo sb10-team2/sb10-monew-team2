@@ -1,4 +1,4 @@
-package com.springboot.monew.users.dto;
+package com.springboot.monew.users.dto.request;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

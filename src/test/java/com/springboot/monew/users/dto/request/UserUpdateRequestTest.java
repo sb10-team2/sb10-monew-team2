@@ -1,4 +1,4 @@
-package com.springboot.monew.users.dto;
+package com.springboot.monew.users.dto.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
