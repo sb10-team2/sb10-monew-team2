@@ -30,7 +30,7 @@ public class CommentLikeController {
             URI.create(
                 "/api/comments/"
                     + commentLikeDto.commentId()
-                    + "/comment-likes"
+                    + "/comment-likes/"
                     + commentLikeDto.id()))
         .body(commentLikeDto);
   }
