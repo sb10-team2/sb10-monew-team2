@@ -2,13 +2,12 @@ package com.springboot.monew.comment.service;
 
 import com.springboot.monew.comment.dto.*;
 import com.springboot.monew.comment.entity.Comment;
-import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.comment.exception.CommentErrorCode;
 import com.springboot.monew.comment.exception.CommentException;
-import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -30,7 +29,6 @@ public class CommentService {
   // private final ArticleRepository articleRepository;
   private final UserRepository userRepository;
   private final CommentMapper commentMapper;
-  private final CommentLikeMapper commentLikeMapper;
 
   // 댓글 등록
   @Transactional
@@ -40,12 +38,14 @@ public class CommentService {
     // Article article = articleRepository.findById(request.articleId())
     // .orElseThrow(커스텀 예외);
 
+    NewsArticle article = new NewsArticle("임시", "임시", "임시", Instant.now(), "임시");
+
     // TODO: Article 논리 삭제 check
 
     User user = getActiveUser(request.userId());
 
     // TODO: Article 추가
-    Comment comment = new Comment(user, request.content());
+    Comment comment = new Comment(user, article, request.content());
     commentRepository.save(comment);
     log.info(
         "댓글 등록 완료 - commentId: {}, articleId: {}, userId: {}",
@@ -78,31 +78,6 @@ public class CommentService {
     return commentMapper.toCommentDto(comment, likeByMe);
   }
 
-  // 댓글 좋아요
-  @Transactional
-  public CommentLikeDto like(UUID commentId, UUID userId) {
-    Comment comment = getActiveComment(commentId);
-    User user = getActiveUser(userId);
-
-    // 중복 좋아요 check
-    if (commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
-      throw new CommentException(
-          CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS,
-          Map.of("commentId", commentId, "userId", userId));
-    }
-
-    // Todo: 알림 객체 생성
-
-    CommentLike commentLike = new CommentLike(comment, user);
-    commentLikeRepository.save(commentLike);
-    log.debug("likeCount 증가 전 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
-    commentRepository.incrementLikeCount(comment.getId());
-    log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
-    log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
-
-    return commentLikeMapper.toCommentLikeDto(commentLike);
-  }
-
   // 댓글 논리 삭제
   @Transactional
   public void softDelete(UUID commentId) {
@@ -124,27 +99,6 @@ public class CommentService {
     log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
   }
 
-  // 댓글 좋아요 취소
-  @Transactional
-  public void unlike(UUID commentId, UUID userId) {
-    Comment comment = getActiveComment(commentId);
-    User user = getActiveUser(userId);
-
-    // 좋아요 존재 확인
-    CommentLike commentLike =
-        commentLikeRepository
-            .findCommentLikeByCommentAndUser(comment, user)
-            .orElseThrow(
-                () ->
-                    new CommentException(
-                        CommentErrorCode.COMMENT_LIKE_NOT_FOUND, Map.of("commentId", commentId)));
-
-    // 좋아요 삭제(하드 딜릿) -> 좋아요 취소 시 이력에서 바로 삭제되므로 하드딜릿이 맞다고 판단
-    commentLikeRepository.delete(commentLike);
-    commentRepository.decrementLikeCount(comment.getId());
-    log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
-  }
-
   // Todo: 기사의 전체 댓글 조회 -> Article 구현 끝나면 다시 체크 (고려해야할 것이 너무 많음)
   @Transactional(readOnly = true)
   public CursorPageResponseCommentDto<CommentDto> list(CommentPageRequest request, UUID userId) {
@@ -157,8 +111,8 @@ public class CommentService {
     List<Comment> comments =
         commentRepository.findComments(
             request.articleId(),
-            request.orderBy(),
-            request.direction(),
+            request.orderBy().name(),
+            request.direction().name(),
             request.cursor(),
             request.after(), // 보조 커서
             request.limit() + 1);

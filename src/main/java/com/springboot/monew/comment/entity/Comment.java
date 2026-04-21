@@ -28,7 +28,7 @@ public class Comment extends BaseUpdatableEntity {
 
   // 좋아요 수
   @Column(name = "like_count", nullable = false)
-  private int likeCount;
+  private long likeCount;
 
   // 삭제 여부 -> 논리 삭제
   @Column(name = "is_deleted", nullable = false)
@@ -36,10 +36,10 @@ public class Comment extends BaseUpdatableEntity {
 
   public Comment(
       User user,
-      // Todo: NewsArticle article,
+      NewsArticle article,
       String content) {
     this.user = user;
-    // Todo: this.article = article;
+    this.article = article;
     this.content = content;
     this.likeCount = 0;
     this.isDeleted = false;
@@ -49,16 +49,6 @@ public class Comment extends BaseUpdatableEntity {
   // 메시지 내용 수정
   public void updateContent(String content) {
     this.content = content;
-  }
-
-  // 좋아요 수 증가
-  public void increaseLikeCount() {
-    this.likeCount++;
-  }
-
-  // 좋아요 수 감소
-  public void decreaseLikeCount() {
-    if (this.likeCount > 0) this.likeCount--;
   }
 
   // 논리 삭제 시
