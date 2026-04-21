@@ -2,12 +2,12 @@ package com.springboot.monew.users.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.springboot.monew.users.dto.UserDto;
 import com.springboot.monew.users.dto.UserLoginRequest;
@@ -52,7 +52,7 @@ public class UserServiceTest {
         "ab12!@"
     );
 
-    when(userRepository.existsByEmail(request.email())).thenReturn(true);
+    given(userRepository.existsByEmail(request.email())).willReturn(true);
 
     // when & then
         /*
@@ -83,8 +83,8 @@ public class UserServiceTest {
         "ab12!@"
     );
 
-    when(userRepository.existsByEmail(request.email())).thenReturn(false);
-    when(userRepository.existsByNickname(request.nickname())).thenReturn(true);
+    given(userRepository.existsByEmail(request.email())).willReturn(false);
+    given(userRepository.existsByNickname(request.nickname())).willReturn(true);
 
     // when & then
     assertThatThrownBy(() -> userService.register(request))
@@ -118,10 +118,10 @@ public class UserServiceTest {
         Instant.parse("2026-04-18T00:00:00Z")
     );
 
-    when(userRepository.existsByEmail(request.email())).thenReturn(false);
-    when(userRepository.existsByNickname(request.nickname())).thenReturn(false);
-    when(userRepository.save(any(User.class))).thenReturn(savedUser);
-    when(userMapper.toDto(savedUser)).thenReturn(expected);
+    given(userRepository.existsByEmail(request.email())).willReturn(false);
+    given(userRepository.existsByNickname(request.nickname())).willReturn(false);
+    given(userRepository.save(any(User.class))).willReturn(savedUser);
+    given(userMapper.toDto(savedUser)).willReturn(expected);
 
     // when
     UserDto result = userService.register(request);
@@ -148,8 +148,8 @@ public class UserServiceTest {
         Instant.parse("2026-04-18T00:00:00Z")
     );
 
-    when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(user));
-    when(userMapper.toDto(user)).thenReturn(expected);
+    given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+    given(userMapper.toDto(user)).willReturn(expected);
 
     // when
     UserDto result = userService.login(request);
@@ -166,7 +166,7 @@ public class UserServiceTest {
     // given
     UserLoginRequest request = new UserLoginRequest("missing@example.com", "password123");
 
-    when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+    given(userRepository.findByEmail("missing@example.com")).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> userService.login(request))
@@ -187,7 +187,7 @@ public class UserServiceTest {
     UserLoginRequest request = new UserLoginRequest("test@example.com", "wrong-password");
     User user = new User("test@example.com", "monew123", "password123");
 
-    when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(user));
+    given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
 
     // when & then
     assertThatThrownBy(() -> userService.login(request))
@@ -209,7 +209,7 @@ public class UserServiceTest {
     User deletedUser = new User("deleted@example.com", "monew123", "password123");
     deletedUser.delete();
 
-    when(userRepository.findByEmail("deleted@example.com")).thenReturn(Optional.of(deletedUser));
+    given(userRepository.findByEmail("deleted@example.com")).willReturn(Optional.of(deletedUser));
 
     // when & then
     assertThatThrownBy(() -> userService.login(request))
@@ -238,9 +238,9 @@ public class UserServiceTest {
         Instant.parse("2026-04-18T00:00:00Z")
     );
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userRepository.existsByNickname(request.nickname())).thenReturn(false);
-    when(userMapper.toDto(user)).thenReturn(expected);
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userRepository.existsByNickname(request.nickname())).willReturn(false);
+    given(userMapper.toDto(user)).willReturn(expected);
 
     // when
     UserDto result = userService.update(userId, userId, request);
@@ -282,7 +282,7 @@ public class UserServiceTest {
     UUID userId = UUID.randomUUID();
     UserUpdateRequest request = new UserUpdateRequest("newNickname");
 
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> userService.update(userId, userId, request))
@@ -306,7 +306,7 @@ public class UserServiceTest {
     User deletedUser = new User("deleted@example.com", "monew123", "password123");
     deletedUser.delete();
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(deletedUser));
+    given(userRepository.findById(userId)).willReturn(Optional.of(deletedUser));
 
     // when & then
     assertThatThrownBy(() -> userService.update(userId, userId, request))
@@ -329,8 +329,8 @@ public class UserServiceTest {
     User user = new User("test@example.com", "oldNickname", "password123");
 
     // given
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userRepository.existsByNickname(request.nickname())).thenReturn(true);
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userRepository.existsByNickname(request.nickname())).willReturn(true);
 
     // when & then
     assertThatThrownBy(() -> userService.update(userId, userId, request))
@@ -360,8 +360,8 @@ public class UserServiceTest {
         Instant.parse("2026-04-18T00:00:00Z")
     );
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    when(userMapper.toDto(user)).thenReturn(expected);
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userMapper.toDto(user)).willReturn(expected);
 
     // when
     UserDto result = userService.update(userId, userId, request);
@@ -381,7 +381,7 @@ public class UserServiceTest {
     UUID userId = UUID.randomUUID();
     User user = new User("test@example.com", "monew123", "password123");
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
     // 삭제 되기 전 확인 검증용
     assertThat(user.isDeleted()).isFalse();
 
@@ -419,7 +419,7 @@ public class UserServiceTest {
     // given
     UUID userId = UUID.randomUUID();
 
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> userService.delete(userId, userId))
@@ -440,7 +440,7 @@ public class UserServiceTest {
     User deletedUser = new User("deleted@example.com", "monew123", "password123");
     deletedUser.delete();
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(deletedUser));
+    given(userRepository.findById(userId)).willReturn(Optional.of(deletedUser));
 
     // when & then
     assertThatThrownBy(() -> userService.delete(userId, userId))
@@ -461,7 +461,7 @@ public class UserServiceTest {
     UUID userId = UUID.randomUUID();
     User user = new User("test@example.com", "monew123", "password123");
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
     userService.hardDelete(userId, userId);
@@ -497,7 +497,7 @@ public class UserServiceTest {
     // given
     UUID userId = UUID.randomUUID();
 
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> userService.hardDelete(userId, userId))
@@ -522,7 +522,7 @@ public class UserServiceTest {
     User user2 = new User("deleted2@example.com", "monew123", "password123");
     List<User> users = List.of(user1, user2);
 
-    when(userRepository.findUsersDeletedBefore(cutoff)).thenReturn(users);
+    given(userRepository.findUsersDeletedBefore(cutoff)).willReturn(users);
 
     // when
     int result = userService.purgeDeletedUsersOlderThan(cutoff);
@@ -539,7 +539,7 @@ public class UserServiceTest {
     // given
     Instant cutoff = Instant.parse("2026-04-20T00:00:00Z");
 
-    when(userRepository.findUsersDeletedBefore(cutoff)).thenReturn(List.of());
+    given(userRepository.findUsersDeletedBefore(cutoff)).willReturn(List.of());
 
     // when
     int result = userService.purgeDeletedUsersOlderThan(cutoff);

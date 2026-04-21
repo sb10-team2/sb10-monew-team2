@@ -1,10 +1,10 @@
 package com.springboot.monew.users.controller;
 
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,8 +60,7 @@ public class UserControllerTest {
         createdAt
     );
 
-    // Mockito.when을 클래스명 없이 간단히 사용하기 위해 static import를 하였음.
-    when(userService.register(any(UserRegisterRequest.class))).thenReturn(response);
+    given(userService.register(any(UserRegisterRequest.class))).willReturn(response);
 
     // when & then
     mockMvc.perform(post("/api/users")
@@ -120,7 +119,7 @@ public class UserControllerTest {
         createdAt
     );
 
-    when(userService.login(any(UserLoginRequest.class))).thenReturn(expected);
+    given(userService.login(any(UserLoginRequest.class))).willReturn(expected);
 
     // when & then
     mockMvc.perform(post("/api/users/login")
@@ -171,8 +170,7 @@ public class UserControllerTest {
         createdAt
     );
 
-    when(userService.update(eq(userId), eq(userId), any(UserUpdateRequest.class))).thenReturn(
-        expected);
+    given(userService.update(eq(userId), eq(userId), any(UserUpdateRequest.class))).willReturn(expected);
 
     // when & then
     mockMvc.perform(patch("/api/users/{userId}", userId)
