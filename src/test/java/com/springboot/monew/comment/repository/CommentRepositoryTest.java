@@ -110,7 +110,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // then
     Comment result = commentRepository.findById(comment.getId()).orElseThrow();
-    Assertions.assertThat(comment.getLikeCount()).isEqualTo(0);
+    Assertions.assertThat(result.getLikeCount()).isEqualTo(0);
     ensureQueryCount(2);
   }
 
