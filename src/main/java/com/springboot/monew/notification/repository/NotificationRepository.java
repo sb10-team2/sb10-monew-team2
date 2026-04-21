@@ -37,9 +37,11 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   long countAllByUser_IdAndConfirmedIsFalse(UUID userId);
 
   @Modifying
-  @Query(value = "delete from notifications "
+  @Query(value = "delete from notifications where id in ("
+      + "select id "
+      + "from notifications "
       + "where confirmed = true and updated_at < :threshold "
-      + "limit :limit",
+      + "limit :limit)",
       nativeQuery = true)
   long deleteOutdatedByChunk(Instant threshold, long limit);
 }
