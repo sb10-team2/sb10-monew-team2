@@ -175,7 +175,7 @@ public class UserRegisterRequestTest {
     void validateNickname_fail_whenTooLong() {
         // given
         UserRegisterRequest request =
-                new UserRegisterRequest("test@example.com", "a".repeat(21), "ab12!@");
+            new UserRegisterRequest("test@example.com", "a".repeat(21), "ab12!@");
 
         // when
         Set<ConstraintViolation<UserRegisterRequest>> violations = validator.validate(request);
