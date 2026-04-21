@@ -40,9 +40,9 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
           AND (:cursor IS NULL OR
               CASE
                   WHEN :orderBy = 'likeCount' AND :direction = 'DESC' THEN
-                      (like_count < CAST(:cursor AS INTEGER) OR (like_count = CAST(:cursor AS INTEGER) AND created_at < :after))
+                      (like_count < CAST(:cursor AS BIGINT) OR (like_count = CAST(:cursor AS INTEGER) AND created_at < :after))
                   WHEN :orderBy = 'likeCount' AND :direction = 'ASC' THEN
-                      (like_count > CAST(:cursor AS INTEGER) OR (like_count = CAST(:cursor AS INTEGER) AND created_at > :after))
+                      (like_count > CAST(:cursor AS BIGINT) OR (like_count = CAST(:cursor AS INTEGER) AND created_at > :after))
                   WHEN :direction = 'DESC' THEN
                       created_at < :after
                   ELSE
