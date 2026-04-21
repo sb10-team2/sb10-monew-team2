@@ -22,7 +22,7 @@ public record UserActivityDto(
     @Schema(description = "구독 정보")
     List<SubscriptionDto> subscriptions,
 
-    @Schema(description = "최근 작성한 댓글 (최대 10건")
+    @Schema(description = "최근 작성한 댓글 (최대 10건)")
     List<CommentActivityDto> comments,
 
     @Schema(description = "최근 좋아요를 누른 댓글(최대 10건)")
