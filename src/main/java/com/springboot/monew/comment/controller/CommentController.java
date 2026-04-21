@@ -31,27 +31,6 @@ public class CommentController implements CommentApiDocs {
     return ResponseEntity.created(URI.create("/api/comments/" + commentDto.id())).body(commentDto);
   }
 
-  // 관심사 댓글 좋아요 API
-  @PostMapping("/{commentId}/comment-likes")
-  public ResponseEntity<CommentLikeDto> like(
-      @PathVariable UUID commentId, @RequestHeader("Monew-Request-User-ID") UUID userId) {
-    CommentLikeDto commentLikeDto = commentService.like(commentId, userId);
-    return ResponseEntity.created(
-            URI.create(
-                "/api/comments/"
-                    + commentLikeDto.commentId()
-                    + "/comment-likes"
-                    + commentLikeDto.id()))
-        .body(commentLikeDto);
-  }
-
-  // 댓글 좋아요 취소 API
-  @DeleteMapping("/{commentId}/comment-likes")
-  public void unlike(
-      @PathVariable UUID commentId, @RequestHeader("Monew-Request-User-ID") UUID userId) {
-    commentService.unlike(commentId, userId);
-  }
-
   // 댓글 논리 삭제 API
   @DeleteMapping("/{commentId}")
   public ResponseEntity<Void> softDelete(@PathVariable UUID commentId) {
