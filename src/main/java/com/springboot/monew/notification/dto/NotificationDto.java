@@ -11,9 +11,15 @@ import lombok.Builder;
  * DTO for {@link Notification}
  */
 @Builder
-public record NotificationDto(UUID id, Instant createdAt, Instant updatedAt, Boolean confirmed,
-                              String content,
-                              ResourceType resourceType, UUID userId, UUID resourceId) implements
-    Serializable {
+public record NotificationDto(
+    UUID id,
+    Instant createdAt,
+    Instant updatedAt,
+    Boolean confirmed,
+    String content,
+    ResourceType resourceType,
+    UUID userId,
+    UUID resourceId)
+    implements Serializable {
 
 }

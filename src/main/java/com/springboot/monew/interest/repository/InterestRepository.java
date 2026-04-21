@@ -1,12 +1,13 @@
 package com.springboot.monew.interest.repository;
 
 import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.repository.qdsl.InterestQDSLRepository;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface InterestRepository extends JpaRepository<Interest, UUID> {
+public interface InterestRepository extends JpaRepository<Interest, UUID>, InterestQDSLRepository {
 
   boolean existsByName(String name);
 
