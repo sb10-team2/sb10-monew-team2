@@ -8,18 +8,18 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.springboot.monew.notification.event.InterestNotificationEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -30,6 +30,7 @@ public class NewsArticleService {
     private final NewsArticleMapper newsArticleMapper;
     private final InterestRepository interestRepository;
     private final ArticleInterestRepository articleInterestRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void saveAll(List<CollectedArticleWithInterest> articlesWithInterests) {
@@ -146,6 +147,7 @@ public class NewsArticleService {
 
         if (!newArticleInterests.isEmpty()) {
             articleInterestRepository.saveAll(newArticleInterests);
+            eventPublisher.publishEvent(InterestNotificationEvent.from(newArticleInterests));
         }
 
         log.info("뉴스기사 저장 완료 - 신규 기사 수: {}, 신규 기사-관심사 연결 수: {}",

@@ -8,6 +8,7 @@ import com.springboot.monew.comment.exception.CommentException;
 import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.notification.event.CommentLikeNotificationEvent;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class CommentLikeService {
   private final CommentRepository commentRepository;
   private final CommentLikeMapper commentLikeMapper;
   private final UserRepository userRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   // 좋아요
   @Transactional
@@ -41,15 +44,13 @@ public class CommentLikeService {
           Map.of("commentId", commentId, "userId", userId));
     }
 
-    // Todo: 알림 객체 생성
-
     CommentLike commentLike = new CommentLike(comment, user);
     commentLikeRepository.save(commentLike);
     log.debug("likeCount 증가 전 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
     commentRepository.incrementLikeCount(comment.getId());
     log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, comment.getLikeCount());
     log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
-
+    eventPublisher.publishEvent(CommentLikeNotificationEvent.from(user, commentLike));
     return commentLikeMapper.toCommentLikeDto(commentLike);
   }
 
