@@ -93,13 +93,16 @@ class NotificationControllerTest {
         .contains(cursor, after, limit);
   }
 
-  @ParameterizedTest(name = "[cursor, after]: optional, [limit, Monew-Request-User-ID]: required\n"
-      + "필수 parameter가 없으면 exception 발생한다")
+  @ParameterizedTest(name = """
+      [cursor, after]: optional, [limit, Monew-Request-User-ID]: required
+      필수 parameter가 없으면 exception 발생한다
+      {0}""")
   @MethodSource("provideInvalidQueryParamsAndUserId")
   void failToFind(Map<String, String> params, Class<?> exception, ResultMatcher status)
       throws Exception {
     params = new HashMap<>(params);
-    String userId = params.remove("userId");
+    String rawUserId = params.remove("userId");
+    UUID userId = rawUserId == null ? null : UUID.fromString(rawUserId);
     MultiValueMap<String, String> queryParams = MultiValueMap.fromSingleValue(params);
     @SuppressWarnings("unchecked")
     CursorPageResponse<NotificationDto> mockResult = Instancio.of(CursorPageResponse.class)
@@ -143,6 +146,13 @@ class NotificationControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent())
         .andDo(print());
+
+    // then
+    ArgumentCaptor<UUID> notificationIdCaptor = ArgumentCaptor.forClass(UUID.class);
+    ArgumentCaptor<UUID> userIdCaptor = ArgumentCaptor.forClass(UUID.class);
+    verify(service, times(1)).update(notificationIdCaptor.capture(), userIdCaptor.capture());
+    Assertions.assertThat(notificationIdCaptor.getValue()).isEqualTo(id);
+    Assertions.assertThat(userIdCaptor.getValue()).isEqualTo(userId);
   }
 
   private String resolveUri(String resource) {
@@ -154,13 +164,18 @@ class NotificationControllerTest {
 
   private static Stream<Arguments> provideInvalidQueryParamsAndUserId() {
     return Stream.of(
-        Arguments.of(Map.of(), MethodArgumentNotValidException.class, status().isBadRequest()),
-        Arguments.of(Map.of("cursor", id(), "after", getStringDatetime()),
-            MethodArgumentNotValidException.class, status().isBadRequest()),
-        Arguments.of(Map.of("userId", id()), MethodArgumentNotValidException.class,
+        Arguments.of(Map.of(),
+            MethodArgumentNotValidException.class,
             status().isBadRequest()),
-        Arguments.of(Map.of("limit", "10"), MissingRequestHeaderException.class,
-            status().isInternalServerError())
+        Arguments.of(Map.of("cursor", id(), "after", getStringDatetime()),
+            MethodArgumentNotValidException.class,
+            status().isBadRequest()),
+        Arguments.of(Map.of("userId", id()),
+            MethodArgumentNotValidException.class,
+            status().isBadRequest()),
+        Arguments.of(Map.of("limit", "10"),
+            MissingRequestHeaderException.class,
+            status().isUnauthorized())
     );
   }
 
