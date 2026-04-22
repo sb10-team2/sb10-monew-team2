@@ -38,7 +38,8 @@ public class NewsArticleController {
 
     NewsArticleViewDto newsArticleViewDto = newsArticleService.createView(articleId, userId);
 
-    return ResponseEntity.created(URI.create("/api/articles/" + articleId)).body(newsArticleViewDto);
+    //헤더: 생성된 리소스의 URL
+    return ResponseEntity.created(URI.create("/api/articles/" + articleId + "/article-views/" + newsArticleViewDto.id())).body(newsArticleViewDto);
 
   }
 
