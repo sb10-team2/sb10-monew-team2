@@ -161,23 +161,30 @@ public class NewsArticleService {
     return articleId + ":" + interestId;
   }
 
+  // 뉴스기사 물리 삭제
+  // 뉴스기사 관련된 모든 row 삭제 -> DB 제약조건에 따라 삭제
   public void hardDelete(UUID articleId) {
 
-    //뉴스기사 존재검증
-    if (!newsArticleRepository.existsById(articleId)) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICE_NOT_FOUND,
-          Map.of("articleId", articleId));
-    }
-    newsArticleRepository.deleteById(articleId);
+    NewsArticle newsArticle = getNewsArticle(articleId);
+    newsArticleRepository.delete(newsArticle);
+    log.info("뉴스기사 물리 삭제 완료 - articleId: {}", articleId);
   }
 
-  public void sortDelete(UUID articleId) {
+  // 뉴스기사 논리 삭제
+  public void softDelete(UUID articleId) {
 
-    //뉴스기사 존재검증
-    if (!newsArticleRepository.existsById(articleId)) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICE_NOT_FOUND,
-          Map.of("articleId", articleId));
+    NewsArticle newsArticle = getNewsArticle(articleId);
+
+    if (newsArticle.isDeleted()){
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
     }
-    newsArticleRepository.deleteById(articleId);
+    newsArticle.delete();
+    log.info("뉴스기사 논리 삭제 완료 - articleId: {}", articleId);
+
+  }
+
+  private NewsArticle getNewsArticle(UUID articleId) {
+    return newsArticleRepository.findById(articleId).orElseThrow(
+        () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICE_NOT_FOUND, Map.of("articleId", articleId)));
   }
 }

@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum NewsArticleErrorCode implements ErrorCode {
-  NEWS_ARTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NA01", "뉴스기사를 찾을 수 없습니다.");
+  NEWS_ARTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NA01", "뉴스기사를 찾을 수 없습니다."),
+  NEWS_ARTICLE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NA02", "이미 삭제된 뉴스기사입니다.");
 
   private final HttpStatus httpStatus;
   private final String code;
