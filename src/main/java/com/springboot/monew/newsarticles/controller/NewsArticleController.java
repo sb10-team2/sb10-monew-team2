@@ -37,7 +37,7 @@ public class NewsArticleController {
                                                        @RequestHeader("Monew-Request-User-ID") UUID userId) {
     log.debug("뉴스기사 뷰 등록 요청: articleId={} userId={}", articleId, userId);
 
-    NewsArticleViewDto newsArticleViewDto = newsArticleService.createView();
+    NewsArticleViewDto newsArticleViewDto = newsArticleService.createView(articleId, userId);
     return ResponseEntity.created(URI.create("/api/articles/" + articleId)).body(newsArticleViewDto);
 
   }
