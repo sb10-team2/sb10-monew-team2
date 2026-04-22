@@ -69,7 +69,7 @@ CREATE TABLE interests
 (
     id               UUID PRIMARY KEY,
     name             VARCHAR(50)              NOT NULL,
-    subscriber_count BIGINT DEFAULT 0        NOT NULL,
+    subscriber_count BIGINT DEFAULT 0         NOT NULL,
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at       TIMESTAMP WITH TIME ZONE NULL
 );
@@ -103,7 +103,7 @@ CREATE TABLE news_articles
     title         VARCHAR(300)             NOT NULL,
     published_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     summary       TEXT                     NOT NULL,
-    view_count    INTEGER        DEFAULT 0 NOT NULL,
+    view_count    BIGINT DEFAULT 0         NOT NULL,
     is_deleted    BOOLEAN                  NOT NULL
 );
 

@@ -121,7 +121,7 @@ class NotificationServiceTest {
     boolean hasNext = true;
     User user = EntityFixtureFactory.get(User.class);
     UUID userId = user.getId();
-    NotificationFindRequest request = new NotificationFindRequest(null, null, size, userId);
+    NotificationFindRequest request = new NotificationFindRequest(null, null, size);
     Pageable pageable = PageRequest.of(0, size);
     List<Notification> content = Instancio.ofList(Notification.class)
         .size(size)

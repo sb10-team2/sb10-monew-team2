@@ -2,6 +2,7 @@ package com.springboot.monew.notification.repository;
 
 import com.springboot.monew.notification.entity.Notification;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -44,4 +45,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
       + "limit :limit)",
       nativeQuery = true)
   long deleteOutdatedByChunk(Instant threshold, long limit);
+
+  Optional<Notification> findByIdAndUser_Id(UUID id, UUID userId);
 }
