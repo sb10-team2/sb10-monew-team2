@@ -180,8 +180,13 @@ public class NewsArticleService {
   @Transactional
   public NewsArticleViewDto createView(UUID articleId, UUID userId){
 
-    //기사 존재 확인
+    //뉴스기사 존재 확인
     NewsArticle newsArticle = getNewsArticle(articleId);
+
+    //논리 삭제된 뉴스기사의 경우 예외처리
+    if(newsArticle.isDeleted()){
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
+    }
 
     //사용자 존재 확인
     User user = userRepository.findById(userId).orElseThrow(
