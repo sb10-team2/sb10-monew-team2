@@ -19,7 +19,7 @@ public class ChosunRssCollector implements ArticleCollector {
 
     @Override
     public ArticleSource getSource() {
-        return ArticleSource.HANKYUNG;
+        return ArticleSource.CHOSUN;
     }
 
     //네이버 API처럼 키워드 검색은 아니다.
