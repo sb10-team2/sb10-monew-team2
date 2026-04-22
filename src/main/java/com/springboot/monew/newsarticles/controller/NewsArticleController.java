@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/article")
+@RequestMapping("/api/articles")
 public class NewsArticleController {
 
   private final NewsArticleCollectService newsArticleCollectService;
