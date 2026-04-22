@@ -4,7 +4,9 @@ import com.springboot.monew.newsarticles.dto.NaverNewsItem;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NaverNewsApiClient;
+import java.time.format.DateTimeParseException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NaverArticleCollector implements ArticleCollector {
 
-    //네이버
     private final NaverNewsApiClient naverNewsApiClient;
 
     @Override
@@ -25,28 +27,49 @@ public class NaverArticleCollector implements ArticleCollector {
         return ArticleSource.NAVER;
     }
 
-
-    //키워드별 검색 결과를 전부 가져오는 방식.
     @Override
     public List<CollectedArticle> collect(List<String> keywords) {
-        return keywords.stream()
-                .flatMap(keyword -> naverNewsApiClient.searchNews(keyword).stream())
-                .map(this::toCollectedArticle)
-                .distinct()     //중복제거(키워드에 따라 겹치는 기사 존재 가능)
-                .toList();
+
+        log.info("네이버 뉴스 수집 시작 - keywords={}", keywords);
+
+        List<CollectedArticle> result = keywords.stream()
+            .flatMap(keyword -> naverNewsApiClient.searchNews(keyword).stream())
+            .map(this::toCollectedArticle)
+            .filter(article -> {
+                boolean valid = article.publishedAt() != null;
+                if (!valid) {
+                    log.warn("publishedAt 없음으로 기사 제외 - originallink={}", article.originalLink());
+                }
+                return valid;
+            })
+            .distinct()
+            .toList();
+
+        log.info("네이버 뉴스 수집 종료 - 수집된 기사 수={}", result.size());
+
+        return result;
     }
 
     private CollectedArticle toCollectedArticle(NaverNewsItem item) {
-        return new CollectedArticle(
-                ArticleSource.NAVER,
+        Instant publishedAt = parsePublishedAt(item.pubDate());
+
+        if (publishedAt == null) {
+            log.warn(
+                "pubDate 파싱 실패 - originallink={}, pubDate={}",
                 item.originallink(),
-                cleanHtml(item.title()),
-                parsePublishedAt(item.pubDate()),
-                cleanHtml(item.description())
+                item.pubDate()
+            );
+        }
+
+        return new CollectedArticle(
+            ArticleSource.NAVER,
+            item.originallink(),
+            cleanHtml(item.title()),
+            publishedAt,
+            cleanHtml(item.description())
         );
     }
 
-    //html 태그 지우는것 담당
     private String cleanHtml(String text) {
         if (text == null) {
             return "";
@@ -54,11 +77,20 @@ public class NaverArticleCollector implements ArticleCollector {
         return text.replaceAll("<.*?>", "").trim();
     }
 
-    //네이버 API에서 오는 뉴스기사 날짜: "Thu, 16 Apr 2026 16:28:00 +0900"
-    //이걸 2026-04-16T07:28:00Z 이런식으로 변경
     private Instant parsePublishedAt(String pubDate) {
+        if (pubDate == null || pubDate.isBlank()) {
+            log.warn("pubDate 없음 - pubDate={}", pubDate);
+            return null;
+        }
+
         DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-        return ZonedDateTime.parse(pubDate, formatter).toInstant();
+            DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+        try {
+            return ZonedDateTime.parse(pubDate, formatter).toInstant();
+        } catch (DateTimeParseException e) {
+            log.warn("pubDate 파싱 실패 - pubDate={}", pubDate, e);
+            return null;
+        }
     }
 }
