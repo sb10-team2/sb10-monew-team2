@@ -28,6 +28,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Document(collection = "user_activities")
 public class UserActivityDocument {
+
   @Id
   private UUID userId;
 
@@ -60,6 +61,7 @@ public class UserActivityDocument {
       Long interestSubscriberCount,
       Instant createdAt
   ) {
+
   }
 
   public record CommentItem(
@@ -72,6 +74,7 @@ public class UserActivityDocument {
       Long likeCount,
       Instant createdAt
   ) {
+
   }
 
   public record CommentLikeItem(
@@ -86,6 +89,7 @@ public class UserActivityDocument {
       Long commentLikeCount,
       Instant commentCreatedAt
   ) {
+
   }
 
   public record ArticleViewItem(
@@ -101,8 +105,9 @@ public class UserActivityDocument {
       Long articleCommentCount,
       Long articleViewCount
   ) {
-  }
 
   }
+
+}
 
 
