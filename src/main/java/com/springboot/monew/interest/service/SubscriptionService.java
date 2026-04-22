@@ -83,6 +83,8 @@ public class SubscriptionService {
     deleteSubscription(interestId, userId);
     // 관심사의 구독자 수를 DB에서 원자적으로 1 감소
     decrementSubscriberCount(interestId);
+
+    log.info("관심사 구독 취소 완료 - interestId: {}, userId: {}", interestId, userId);
   }
 
   private Subscription saveSubscriptionSafely(User user, Interest interest, UUID userId,
