@@ -1,22 +1,51 @@
 package com.springboot.monew.newsarticles.controller;
 
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
+import com.springboot.monew.newsarticles.service.NewsArticleService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/article")
+@RequestMapping("/api/articles")
 public class NewsArticleController {
 
   private final NewsArticleCollectService newsArticleCollectService;
+  private final NewsArticleService newsArticleService;
 
   @PostMapping
   public ResponseEntity<String> collectNews() {
     newsArticleCollectService.collectAll();
     return ResponseEntity.ok("뉴스 수집 완료");
+  }
+
+  //뉴스기사 논리삭제
+  @DeleteMapping("/{articleId}")
+  public ResponseEntity<Void> softDelete(@PathVariable UUID articleId) {
+    log.debug("뉴스기사 논리삭제 요청: articleId={}", articleId);
+    newsArticleService.softDelete(articleId);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  //뉴스기사 물리삭제
+  @DeleteMapping("/{articleId}/hard")
+  public ResponseEntity<Void> hardDelete(@PathVariable("articleId") UUID articleId) {
+
+    log.debug("뉴스기사 물리삭제 요청: articleId={}", articleId);
+    newsArticleService.hardDelete(articleId);
+
+    //삭제 성공시 204
+    return ResponseEntity.noContent().build();
+
   }
 }
