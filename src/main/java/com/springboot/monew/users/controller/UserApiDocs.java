@@ -1,10 +1,10 @@
 package com.springboot.monew.users.controller;
 
 import com.springboot.monew.common.exception.ErrorResponse;
-import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.dto.request.UserLoginRequest;
 import com.springboot.monew.users.dto.request.UserRegisterRequest;
 import com.springboot.monew.users.dto.request.UserUpdateRequest;
+import com.springboot.monew.users.dto.response.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -148,10 +148,6 @@ public interface UserApiDocs {
           description = "사용자 삭제 성공"
       ),
       @ApiResponse(
-          responseCode = "403",
-          description = "사용자 삭제 권한 없음"
-      ),
-      @ApiResponse(
           responseCode = "404",
           description = "사용자 정보 없음"
       ),
@@ -162,10 +158,7 @@ public interface UserApiDocs {
   })
   ResponseEntity<Void> delete(
       @Parameter(description = "사용자 ID")
-      @PathVariable UUID userId,
-
-      @Parameter(description = "요청자 ID")
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId
+      @PathVariable UUID userId
   );
 
   @Operation(
@@ -179,10 +172,6 @@ public interface UserApiDocs {
           description = "사용자 삭제 성공"
       ),
       @ApiResponse(
-          responseCode = "403",
-          description = "사용자 삭제 권한 없음"
-      ),
-      @ApiResponse(
           responseCode = "404",
           description = "사용자 정보 없음"
       ),
@@ -193,9 +182,6 @@ public interface UserApiDocs {
   })
   ResponseEntity<Void> hardDelete(
       @Parameter(description = "사용자 ID")
-      @PathVariable UUID userId,
-
-      @Parameter(description = "요청자 ID")
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId
+      @PathVariable UUID userId
   );
 }
