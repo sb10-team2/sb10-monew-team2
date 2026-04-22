@@ -76,9 +76,15 @@ public class SubscriptionService {
       // 구독 엔티티 저장 후 즉시 flush
       return subscriptionRepository.saveAndFlush(new Subscription(user, interest));
     } catch (DataIntegrityViolationException e) {
-      log.debug("관심사 구독 동시성 충돌 발생 - interestId: {}, userId: {}", interestId, userId);
-      throw new InterestException(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS,
-          Map.of("interestId", interestId, "userId", userId));
+      log.debug("관심사 구독 실패 - interestId: {}, userId: {}", interestId, userId, e);
+      // 동시 요청 등으로 중복 구독이 발생한 경우 중복 구독 예외로 변환
+      if (subscriptionRepository.existsByUserIdAndInterestId(userId, interestId)) {
+        throw new InterestException(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS,
+            Map.of("interestId", interestId, "userId", userId));
+      }
+
+      // 중복 구독이 아닌 경우 그대로 반환
+      throw e;
     }
   }
 
