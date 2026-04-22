@@ -35,9 +35,9 @@ public class NewsArticleController {
   @PostMapping("/{articleId}/article-views")
   public ResponseEntity<NewsArticleViewDto> createView(@PathVariable("articleId") UUID articleId,
                                                        @RequestHeader("Monew-Request-User-ID") UUID userId) {
-    log.debug("뉴스기사 뷰 등록 요청: articleId={} userId={}", articleId, userId);
 
     NewsArticleViewDto newsArticleViewDto = newsArticleService.createView(articleId, userId);
+
     return ResponseEntity.created(URI.create("/api/articles/" + articleId)).body(newsArticleViewDto);
 
   }
@@ -45,7 +45,7 @@ public class NewsArticleController {
   //뉴스기사 논리삭제
   @DeleteMapping("/{articleId}")
   public ResponseEntity<Void> softDelete(@PathVariable UUID articleId) {
-    log.debug("뉴스기사 논리삭제 요청: articleId={}", articleId);
+
     newsArticleService.softDelete(articleId);
 
     return ResponseEntity.noContent().build();
@@ -55,7 +55,6 @@ public class NewsArticleController {
   @DeleteMapping("/{articleId}/hard")
   public ResponseEntity<Void> hardDelete(@PathVariable("articleId") UUID articleId) {
 
-    log.debug("뉴스기사 물리삭제 요청: articleId={}", articleId);
     newsArticleService.hardDelete(articleId);
 
     //삭제 성공시 204
