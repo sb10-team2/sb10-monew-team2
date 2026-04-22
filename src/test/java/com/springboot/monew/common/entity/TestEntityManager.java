@@ -5,6 +5,7 @@ import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.fixture.EntityFixtureFactory;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.users.entity.User;
 import jakarta.persistence.Entity;
@@ -46,7 +47,7 @@ public class TestEntityManager {
 
   public NewsArticle generateNewsArticle() {
     NewsArticle article = new NewsArticle(
-        "source-" + UUID.randomUUID(),
+        ArticleSource.NAVER,
         "https://test.com/" + UUID.randomUUID(),
         "테스트 기사 제목",
         Instant.now(),

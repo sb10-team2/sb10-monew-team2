@@ -8,6 +8,7 @@ import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -38,7 +39,7 @@ public class CommentService {
     // Article article = articleRepository.findById(request.articleId())
     // .orElseThrow(커스텀 예외);
 
-    NewsArticle article = new NewsArticle("임시", "임시", "임시", Instant.now(), "임시");
+    NewsArticle article = new NewsArticle(ArticleSource.NAVER, "임시", "임시", Instant.now(), "임시");
 
     // TODO: Article 논리 삭제 check
 
