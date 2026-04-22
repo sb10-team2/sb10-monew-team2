@@ -82,6 +82,7 @@ public class NewsArticleCollectService {
         CollectedArticle article,
         Map<String, Set<UUID>> keywordToInterestIds
     ) {
+        //text = 제목 + 요약 소문자로 합친 문자열
         String text = (article.title() + " " + article.summary()).toLowerCase();
 
         //"손흥민" -> [축구, 운동선수] 이런식으로 키워드 -> [관심사1, 관심사2 ..] 이런형태
