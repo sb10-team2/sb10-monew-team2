@@ -185,6 +185,6 @@ public class NewsArticleService {
 
   private NewsArticle getNewsArticle(UUID articleId) {
     return newsArticleRepository.findById(articleId).orElseThrow(
-        () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICE_NOT_FOUND, Map.of("articleId", articleId)));
+        () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", articleId)));
   }
 }
