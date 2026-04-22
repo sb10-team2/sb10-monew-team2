@@ -31,8 +31,7 @@ public class InterestController implements InterestApiDocs {
   private final InterestService interestService;
 
   @GetMapping
-  public CursorPageResponseInterestDto list(
-      @Valid InterestPageRequest request,
+  public CursorPageResponseInterestDto list(@Valid InterestPageRequest request,
       @RequestHeader("Monew-Request-User-ID") UUID userId) {
     return interestService.list(request, userId);
   }
