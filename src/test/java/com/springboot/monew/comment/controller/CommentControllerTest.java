@@ -3,6 +3,7 @@ package com.springboot.monew.comment.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,9 +19,12 @@ import com.springboot.monew.comment.dto.CommentPageRequest;
 import com.springboot.monew.comment.dto.CommentRegisterRequest;
 import com.springboot.monew.comment.dto.CommentUpdateRequest;
 import com.springboot.monew.comment.dto.CursorPageResponseCommentDto;
+import com.springboot.monew.comment.exception.CommentErrorCode;
+import com.springboot.monew.comment.exception.CommentException;
 import com.springboot.monew.comment.service.CommentService;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -85,7 +89,7 @@ class CommentControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.details.content").value("내용을 입력해주세요."));
+        .andExpect(jsonPath("$.details.content[0]").value("내용을 입력해주세요."));
 
     // 잘못된 요청일 경우 service 실행 X
     then(commentService).should(never()).create(request);
@@ -104,7 +108,20 @@ class CommentControllerTest {
     then(commentService).should().softDelete(commentId);
   }
 
-  // 논리 삭제 실패 테스트 케이스는 서비스 테스트에서 구현할 예정
+  @Test
+  @DisplayName("이미 논리 삭제가 된 댓글은 실패한다")
+  void softDelete_실패() throws Exception {
+    // given
+    UUID commentId = UUID.randomUUID();
+
+    willThrow(new CommentException(CommentErrorCode.COMMENT_ALREADY_DELETED, Map.of("commentId", commentId)))
+        .given(commentService).softDelete(commentId);
+
+    // when & then
+    mockMvc.perform(delete("/api/comments/{commentId}", commentId))
+        .andExpect(status().isBadRequest());
+
+  }
 
   @Test
   @DisplayName("댓글 수정 성공 시 200을 반환한다.")
@@ -172,6 +189,25 @@ class CommentControllerTest {
         .andExpect(status().isUnauthorized());
 
     then(commentService).should(never()).update(any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("본인 댓글이 아닌 것들 수정하려고 하면 수정에 실패한다.")
+  void update_실패_본인댓글아님() throws Exception {
+    // given
+    UUID commentId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    CommentUpdateRequest request = new CommentUpdateRequest("수정할 댓글");
+
+    willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_OWNED_BY_USER, Map.of("commentId", commentId)))
+        .given(commentService).update(commentId, userId, request);
+
+    // when & then
+    mockMvc.perform(patch("/api/comments/{commentId}", commentId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Monew-Request-User-ID", userId)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isForbidden());
   }
 
   @Test
