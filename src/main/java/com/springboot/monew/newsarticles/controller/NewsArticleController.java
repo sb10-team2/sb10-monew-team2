@@ -29,7 +29,7 @@ public class NewsArticleController {
   }
 
   //뉴스기사 논리삭제
-  @DeleteMapping("/articles/{articleId}")
+  @DeleteMapping("/{articleId}")
   public ResponseEntity<Void> softDelete(@PathVariable UUID articleId) {
     log.debug("뉴스기사 논리삭제 요청: articleId={}", articleId);
     newsArticleService.softDelete(articleId);
