@@ -28,6 +28,7 @@ import com.springboot.monew.notification.repository.NotificationRepository;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
@@ -82,7 +83,7 @@ class NotificationServiceTest {
 
     given(notificationRepository.saveAll(anyList())).willReturn(List.of(expected));
     given(subscriptionRepository.findUserIdsByInterestId(interest.getId())).willReturn(List.of(user.getId()));
-    given(interestRepository.getReferenceById(any(UUID.class))).willReturn(interest);
+    given(interestRepository.findByIdWithArticleCount(any(UUID.class))).willReturn(Optional.of(interest));
     given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
 
     // when
@@ -121,7 +122,7 @@ class NotificationServiceTest {
 
     given(notificationRepository.save(any(Notification.class))).willReturn(expected);
     given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
-    given(commentLikeRepository.getReferenceById(any(UUID.class))).willReturn(commentLike);
+    given(commentLikeRepository.findWithUserById(any(UUID.class))).willReturn(Optional.of(commentLike));
 
     // when
     NotificationDto actualDto = service.create(event);

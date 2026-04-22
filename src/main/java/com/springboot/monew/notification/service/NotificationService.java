@@ -1,9 +1,14 @@
 package com.springboot.monew.notification.service;
 
+import com.springboot.monew.comment.entity.CommentLike;
+import com.springboot.monew.comment.exception.CommentErrorCode;
+import com.springboot.monew.comment.exception.CommentException;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.common.dto.CursorPageResponse;
 import com.springboot.monew.common.utils.TimeConverter;
 import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.exception.InterestErrorCode;
+import com.springboot.monew.interest.exception.InterestException;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.notification.dto.NotificationDto;
@@ -46,11 +51,7 @@ public class NotificationService {
   }
 
   public NotificationDto create(CommentLikeNotificationEvent event) {
-    Notification notification = Notification.builder()
-        .user(userRepository.getReferenceById(event.getUserId()))
-        .commentLike(commentLikeRepository.getReferenceById(event.getCommentLikeId()))
-        .resourceType(event.getResourceType())
-        .build();
+    Notification notification = createCommentLikeNotification(event);
     notificationRepository.save(notification);
     return notificationMapper.toDto(notification);
   }
@@ -78,12 +79,26 @@ public class NotificationService {
     return notificationRepository.deleteOutdatedByChunk(threshold, chunk);
   }
 
+  private Notification createCommentLikeNotification(CommentLikeNotificationEvent event) {
+    UUID commentLikeId = event.getCommentLikeId();
+    CommentLike commentLike = commentLikeRepository.findWithUserById(commentLikeId)
+        .orElseThrow(
+            () -> new CommentException(CommentErrorCode.COMMENT_LIKE_NOT_FOUND, commentLikeId));
+    return Notification.builder()
+        .user(userRepository.getReferenceById(event.getUserId()))
+        .commentLike(commentLike)
+        .resourceType(event.getResourceType())
+        .build();
+  }
+
   private List<Notification> createInterestNotifications(InterestNotificationEvent event) {
-    List<User> users = subscriptionRepository.findUserIdsByInterestId(event.getInterestId())
+    UUID interestId = event.getInterestId();
+    List<User> users = subscriptionRepository.findUserIdsByInterestId(interestId)
         .stream()
         .map(userRepository::getReferenceById)
         .toList();
-    Interest interest = interestRepository.getReferenceById(event.getInterestId());
+    Interest interest = interestRepository.findByIdWithArticleCount(interestId)
+        .orElseThrow(() -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND, interestId));
     return notificationMapper.toEntities(users, interest, event.getResourceType());
   }
 

@@ -6,6 +6,7 @@ import com.springboot.monew.users.entity.User;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,7 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID> 
           + " :commentIds")
   List<UUID> findCommentIdsByUserIdAndCommentIdIn(
       @Param("userId") UUID userId, @Param("commentIds") List<UUID> commentIds);
+
+  @EntityGraph(attributePaths = {"user"})
+  Optional<CommentLike> findWithUserById(UUID id);
 }

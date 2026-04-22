@@ -85,10 +85,18 @@ jacocoTestReport {
             "**/*Application*",
             "**/*Interceptor*",
             "**/*Filter*",
-            "**/Q*.class"
+            "**/Q*.class",
+            "**/notification/event/*Event.class"
     ]
-     for(qPattern in "**/QA" .. "**/QZ"){ excludes.add(qPattern + "*") }
+    for (qPattern in "**/QA".."**/QZ") {
+        excludes.add(qPattern + "*")
+    }
     classDirectories.setFrom(files(classDirectories.files.collect {
         fileTree(dir: it, exclude: excludes)
     }))
+}
+
+def localGradle = file('local.gradle')
+if (localGradle.exists()) {
+    apply from: localGradle
 }
