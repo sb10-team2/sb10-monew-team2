@@ -12,7 +12,7 @@ public class NotificationException extends MonewException {
   }
 
   public NotificationException(ErrorCode errorCode, UUID id) {
-    this(errorCode, Map.of("id", id));
+    super(errorCode, id);
   }
 
   public NotificationException(ErrorCode errorCode) {
