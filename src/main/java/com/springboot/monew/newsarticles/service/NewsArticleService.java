@@ -10,6 +10,7 @@ import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.notification.event.InterestNotificationEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ public class NewsArticleService {
   private final NewsArticleMapper newsArticleMapper;
   private final InterestRepository interestRepository;
   private final ArticleInterestRepository articleInterestRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void saveAll(List<CollectedArticleWithInterest> articlesWithInterests) {
@@ -150,6 +153,7 @@ public class NewsArticleService {
 
     if (!newArticleInterests.isEmpty()) {
       articleInterestRepository.saveAll(newArticleInterests);
+      eventPublisher.publishEvent(InterestNotificationEvent.from(newArticleInterests));
     }
 
     log.info("뉴스기사 저장 완료 - 신규 기사 수: {}, 신규 기사-관심사 연결 수: {}",
@@ -177,8 +181,9 @@ public class NewsArticleService {
 
     NewsArticle newsArticle = getNewsArticle(articleId);
 
-    if (newsArticle.isDeleted()){
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
+    if (newsArticle.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", articleId));
     }
     newsArticle.delete();
     log.info("뉴스기사 논리 삭제 완료 - articleId: {}", articleId);
@@ -187,6 +192,7 @@ public class NewsArticleService {
 
   private NewsArticle getNewsArticle(UUID articleId) {
     return newsArticleRepository.findById(articleId).orElseThrow(
-        () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", articleId)));
+        () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND,
+            Map.of("articleId", articleId)));
   }
 }
