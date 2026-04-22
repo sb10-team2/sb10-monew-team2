@@ -197,14 +197,21 @@ public class NewsArticleService {
         () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
     // 이미 본 기사인지 확인
-    //
+    // ToDo: 동시에 existsByNewsArticleIdAndUserId false받고, save하면 어떻게 되나? -> DB 유니크 제약 위반 발생
     if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED,  Map.of("articleId", articleId, "userId", userId));
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
     }
 
-    //처음 보는 기사면 조회이력 생성
-    ArticleView articleView = new ArticleView(newsArticle, user);
-    ArticleView savedArticleView = articleViewRepository.save(articleView);
+    ArticleView savedArticleView;
+
+    try{
+      //save() : 영속성 컨텍스트에만 저장, 실제 insert는 commit 시점.
+      //saveAndFlush() : 즉시 DB에 insert
+      //요청 A, 요청 B 동시에 요청이 들어왔다 -> A랑 B중 누구든지간에 saveAndFlush()를 먼저 하는 요청이 있을거라 DB 레벨에서 UNIQUE 조건에 의해 예외 발생될것이다.
+      savedArticleView = articleViewRepository.saveAndFlush(new ArticleView(newsArticle, user));
+    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
+    }
 
     //뉴스기사 댓글수
     Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
