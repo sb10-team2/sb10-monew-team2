@@ -112,8 +112,8 @@ public class CommentService {
     List<Comment> comments =
         commentRepository.findComments(
             request.articleId(),
-            request.orderBy().name(),
-            request.direction().name(),
+            request.orderBy(),
+            request.direction(),
             request.cursor(),
             request.after(), // 보조 커서
             request.limit() + 1);

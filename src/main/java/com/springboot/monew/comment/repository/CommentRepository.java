@@ -1,6 +1,7 @@
 package com.springboot.monew.comment.repository;
 
 import com.springboot.monew.comment.entity.Comment;
+import com.springboot.monew.comment.repository.qdsl.CommentQDSLRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface CommentRepository extends JpaRepository<Comment, UUID> {
+public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentQDSLRepository {
   @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.id = :id AND c.isDeleted = false")
   Optional<Comment> findByIdAndIsDeletedFalse(@Param("id") UUID id);
 
@@ -29,39 +30,4 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
               WHERE c.id = :id
       """)
   void decrementLikeCount(@Param("id") UUID id);
-
-  // Todo: users 쪽 Join 테이블 필요해보임 -> users 쪽 완전 구현 완료 시에 다시 check, 인덱스 고려
-  @Query(
-      value =
-          """
-          SELECT * FROM comments
-          WHERE article_id = :articleId
-          AND is_deleted = false
-          AND (:cursor IS NULL OR
-              CASE
-                  WHEN :orderBy = 'likeCount' AND :direction = 'DESC' THEN
-                      (like_count < CAST(:cursor AS BIGINT) OR (like_count = CAST(:cursor AS BIGINT) AND created_at < :after))
-                  WHEN :orderBy = 'likeCount' AND :direction = 'ASC' THEN
-                      (like_count > CAST(:cursor AS BIGINT) OR (like_count = CAST(:cursor AS BIGINT) AND created_at > :after))
-                  WHEN :direction = 'DESC' THEN
-                      created_at < :after
-                  ELSE
-                      created_at > :after
-              END
-          )
-          ORDER BY
-              CASE WHEN :orderBy = 'likeCount' AND :direction = 'DESC' THEN like_count END DESC,
-              CASE WHEN :orderBy = 'likeCount' AND :direction = 'ASC' THEN like_count END ASC,
-              CASE WHEN :direction = 'DESC' THEN created_at END DESC,
-              CASE WHEN :direction = 'ASC' THEN created_at END ASC
-          LIMIT :limit
-          """,
-      nativeQuery = true)
-  List<Comment> findComments(
-      @Param("articleId") UUID articleId,
-      @Param("orderBy") String orderBy,
-      @Param("direction") String direction,
-      @Param("cursor") String cursor,
-      @Param("after") Instant after,
-      @Param("limit") int limit);
 }
