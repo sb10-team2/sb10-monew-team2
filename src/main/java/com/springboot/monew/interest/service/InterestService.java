@@ -92,6 +92,8 @@ public class InterestService {
     // 전체 관심사 개수를 조회하여 페이지네이션 메타데이터로 사용
     long totalElements = interestRepository.countInterests(request.keyword());
 
+    log.info("관심사 목록 조회 완료 - userId: {}, content.size: {}, hasNext: {}, totalElements: {}",
+        userId, content.size(), hasNext, totalElements);
     // 조회 결과와 커서 정보, 전체 개수 등을 포함한 커서 기반 관심사 페이지 응답 dto 생성 및 반환
     return new CursorPageResponseInterestDto(
         content,
