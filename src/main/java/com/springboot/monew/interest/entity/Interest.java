@@ -39,16 +39,4 @@ public class Interest extends BaseUpdatableEntity {
     this.name = name;
     this.subscriberCount = 0;
   }
-
-  // 구독자 수 증가
-  public void increaseSubscriberCount() {
-    this.subscriberCount++;
-  }
-
-  // 구독자 수 감소
-  public void decreaseSubscriberCount() {
-    if (this.subscriberCount > 0) {
-      this.subscriberCount--;
-    }
-  }
 }

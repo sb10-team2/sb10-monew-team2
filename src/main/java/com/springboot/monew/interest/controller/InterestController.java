@@ -5,12 +5,13 @@ import com.springboot.monew.interest.dto.request.InterestRegisterRequest;
 import com.springboot.monew.interest.dto.request.InterestUpdateRequest;
 import com.springboot.monew.interest.dto.response.CursorPageResponseInterestDto;
 import com.springboot.monew.interest.dto.response.InterestDto;
+import com.springboot.monew.interest.dto.response.SubscriptionDto;
 import com.springboot.monew.interest.service.InterestService;
+import com.springboot.monew.interest.service.SubscriptionService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,17 +23,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/interests")
 public class InterestController implements InterestApiDocs {
 
   private final InterestService interestService;
+  private final SubscriptionService subscriptionService;
 
   @GetMapping
-  public CursorPageResponseInterestDto list(
-      @Valid InterestPageRequest request,
+  public CursorPageResponseInterestDto list(@Valid InterestPageRequest request,
       @RequestHeader("Monew-Request-User-ID") UUID userId) {
     return interestService.list(request, userId);
   }
@@ -55,5 +55,12 @@ public class InterestController implements InterestApiDocs {
   public ResponseEntity<Void> delete(@PathVariable UUID interestId) {
     interestService.delete(interestId);
     return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{interestId}/subscriptions")
+  public ResponseEntity<SubscriptionDto> subscribe(@PathVariable UUID interestId,
+      @RequestHeader("Monew-Request-User-ID") UUID userId) {
+    SubscriptionDto subscriptionDto = subscriptionService.subscribe(interestId, userId);
+    return ResponseEntity.ok(subscriptionDto);
   }
 }
