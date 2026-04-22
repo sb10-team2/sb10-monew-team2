@@ -4,6 +4,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -133,7 +134,8 @@ class CommentLikeControllerTest {
     mockMvc.perform(post("/api/comments/{commentId}/comment-likes", commentId))
         .andExpect(status().isUnauthorized());
 
-    then(commentLikeService).should(never()).like(commentId, userId);
+    // 헤더 누락 실패 시에는 서비스 호출 X
+    verifyNoInteractions(commentLikeService);
   }
 
   @Test
@@ -198,6 +200,7 @@ class CommentLikeControllerTest {
     mockMvc.perform(delete("/api/comments/{commentId}/comment-likes", commentId))
         .andExpect(status().isUnauthorized());
 
-    then(commentLikeService).should(never()).unlike(commentId, userId);
+    // 헤더 누락 실패 시에는 서비스가 아예 호출이 되지 않아야 한다
+    verifyNoInteractions(commentLikeService);
   }
 }
