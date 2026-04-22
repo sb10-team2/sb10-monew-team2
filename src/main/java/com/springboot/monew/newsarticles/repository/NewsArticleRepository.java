@@ -11,8 +11,5 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, UUID> 
   //원본링크목록 조회
   List<NewsArticle> findAllByOriginalLinkIn(Collection<String> originalLinks);
 
-  //뉴스기사 존재 검증
-  Boolean existsByNewsArticleId(UUID articleId);
-
 
 }
