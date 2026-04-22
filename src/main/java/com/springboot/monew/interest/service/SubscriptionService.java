@@ -83,7 +83,16 @@ public class SubscriptionService {
             Map.of("interestId", interestId, "userId", userId));
       }
 
-      // 중복 구독이 아닌 경우 그대로 반환
+      // 존재하는 관심사인지 검증
+      if (!interestRepository.existsById(interestId)) {
+        throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+            Map.of("interestId", interestId));
+      }
+
+      // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+      validateActiveUser(userId);
+
+      // 그 외 오류는 그대로 반환
       throw e;
     }
   }
