@@ -32,7 +32,9 @@ public class NewsArticleCollectService {
     private final InterestKeywordRepository interestKeywordRepository;
 
     //전체에서 수집
-    @Transactional
+    //단 하나의 외부 API만 느린 응답이 있어도 DB 트랜잭션이 길게 유지되어 DB연결을 불필요하게 점유한다.
+    //따라서 newsArticleService.saveAll안에서 트랜잭션 적용하는게 맞다.
+    //@Transactional
     public void collectAll() {
 
         //(관심사 id, 키워드) 리스트
