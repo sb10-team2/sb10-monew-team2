@@ -56,18 +56,24 @@ public class NewsArticleCollectService {
         log.info("키워드 리스트={}", keywords);
 
         for (ArticleCollector collector : collectors) {
-            List<CollectedArticle> collectedArticles = collector.collect(keywords);
+            try {
+                List<CollectedArticle> collectedArticles = collector.collect(keywords);
 
-            List<CollectedArticleWithInterest> matchedArticles = collectedArticles.stream()
-                .map(article -> {
-                    Set<UUID> matchedInterestIds = findMatchedInterestIds(article, keywordToInterestIds);
+                List<CollectedArticleWithInterest> matchedArticles = collectedArticles.stream()
+                    .map(article -> {
+                        Set<UUID> matchedInterestIds = findMatchedInterestIds(article,
+                            keywordToInterestIds);
 
-                    return new CollectedArticleWithInterest(article, matchedInterestIds);
-                })
-                .filter(item -> !item.interestIds().isEmpty())
-                .toList();
+                        return new CollectedArticleWithInterest(article, matchedInterestIds);
+                    })
+                    .filter(item -> !item.interestIds().isEmpty())
+                    .toList();
 
-            newsArticleService.saveAll(matchedArticles);
+                newsArticleService.saveAll(matchedArticles);
+            }
+            catch (Exception e) {
+                log.error("기사 수집 실패 source={}", collector.getSource(), e);
+            }
 
         }
     }
