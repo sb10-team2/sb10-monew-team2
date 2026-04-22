@@ -2,7 +2,6 @@ package com.springboot.monew.notification.repository;
 
 import com.springboot.monew.notification.entity.Notification;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -36,4 +35,13 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   int bulkUpdateConfirmed(UUID userId, Instant updatedAt);
 
   long countAllByUser_IdAndConfirmedIsFalse(UUID userId);
+
+  @Modifying
+  @Query(value = "delete from notifications where id in ("
+      + "select id "
+      + "from notifications "
+      + "where confirmed = true and updated_at < :threshold "
+      + "limit :limit)",
+      nativeQuery = true)
+  long deleteOutdatedByChunk(Instant threshold, long limit);
 }

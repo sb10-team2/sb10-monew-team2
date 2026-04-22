@@ -1,9 +1,9 @@
 package com.springboot.monew.users.controller;
 
-import com.springboot.monew.users.dto.UserDto;
-import com.springboot.monew.users.dto.UserLoginRequest;
-import com.springboot.monew.users.dto.UserRegisterRequest;
-import com.springboot.monew.users.dto.UserUpdateRequest;
+import com.springboot.monew.users.dto.response.UserDto;
+import com.springboot.monew.users.dto.request.UserLoginRequest;
+import com.springboot.monew.users.dto.request.UserRegisterRequest;
+import com.springboot.monew.users.dto.request.UserUpdateRequest;
 import com.springboot.monew.users.service.UserService;
 import jakarta.validation.Valid;
 import java.net.URI;
