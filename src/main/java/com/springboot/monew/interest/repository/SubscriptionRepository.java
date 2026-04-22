@@ -20,4 +20,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
   @Query("select s.user.id from Subscription s where s.interest.id = :interestId")
   List<UUID> findUserIdsByInterestId(UUID interestId);
+
+  boolean existsByUserIdAndInterestId(UUID userId, UUID interestId);
 }

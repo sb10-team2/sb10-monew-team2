@@ -13,7 +13,8 @@ public interface SubscriptionDtoMapper {
   @Mapping(source = "subscription.interest.id", target = "interestId")
   @Mapping(source = "subscription.interest.name", target = "interestName")
   @Mapping(source = "interestKeywords", target = "interestKeywords")
-  @Mapping(source = "subscription.interest.subscriberCount", target = "interestSubscriberCount")
+  @Mapping(source = "interestSubscriberCount", target = "interestSubscriberCount")
   @Mapping(source = "subscription.createdAt", target = "createdAt")
-  SubscriptionDto toSubscriptionDto(Subscription subscription, List<String> interestKeywords);
+  SubscriptionDto toSubscriptionDto(Subscription subscription, List<String> interestKeywords,
+      long interestSubscriberCount);
 }
