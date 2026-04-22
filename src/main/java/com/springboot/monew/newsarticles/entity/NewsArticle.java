@@ -37,7 +37,7 @@ public class NewsArticle extends BaseEntity {
     private String summary;
 
     @Column(name = "view_count", nullable = false)
-    private int viewCount = 0;
+    private Long viewCount = 0L;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
@@ -49,7 +49,7 @@ public class NewsArticle extends BaseEntity {
         this.title = title;
         this.publishedAt = publishedAt;
         this.summary = summary;
-        this.viewCount = 0;
+        this.viewCount = 0L;
         this.isDeleted = false;
     }
 

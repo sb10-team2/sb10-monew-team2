@@ -103,7 +103,7 @@ CREATE TABLE news_articles
     "title"         VARCHAR(300) NOT NULL,
     "published_at"  TIMESTAMPTZ  NOT NULL,
     "summary"       TEXT         NOT NULL,
-    "view_count"    INTEGER      NOT NULL DEFAULT 0,
+    "view_count"    BIGINT      NOT NULL DEFAULT 0,
     "is_deleted"    BOOLEAN      NOT NULL
 );
 
