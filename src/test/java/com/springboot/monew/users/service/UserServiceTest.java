@@ -9,10 +9,10 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.springboot.monew.users.dto.UserDto;
-import com.springboot.monew.users.dto.UserLoginRequest;
-import com.springboot.monew.users.dto.UserRegisterRequest;
-import com.springboot.monew.users.dto.UserUpdateRequest;
+import com.springboot.monew.users.dto.request.UserLoginRequest;
+import com.springboot.monew.users.dto.request.UserRegisterRequest;
+import com.springboot.monew.users.dto.request.UserUpdateRequest;
+import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;

@@ -1,4 +1,4 @@
-package com.springboot.monew.users.dto;
+package com.springboot.monew.users.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

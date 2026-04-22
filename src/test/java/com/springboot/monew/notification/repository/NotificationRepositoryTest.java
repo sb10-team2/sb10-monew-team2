@@ -7,9 +7,11 @@ import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +27,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class NotificationRepositoryTest extends BaseRepositoryTest {
 
   @Autowired
-  private NotificationRepository notificationRepository;
+  private NotificationRepository repository;
 
   @BeforeEach
   void setUp() {
@@ -46,13 +48,13 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     clear();
 
     // when
-    notificationRepository.saveAndFlush(expected);
+    repository.saveAndFlush(expected);
     printQueries();
     ensureQueryCount(1);
     clear();
 
     // then
-    Notification actual = notificationRepository.findById(expected.getId()).orElseThrow();
+    Notification actual = repository.findById(expected.getId()).orElseThrow();
     Assertions.assertThat(actual)
         .usingRecursiveComparison()
         .ignoringFields("user", "commentLike", "interest")
@@ -74,7 +76,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
         .build();
 
     // when & then
-    Assertions.assertThatThrownBy(() -> notificationRepository.saveAndFlush(expected))
+    Assertions.assertThatThrownBy(() -> repository.saveAndFlush(expected))
         .isInstanceOf(DataIntegrityViolationException.class)
         .rootCause()
         .message()
@@ -93,7 +95,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
         .build();
 
     // when & then
-    Assertions.assertThatThrownBy(() -> notificationRepository.saveAndFlush(expected))
+    Assertions.assertThatThrownBy(() -> repository.saveAndFlush(expected))
         .isInstanceOf(DataIntegrityViolationException.class)
         .rootCause()
         .message()
@@ -113,13 +115,13 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     clear();
 
     // when
-    notificationRepository.saveAndFlush(expected);
+    repository.saveAndFlush(expected);
     printQueries();
     ensureQueryCount(1);
     clear();
 
     // then
-    Notification actual = notificationRepository.findById(expected.getId()).orElseThrow();
+    Notification actual = repository.findById(expected.getId()).orElseThrow();
     Assertions.assertThat(actual)
         .usingRecursiveComparison()
         .ignoringFields("user", "commentLike", "interest")
@@ -141,7 +143,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
         .build();
 
     // when & then
-    Assertions.assertThatThrownBy(() -> notificationRepository.saveAndFlush(expected))
+    Assertions.assertThatThrownBy(() -> repository.saveAndFlush(expected))
         .isInstanceOf(DataIntegrityViolationException.class)
         .rootCause()
         .message()
@@ -163,7 +165,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     ReflectionTestUtils.setField(expected, "resourceType", ResourceType.INTEREST);
 
     // when & then
-    Assertions.assertThatThrownBy(() -> notificationRepository.saveAndFlush(expected))
+    Assertions.assertThatThrownBy(() -> repository.saveAndFlush(expected))
         .isInstanceOf(DataIntegrityViolationException.class)
         .rootCause()
         .message()
@@ -187,7 +189,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
 
     // when
     Pageable pageable = PageRequest.of(0, pageSize);
-    Slice<Notification> result = notificationRepository.findByCursor(null, null, user.getId(),
+    Slice<Notification> result = repository.findByCursor(null, null, user.getId(),
         pageable);
     List<Notification> actual = result.getContent();
     printQueries();
@@ -232,7 +234,7 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
 
     // when & then
     while (hasNext) {
-      Slice<Notification> result = notificationRepository.findByCursor(cursor, after, userA.getId(),
+      Slice<Notification> result = repository.findByCursor(cursor, after, userA.getId(),
           pageable);
       List<Notification> actual = result.getContent();
 
@@ -271,18 +273,47 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     // when
     List<UUID> ids = getIds(expected);
     UUID userId = expected.get(0).getUser().getId();
-    int updatedSuccessCount = notificationRepository.bulkUpdateConfirmed(userId, updatedAt);
+    int updatedSuccessCount = repository.bulkUpdateConfirmed(userId, updatedAt);
     ensureQueryCount(1);
     printQueries();
 
     // then
     Assertions.assertThat(updatedSuccessCount).isEqualTo(num);
-    List<Notification> actual = notificationRepository.findAll();
+    List<Notification> actual = repository.findAll();
     Assertions.assertThat(actual)
         .usingRecursiveComparison()
         .ignoringFields("user", "interest")
         .ignoringCollectionOrder()
         .withEqualsForType(this::compareInstant, Instant.class)
         .isEqualTo(expected);
+  }
+
+  @Test
+  @DisplayName("""
+      조건에 맞는 데이터들 삭제 성공
+      확인한 날짜를 임의로 1~2주 전으로 저장한다
+      확인한 날짜가 1주일 지났으면 삭제 대상이다""")
+  void successToDelete() {
+    // given
+    int size = 100;
+    Instant now = Instant.now();
+    Instant threshold = now.minus(7, ChronoUnit.DAYS);
+    Instant twoWeekAgo = threshold.minus(7, ChronoUnit.DAYS);
+    Supplier<Instant> past = () -> Instancio.gen().temporal().instant().range(twoWeekAgo, now).get();
+    List<Notification> entities = testEntityManager.generateNotifications(size);
+    entities.forEach(n -> n.updateConfirmed(past.get()));
+    long expected = entities.stream().filter(n -> threshold.isAfter(n.getUpdatedAt())).count();
+    em.flush();
+    clear();
+
+    // when
+    long actual = repository.deleteOutdatedByChunk(threshold, size);
+    ensureQueryCount(1);
+    printQueries();
+
+    // then
+    Assertions.assertThat(actual).isEqualTo(expected);
+    List<Notification> results = repository.findAll();
+    Assertions.assertThat(results.size()).isEqualTo(size - expected);
   }
 }
