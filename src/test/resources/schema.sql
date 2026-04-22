@@ -59,7 +59,7 @@ CREATE TABLE comments
     user_id    UUID                     NOT NULL,
     article_id UUID                     NOT NULL,
     content    VARCHAR(200)             NOT NULL,
-    like_count BIGINT  DEFAULT 0        NOT NULL,
+    like_count BIGINT DEFAULT 0        NOT NULL,
     is_deleted BOOLEAN DEFAULT false    NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NULL
