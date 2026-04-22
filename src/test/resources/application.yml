@@ -9,7 +9,7 @@ spring:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # subscriber_count 컬럼 타입이 안맞아 임시로 validate -> none으로 변경
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:

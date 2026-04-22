@@ -59,7 +59,7 @@ CREATE TABLE comments
     "user_id"    UUID                  NOT NULL,
     "article_id" UUID                  NOT NULL,
     "content"    VARCHAR(200)          NOT NULL,
-    "like_count" BIGINT DEFAULT 0     NOT NULL,
+    "like_count" BIGINT  DEFAULT 0     NOT NULL,
     "is_deleted" BOOLEAN DEFAULT false NOT NULL,
     "created_at" TIMESTAMPTZ           NOT NULL,
     "updated_at" TIMESTAMPTZ           NULL
@@ -68,10 +68,10 @@ CREATE TABLE comments
 CREATE TABLE interests
 (
     "id"               UUID PRIMARY KEY,
-    "name"             VARCHAR(50)       NOT NULL,
+    "name"             VARCHAR(50)      NOT NULL,
     "subscriber_count" BIGINT DEFAULT 0 NOT NULL,
-    "created_at"       TIMESTAMPTZ       NOT NULL,
-    "updated_at"       TIMESTAMPTZ       NULL
+    "created_at"       TIMESTAMPTZ      NOT NULL,
+    "updated_at"       TIMESTAMPTZ      NULL
 );
 
 CREATE TABLE keywords
@@ -103,7 +103,7 @@ CREATE TABLE news_articles
     "title"         VARCHAR(300) NOT NULL,
     "published_at"  TIMESTAMPTZ  NOT NULL,
     "summary"       TEXT         NOT NULL,
-    "view_count"    BIGINT      NOT NULL DEFAULT 0,
+    "view_count"    BIGINT       NOT NULL DEFAULT 0,
     "is_deleted"    BOOLEAN      NOT NULL
 );
 
@@ -197,9 +197,11 @@ ALTER TABLE notifications
     ADD CONSTRAINT "FK_NOTIFICATIONS_COMMENT_LIKES_ID" FOREIGN KEY ("comment_likes_id") REFERENCES "comment_likes" ("id") on delete cascade,
     ADD CONSTRAINT "CK_NOTIFICATION_POLYMORPHIC_MATCH"
         CHECK (
-            ("resource_type" = 'COMMENT' AND "comment_likes_id" IS NOT NULL AND "interest_id" IS NULL)
+            ("resource_type" = 'COMMENT' AND "comment_likes_id" IS NOT NULL AND
+             "interest_id" IS NULL)
                 OR
-            ("resource_type" = 'INTEREST' AND "interest_id" IS NOT NULL AND "comment_likes_id" IS NULL)
+            ("resource_type" = 'INTEREST' AND "interest_id" IS NOT NULL AND
+             "comment_likes_id" IS NULL)
             );
 
 -- =========================
