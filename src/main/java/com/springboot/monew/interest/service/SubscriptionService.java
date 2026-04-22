@@ -53,8 +53,8 @@ public class SubscriptionService {
     // 구독 엔티티 저장
     // 동시성 상황에서 중복 저장이 발생할 수 있으므로 saveAndFlush 내부에서 처리
     Subscription subscription = saveSubscriptionSafely(user, interest, userId, interestId);
-    // 관심사의 구독자 수 1 증가
-    interest.increaseSubscriberCount();
+    // 관심사의 구독자 수를 DB에서 원자적으로 1 증가
+    incrementSubscriberCount(interestId);
 
     // 해당 관심사에 연결된 키워드 목록 조회
     List<String> keywords = interestKeywordRepository.findAllByInterestWithKeyword(interest)
@@ -63,8 +63,11 @@ public class SubscriptionService {
         .map(Keyword::getName)
         .toList();
 
+    // 증가가 반영된 최신 구독자 수 조회
+    long subscriberCount = getSubscriberCount(interestId);
+
     log.info("관심사 구독 완료 - interestId: {}, userId: {}", interestId, userId);
-    return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords);
+    return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords, subscriberCount);
   }
 
   private Subscription saveSubscriptionSafely(User user, Interest interest, UUID userId,
@@ -77,6 +80,31 @@ public class SubscriptionService {
       throw new InterestException(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS,
           Map.of("interestId", interestId, "userId", userId));
     }
+  }
+
+  private void incrementSubscriberCount(UUID interestId) {
+    // 구독자 수를 DB update 쿼리로 증가시키고 영향 받은 행 수를 확인
+    int updatedRowCount = interestRepository.incrementSubscriberCount(interestId);
+
+    // 정확히 한 개의 관심사만 수정되어야 하므로, 수정된 행 수가 1이 아니면 예외 발생
+    if (updatedRowCount != 1) {
+      throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+          Map.of("interestId", interestId));
+    }
+  }
+
+  private long getSubscriberCount(UUID interestId) {
+    // DB에 반영된 최신 구독자 수 조회
+    Long subscriberCount = interestRepository.findSubscriberCountById(interestId);
+
+    // 구독자 수가 null이라면(해당 관심사가 없다면) 예외 발생
+    if (subscriberCount == null) {
+      throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+          Map.of("interestId", interestId));
+    }
+
+    // 조회된 최신 구독자 수 반환
+    return subscriberCount;
   }
 
   private User validateActiveUser(UUID userId) {
