@@ -18,7 +18,14 @@ public class NewsArticleScheduler {
     public void collectArticlesEveryHour() {
 
         log.info("뉴스 기사 수집 배치 시작");
-        newsArticleCollectService.collectAll();
+
+        try {
+            newsArticleCollectService.collectAll();
+        } catch (Exception e) {
+            log.error("뉴스 기사 수집 배치 실패", e);
+            //필요시 알림 발송 or 재시도 로직 추가
+        }
+
         log.info("뉴스 기사 수집 배치 종료");
     }
 }
