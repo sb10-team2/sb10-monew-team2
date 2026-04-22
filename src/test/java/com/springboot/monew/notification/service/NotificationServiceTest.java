@@ -2,16 +2,20 @@ package com.springboot.monew.notification.service;
 
 import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.entity.CommentLike;
+import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.common.dto.CursorPageResponse;
 import com.springboot.monew.common.fixture.EntityFixtureFactory;
 import com.springboot.monew.common.utils.TimeConverter;
 import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.repository.InterestRepository;
+import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.dto.NotificationFindRequest;
 import com.springboot.monew.notification.entity.Notification;
@@ -22,7 +26,9 @@ import com.springboot.monew.notification.mapper.NotificationMapper;
 import com.springboot.monew.notification.mapper.NotificationMapperImpl;
 import com.springboot.monew.notification.repository.NotificationRepository;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
@@ -38,6 +44,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -45,7 +52,16 @@ class NotificationServiceTest {
   @Spy
   private final NotificationMapper mapper = new NotificationMapperImpl();
   @Mock
-  private NotificationRepository repository;
+  private NotificationRepository notificationRepository;
+  @Mock
+  private SubscriptionRepository subscriptionRepository;
+  @Mock
+  private CommentLikeRepository commentLikeRepository;
+  @Mock
+  private InterestRepository interestRepository;
+  @Mock
+  private UserRepository userRepository;
+
   @InjectMocks
   private NotificationService service;
 
@@ -54,8 +70,10 @@ class NotificationServiceTest {
   void successToCreateByInterest() {
     // given
     User user = EntityFixtureFactory.get(User.class);
+    ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
     Interest interest = EntityFixtureFactory.get(Interest.class);
-    InterestNotificationEvent event = new InterestNotificationEvent(user, interest);
+    ReflectionTestUtils.setField(interest, "id", UUID.randomUUID());
+    InterestNotificationEvent event = new InterestNotificationEvent(interest.getId());
     Notification expected = Notification.builder()
         .resourceType(ResourceType.INTEREST)
         .user(user)
@@ -63,19 +81,24 @@ class NotificationServiceTest {
         .build();
     NotificationDto expectedDto = mapper.toDto(expected);
 
-    given(repository.save(any(Notification.class))).willReturn(expected);
+    given(notificationRepository.saveAll(anyList())).willReturn(List.of(expected));
+    given(subscriptionRepository.findUserIdsByInterestId(interest.getId())).willReturn(List.of(user.getId()));
+    given(interestRepository.findByIdWithArticleCount(any(UUID.class))).willReturn(Optional.of(interest));
+    given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
 
     // when
-    NotificationDto actualDto = service.create(event);
+    List<NotificationDto> actualDto = service.create(event);
 
     // then
-    Assertions.assertThat(actualDto).isEqualTo(expectedDto);
+    Assertions.assertThat(actualDto).isEqualTo(List.of(expectedDto));
 
-    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-    verify(repository, times(1)).save(captor.capture());
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<Notification>> captor = ArgumentCaptor.forClass(List.class);
+    verify(notificationRepository, times(1)).saveAll(captor.capture());
 
-    Notification actual = captor.getValue();
-    Assertions.assertThat(actual)
+    List<Notification> actual = captor.getValue();
+    Assertions.assertThat(actual).isNotEmpty().hasSize(1);
+    Assertions.assertThat(actual.get(0))
         .extracting("user", "interest", "resourceType")
         .contains(expected.getUser(), expected.getInterest(), expected.getResourceType());
   }
@@ -85,8 +108,11 @@ class NotificationServiceTest {
   void successToCreateWithCommentLike() {
     // given
     User user = EntityFixtureFactory.get(User.class);
+    ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
     CommentLike commentLike = EntityFixtureFactory.get(CommentLike.class);
-    CommentLikeNotificationEvent event = new CommentLikeNotificationEvent(user, commentLike);
+    ReflectionTestUtils.setField(commentLike, "id", UUID.randomUUID());
+    CommentLikeNotificationEvent event = new CommentLikeNotificationEvent(user.getId(),
+        commentLike.getId());
     Notification expected = Notification.builder()
         .resourceType(ResourceType.COMMENT)
         .user(user)
@@ -94,7 +120,9 @@ class NotificationServiceTest {
         .build();
     NotificationDto expectedDto = mapper.toDto(expected);
 
-    given(repository.save(any(Notification.class))).willReturn(expected);
+    given(notificationRepository.save(any(Notification.class))).willReturn(expected);
+    given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
+    given(commentLikeRepository.findWithUserById(any(UUID.class))).willReturn(Optional.of(commentLike));
 
     // when
     NotificationDto actualDto = service.create(event);
@@ -103,7 +131,7 @@ class NotificationServiceTest {
     Assertions.assertThat(actualDto).isEqualTo(expectedDto);
 
     ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-    verify(repository, times(1)).save(captor.capture());
+    verify(notificationRepository, times(1)).save(captor.capture());
 
     Notification actual = captor.getValue();
     Assertions.assertThat(actual)
@@ -134,8 +162,8 @@ class NotificationServiceTest {
     Slice<Notification> slice = new SliceImpl<>(content, pageable, hasNext);
     Notification last = content.get(size - 1);
 
-    given(repository.findByCursor(any(), any(), eq(userId), any(Pageable.class))).willReturn(slice);
-    given(repository.countAllByUser_IdAndConfirmedIsFalse(userId)).willReturn(totalElements);
+    given(notificationRepository.findByCursor(any(), any(), eq(userId), any(Pageable.class))).willReturn(slice);
+    given(notificationRepository.countAllByUser_IdAndConfirmedIsFalse(userId)).willReturn(totalElements);
 
     // when
     CursorPageResponse<NotificationDto> response = service.find(request, userId);

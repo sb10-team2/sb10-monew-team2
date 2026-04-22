@@ -1,7 +1,16 @@
 package com.springboot.monew.notification.service;
 
+import com.springboot.monew.comment.entity.CommentLike;
+import com.springboot.monew.comment.exception.CommentErrorCode;
+import com.springboot.monew.comment.exception.CommentException;
+import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.common.dto.CursorPageResponse;
 import com.springboot.monew.common.utils.TimeConverter;
+import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.exception.InterestErrorCode;
+import com.springboot.monew.interest.exception.InterestException;
+import com.springboot.monew.interest.repository.InterestRepository;
+import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.dto.NotificationFindRequest;
 import com.springboot.monew.notification.entity.Notification;
@@ -11,6 +20,8 @@ import com.springboot.monew.notification.exception.NotificationErrorCode;
 import com.springboot.monew.notification.exception.NotificationException;
 import com.springboot.monew.notification.mapper.NotificationMapper;
 import com.springboot.monew.notification.repository.NotificationRepository;
+import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -28,15 +39,19 @@ public class NotificationService {
 
   private final NotificationRepository notificationRepository;
   private final NotificationMapper notificationMapper;
+  private final UserRepository userRepository;
+  private final SubscriptionRepository subscriptionRepository;
+  private final CommentLikeRepository commentLikeRepository;
+  private final InterestRepository interestRepository;
 
-  public NotificationDto create(InterestNotificationEvent event) {
-    Notification notification = notificationMapper.toEntityFrom(event);
-    notificationRepository.save(notification);
-    return notificationMapper.toDto(notification);
+  public List<NotificationDto> create(InterestNotificationEvent event) {
+    List<Notification> notifications = createInterestNotifications(event);
+    notificationRepository.saveAll(notifications);
+    return notificationMapper.toDto(notifications);
   }
 
   public NotificationDto create(CommentLikeNotificationEvent event) {
-    Notification notification = notificationMapper.toEntityFrom(event);
+    Notification notification = createCommentLikeNotification(event);
     notificationRepository.save(notification);
     return notificationMapper.toDto(notification);
   }
@@ -60,8 +75,31 @@ public class NotificationService {
     notificationRepository.bulkUpdateConfirmed(userId, Instant.now());
   }
 
-  public long deleteByChunk(Instant threshold, int chunk) {
+  public long deleteByChunk(Instant threshold, long chunk) {
     return notificationRepository.deleteOutdatedByChunk(threshold, chunk);
+  }
+
+  private Notification createCommentLikeNotification(CommentLikeNotificationEvent event) {
+    UUID commentLikeId = event.getCommentLikeId();
+    CommentLike commentLike = commentLikeRepository.findWithUserById(commentLikeId)
+        .orElseThrow(
+            () -> new CommentException(CommentErrorCode.COMMENT_LIKE_NOT_FOUND, commentLikeId));
+    return Notification.builder()
+        .user(userRepository.getReferenceById(event.getUserId()))
+        .commentLike(commentLike)
+        .resourceType(event.getResourceType())
+        .build();
+  }
+
+  private List<Notification> createInterestNotifications(InterestNotificationEvent event) {
+    UUID interestId = event.getInterestId();
+    List<User> users = subscriptionRepository.findUserIdsByInterestId(interestId)
+        .stream()
+        .map(userRepository::getReferenceById)
+        .toList();
+    Interest interest = interestRepository.findByIdWithArticleCount(interestId)
+        .orElseThrow(() -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND, interestId));
+    return notificationMapper.toEntities(users, interest, event.getResourceType());
   }
 
   private CursorPageResponse<NotificationDto> toCursorPage(Slice<Notification> results,
