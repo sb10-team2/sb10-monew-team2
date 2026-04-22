@@ -19,10 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
@@ -61,6 +63,7 @@ public class SubscriptionService {
         .map(Keyword::getName)
         .toList();
 
+    log.info("관심사 구독 완료 - interestId: {}, userId: {}", interestId, userId);
     return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords);
   }
 
@@ -70,6 +73,7 @@ public class SubscriptionService {
       // 구독 엔티티 저장 후 즉시 flush
       return subscriptionRepository.saveAndFlush(new Subscription(user, interest));
     } catch (DataIntegrityViolationException e) {
+      log.debug("관심사 구독 동시성 충돌 발생 - interestId: {}, userId: {}", interestId, userId);
       throw new InterestException(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS,
           Map.of("interestId", interestId, "userId", userId));
     }
