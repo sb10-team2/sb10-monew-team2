@@ -192,7 +192,8 @@ public class NewsArticleService {
     User user = userRepository.findById(userId).orElseThrow(
         () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
-    //이미 본 기사인지 확인
+    // 이미 본 기사인지 확인
+    //
     if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
       throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED,  Map.of("articleId", articleId, "userId", userId));
     }
@@ -205,6 +206,8 @@ public class NewsArticleService {
     Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
 
     //기사 조회수 증가
+    // ToDo: 조회수 증가 로직의 동시성 문제를 DB 레벨에서 처리
+    // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려
     newsArticle.increaseViewCount();
 
     return newsArticleViewMapper.toDto(savedArticleView, commentCount);
