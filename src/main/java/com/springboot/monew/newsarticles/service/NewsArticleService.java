@@ -74,7 +74,8 @@ public class NewsArticleService {
         Map<String, NewsArticle> existingArticleMap = existingArticles.stream()
             .collect(Collectors.toMap(
                 NewsArticle::getOriginalLink,
-                article -> article
+                article -> article,
+                (left, right) -> left
             ));
 
         Set<String> existingLinks = existingArticleMap.keySet();
@@ -93,7 +94,8 @@ public class NewsArticleService {
         Map<String, NewsArticle> allArticleMap = Stream.concat(existingArticles.stream(), savedArticles.stream())
             .collect(Collectors.toMap(
                 NewsArticle::getOriginalLink,
-                article -> article
+                article -> article,
+                (left, right) -> left
             ));
 
         // 6. 이번 요청에서 사용될 모든 기사 엔티티 목록
