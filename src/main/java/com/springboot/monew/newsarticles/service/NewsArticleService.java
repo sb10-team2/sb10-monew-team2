@@ -163,6 +163,7 @@ public class NewsArticleService {
 
   // 뉴스기사 물리 삭제
   // 뉴스기사 관련된 모든 row 삭제 -> DB 제약조건에 따라 삭제
+  @Transactional
   public void hardDelete(UUID articleId) {
 
     NewsArticle newsArticle = getNewsArticle(articleId);
@@ -171,6 +172,7 @@ public class NewsArticleService {
   }
 
   // 뉴스기사 논리 삭제
+  @Transactional
   public void softDelete(UUID articleId) {
 
     NewsArticle newsArticle = getNewsArticle(articleId);
