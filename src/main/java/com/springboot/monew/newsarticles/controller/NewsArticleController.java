@@ -39,7 +39,7 @@ public class NewsArticleController {
 
   //뉴스기사 물리삭제
   @DeleteMapping("/{articleId}/hard")
-  public ResponseEntity<?> delete(@PathVariable("articleId") UUID articleId) {
+  public ResponseEntity<Void> hardDelete(@PathVariable("articleId") UUID articleId) {
 
     log.debug("뉴스기사 물리삭제 요청: articleId={}", articleId);
     newsArticleService.hardDelete(articleId);
