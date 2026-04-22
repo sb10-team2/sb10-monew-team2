@@ -57,11 +57,11 @@ public class NewsArticle extends BaseEntity {
     this.isDeleted = false;
   }
 
-//    // ===== 비즈니스 로직 =====
-//    public void increaseViewCount() {
-//        this.viewCount++;
-//    }
-//
+    // ===== 비즈니스 로직 =====
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
     public void delete() {
         this.isDeleted = true;
     }
