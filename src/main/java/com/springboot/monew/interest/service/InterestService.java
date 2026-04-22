@@ -51,8 +51,8 @@ public class InterestService {
 
   @Transactional(readOnly = true)
   public CursorPageResponseInterestDto list(InterestPageRequest request, UUID userId) {
-    // 요청 유저가 존재하는 유저인지 검증
-    getActiveUser(userId);
+    // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    validateActiveUser(userId);
 
     // 요청 조건에 맞는 관심사 목록을 limit+1 개수만큼 조회
     List<Interest> interests = new ArrayList<>(interestRepository.findInterests(request));
@@ -320,7 +320,7 @@ public class InterestService {
     return request.orderBy().getCursor(interest);
   }
 
-  private void getActiveUser(UUID userId) {
+  private void validateActiveUser(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
