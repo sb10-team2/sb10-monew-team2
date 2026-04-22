@@ -15,7 +15,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.id = :id AND c.isDeleted = false")
   Optional<Comment> findByIdAndIsDeletedFalse(@Param("id") UUID id);
 
-  @Modifying
+  // increment 시에 영속
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE  c.id = :id")
   void incrementLikeCount(@Param("id") UUID id);
 
@@ -30,4 +31,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
               WHERE c.id = :id
       """)
   void decrementLikeCount(@Param("id") UUID id);
+
+  long countByArticleIdAndIsDeletedFalse(UUID articleId);
 }
