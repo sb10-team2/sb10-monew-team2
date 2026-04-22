@@ -2,13 +2,14 @@ package com.springboot.monew.notification.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.monew.common.dto.CursorPageResponse;
 import com.springboot.monew.notification.dto.NotificationDto;
 import com.springboot.monew.notification.dto.NotificationFindRequest;
@@ -20,8 +21,10 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 
 @WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
@@ -38,10 +45,8 @@ class NotificationControllerTest {
   private MockMvc mockMvc;
   @MockitoBean
   private NotificationService service;
-  @Autowired
-  private ObjectMapper objectMapper;
   private final String endpoint = "/api/notifications";
-  private final String UserIdHeaderKey = "Monew-Request-User-ID";
+  private final String userIdHeaderKey = "Monew-Request-User-ID";
 
   @ParameterizedTest(name = """
       cursor 조회 성공
@@ -61,6 +66,7 @@ class NotificationControllerTest {
     Instant after = rawAfter == null ? null : Instant.parse(rawAfter);
     Integer limit = Integer.valueOf(params.get("limit"));
     MultiValueMap<String, String> queryParams = MultiValueMap.fromSingleValue(params);
+    @SuppressWarnings("unchecked")
     CursorPageResponse<NotificationDto> result = Instancio.of(CursorPageResponse.class)
         .withTypeParameters(NotificationDto.class)
         .create();
@@ -69,14 +75,15 @@ class NotificationControllerTest {
     // when
     mockMvc.perform(
             get(resolveUri(""))
-                .header(UserIdHeaderKey, userId)
+                .header(userIdHeaderKey, userId)
                 .params(queryParams)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andDo(print());
 
     // then
-    ArgumentCaptor<NotificationFindRequest> requestCaptor = ArgumentCaptor.forClass(NotificationFindRequest.class);
+    ArgumentCaptor<NotificationFindRequest> requestCaptor = ArgumentCaptor.forClass(
+        NotificationFindRequest.class);
     ArgumentCaptor<UUID> userIdCaptor = ArgumentCaptor.forClass(UUID.class);
 
     verify(service, times(1)).find(requestCaptor.capture(), userIdCaptor.capture());
@@ -86,12 +93,56 @@ class NotificationControllerTest {
         .contains(cursor, after, limit);
   }
 
-  @Test
-  void bulkUpdate() {
+  @ParameterizedTest(name = "[cursor, after]: optional, [limit, Monew-Request-User-ID]: required\n"
+      + "필수 parameter가 없으면 exception 발생한다")
+  @MethodSource("provideInvalidQueryParamsAndUserId")
+  void failToFind(Map<String, String> params, Class<?> exception, ResultMatcher status)
+      throws Exception {
+    params = new HashMap<>(params);
+    String userId = params.remove("userId");
+    MultiValueMap<String, String> queryParams = MultiValueMap.fromSingleValue(params);
+    @SuppressWarnings("unchecked")
+    CursorPageResponse<NotificationDto> mockResult = Instancio.of(CursorPageResponse.class)
+        .withTypeParameters(NotificationDto.class)
+        .create();
+    given(service.find(any(NotificationFindRequest.class), any(UUID.class))).willReturn(mockResult);
+
+    var requestBuilder = get(resolveUri(""))
+        .params(queryParams)
+        .contentType(MediaType.APPLICATION_JSON);
+    if (userId != null) {
+      requestBuilder.header(userIdHeaderKey, userId);
+    }
+
+    // when & then
+    mockMvc.perform(requestBuilder)
+        .andExpect(status)
+        .andExpect(result -> assertThrowException(result, exception));
+  }
+
+  private void assertThrowException(MvcResult result,
+      Class<?> exception) {
+    Assertions.assertThat(result)
+        .extracting("resolvedException")
+        .isInstanceOf(exception);
   }
 
   @Test
-  void update() {
+  @DisplayName("path variable에서 알림Id, header에서 유저Id를 가져온다")
+  void update() throws Exception {
+    // given
+    UUID id = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    willDoNothing().given(service).update(any(UUID.class), any(UUID.class));
+
+    // when
+    mockMvc.perform(
+            patch(resolveUri("{notificationId}"), id)
+                .header("Monew-Request-User-ID", userId)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent())
+        .andDo(print());
   }
 
   private String resolveUri(String resource) {
@@ -99,6 +150,18 @@ class NotificationControllerTest {
       return endpoint;
     }
     return String.join("/", endpoint, resource);
+  }
+
+  private static Stream<Arguments> provideInvalidQueryParamsAndUserId() {
+    return Stream.of(
+        Arguments.of(Map.of(), MethodArgumentNotValidException.class, status().isBadRequest()),
+        Arguments.of(Map.of("cursor", id(), "after", getStringDatetime()),
+            MethodArgumentNotValidException.class, status().isBadRequest()),
+        Arguments.of(Map.of("userId", id()), MethodArgumentNotValidException.class,
+            status().isBadRequest()),
+        Arguments.of(Map.of("limit", "10"), MissingRequestHeaderException.class,
+            status().isInternalServerError())
+    );
   }
 
   private static Stream<Map<String, String>> provideQueryParamsAndUserId() {
