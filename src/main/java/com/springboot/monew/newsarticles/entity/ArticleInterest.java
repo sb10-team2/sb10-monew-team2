@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
                 )
         }
 )
-public class ArticleInterest extends BaseEntity {
+public class  ArticleInterest extends BaseEntity {
 
     // 관심사 N : 뉴스기사 1
     // 지연로딩: 지금 당장 필요 없으니까 나중에 진짜 쓸때 가져옴.

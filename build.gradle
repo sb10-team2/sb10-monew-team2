@@ -57,6 +57,11 @@ dependencies {
     implementation 'software.amazon.awssdk:s3:2.31.7'
     implementation 'software.amazon.awssdk:auth:2.31.7'
 
+    //.env 파일 자동 인식
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+    //웹페이지(html,xml)를 자바 객체처럼 쉽게 다루게 해주는 라이브러리
+    implementation 'org.jsoup:jsoup:1.17.2'
     // 관심사 이름 유사도 체크를 위한 라이브러리 의존성 추가
     implementation 'org.apache.commons:commons-text:1.11.0'
 }
