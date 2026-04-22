@@ -75,7 +75,7 @@ public class NotificationService {
     notificationRepository.bulkUpdateConfirmed(userId, Instant.now());
   }
 
-  public long deleteByChunk(Instant threshold, int chunk) {
+  public long deleteByChunk(Instant threshold, long chunk) {
     return notificationRepository.deleteOutdatedByChunk(threshold, chunk);
   }
 
