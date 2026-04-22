@@ -1,15 +1,24 @@
 package com.springboot.monew.newsarticles.service;
 
+import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
+import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
+import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
+import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.exception.UserErrorCode;
+import com.springboot.monew.users.exception.UserException;
+import com.springboot.monew.users.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +37,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class NewsArticleService {
 
   private final NewsArticleRepository newsArticleRepository;
-  private final NewsArticleMapper newsArticleMapper;
+  private final ArticleViewRepository articleViewRepository;
   private final InterestRepository interestRepository;
   private final ArticleInterestRepository articleInterestRepository;
+  private final UserRepository userRepository;
+
+  private final NewsArticleMapper newsArticleMapper;
+  private final NewsArticleViewMapper newsArticleViewMapper;
+  private final CommentRepository commentRepository;
 
   @Transactional
   public void saveAll(List<CollectedArticleWithInterest> articlesWithInterests) {
@@ -159,6 +173,37 @@ public class NewsArticleService {
 
   private String buildRelationKey(Object articleId, Object interestId) {
     return articleId + ":" + interestId;
+  }
+
+  //뉴스기사 뷰(조회 이력) 등록
+  //뉴스기사 클릭시, 조회이력 1건 생성 + 기사 조회수 1 증가
+  @Transactional
+  public NewsArticleViewDto createView(UUID articleId, UUID userId){
+
+    //기사 존재 확인
+    NewsArticle newsArticle = getNewsArticle(articleId);
+
+    //사용자 존재 확인
+    User user = userRepository.findById(userId).orElseThrow(
+        () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+
+    //이미 본 기사인지 확인
+    if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED,  Map.of("articleId", articleId, "userId", userId));
+    }
+
+    //처음 보는 기사면 조회이력 생성
+    ArticleView articleView = new ArticleView(newsArticle, user);
+    ArticleView savedArticleView = articleViewRepository.save(articleView);
+
+    //뉴스기사 댓글수
+    Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
+
+    //기사 조회수 증가
+    newsArticle.increaseViewCount();
+
+    return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+
   }
 
   // 뉴스기사 물리 삭제
