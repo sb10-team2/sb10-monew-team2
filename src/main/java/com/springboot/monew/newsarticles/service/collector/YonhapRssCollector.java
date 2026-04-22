@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class YonhapRssCollector implements ArticleCollector{
+public class YonhapRssCollector implements ArticleCollector {
 
   private final RssClient rssClient;
 

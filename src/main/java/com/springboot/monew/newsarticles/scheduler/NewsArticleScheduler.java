@@ -11,21 +11,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NewsArticleScheduler {
 
-    private final NewsArticleCollectService newsArticleCollectService;
+  private final NewsArticleCollectService newsArticleCollectService;
 
-    //매 시간 0분 0초 newsArticleCollectService.collectAll()을 실행한다.
-    @Scheduled(cron = "0 0 * * * *")
-    public void collectArticlesEveryHour() {
+  //매 시간 0분 0초 newsArticleCollectService.collectAll()을 실행한다.
+  @Scheduled(cron = "0 0 * * * *")
+  public void collectArticlesEveryHour() {
 
-        log.info("뉴스 기사 수집 배치 시작");
+    log.info("뉴스 기사 수집 배치 시작");
 
-        try {
-            newsArticleCollectService.collectAll();
-        } catch (Exception e) {
-            log.error("뉴스 기사 수집 배치 실패", e);
-            //필요시 알림 발송 or 재시도 로직 추가
-        }
-
-        log.info("뉴스 기사 수집 배치 종료");
+    try {
+      newsArticleCollectService.collectAll();
+    } catch (Exception e) {
+      log.error("뉴스 기사 수집 배치 실패", e);
+      //필요시 알림 발송 or 재시도 로직 추가
     }
+
+    log.info("뉴스 기사 수집 배치 종료");
+  }
 }

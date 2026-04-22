@@ -2,14 +2,12 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.newsarticles.dto.NaverNewsItem;
 import com.springboot.monew.newsarticles.dto.response.NaverNewsResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClientException;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -30,7 +28,7 @@ public class NaverNewsApiClient {
   public NaverNewsApiClient(
       @Value("${naver.api.key}") String clientId,
       @Value("${naver.api.secret}") String clientSecret,
-      RestClient restClient){
+      RestClient restClient) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.restClient = restClient;
@@ -59,8 +57,7 @@ public class NaverNewsApiClient {
 
       return response == null || response.articles() == null ? List.of() : response.articles();
 
-    }
-    catch (RestClientException ex){
+    } catch (RestClientException ex) {
       log.warn("Naver API 호출 실패. query={}", query, ex);
       return List.of();
     }
