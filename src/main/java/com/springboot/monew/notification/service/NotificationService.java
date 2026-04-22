@@ -50,7 +50,7 @@ public class NotificationService {
   }
 
   public void update(UUID id, UUID userId) {
-    Notification notification = notificationRepository.findById(id).orElseThrow(
+    Notification notification = notificationRepository.findByIdAndUser_Id(id, userId).orElseThrow(
         () -> new NotificationException(NotificationErrorCode.NOTIFICATION_NOT_FOUND, id)
     );
     notification.updateConfirmed(Instant.now());
