@@ -34,26 +34,28 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     // 동적 조건 조합을 위한 where 절
     BooleanBuilder where = new BooleanBuilder();
 
-    // 삭제되지 않은 기사만 조회
+    // 논리삭제 되지 않은 기사만 조회
     where.and(newsArticle.isDeleted.isFalse());
 
     // 검색 키워드 조건 (제목 또는 요약 부분일치)
     where.and(keywordContains(normalize(request.keyword())));
 
-    // 관심사 필터
+    // 관심사 ID가 있으면 해당 관심사와 연결된 기사만 조회
     where.and(interestIdEq(request.interestId()));
 
-    // 출처 필터
+    // 출처 필터가 있으면 해당 출처에 포함되는 기사만 조회
     where.and(sourceIn(request));
 
     // 날짜 범위 필터
     where.and(publishDateGoe(request.publishDateFrom()));
     where.and(publishDateLoe(request.publishDateTo()));
 
-    // 댓글 수 집계 표현식
+    // 댓글 수 정렬/조회에 사용할 댓글 개수 집계 표현식
+    // 댓글 ROW 중복 방지를 위해 countDistinct 사용
     NumberExpression<Long> commentCountExpr = comment.id.countDistinct();
 
-    // 커서 조건 추가
+    // cursor, after 값이 있으면 다음 페이지 조건 생성
+    // 정렬 기준(orderBy)에 따라 날짜/댓글수/조회수 기준 커서 조건이 달라진다.
     BooleanExpression cursorCondition = buildCursorCondition(request, commentCountExpr);
     if (cursorCondition != null) {
       where.and(cursorCondition);
@@ -189,7 +191,8 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
       NewsArticlePageRequest request,
       NumberExpression<Long> commentCountExpr
   ) {
-    if (request.cursor() == null || request.after() == null) {
+    // cursor 자체가 없으면 커서 페이지네이션 조건을 적용할 수 없음
+    if (request.cursor() == null || request.cursor().isBlank()) {
       return null;
     }
 
@@ -203,6 +206,14 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   // 날짜 정렬 기준 커서 조건
   private BooleanExpression publishDateCursorCondition(NewsArticlePageRequest request) {
     Instant cursorValue = Instant.parse(request.cursor());
+
+    // after가 없으면 publishDate만으로 다음 페이지 조건 생성
+    if (request.after() == null || request.after().isBlank()) {
+      return request.direction() == NewsArticleDirection.DESC
+          ? newsArticle.publishedAt.lt(cursorValue)
+          : newsArticle.publishedAt.gt(cursorValue);
+    }
+
     Instant afterValue = Instant.parse(request.after());
 
     if (request.direction() == NewsArticleDirection.DESC) {
@@ -216,9 +227,18 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
             .and(newsArticle.createdAt.gt(afterValue)));
   }
 
+
   // 조회수 정렬 기준 커서 조건
   private BooleanExpression viewCountCursorCondition(NewsArticlePageRequest request) {
     Long cursorValue = Long.parseLong(request.cursor());
+
+    // after가 없으면 viewCount만으로 다음 페이지 조건 생성
+    if (request.after() == null || request.after().isBlank()) {
+      return request.direction() == NewsArticleDirection.DESC
+          ? newsArticle.viewCount.lt(cursorValue)
+          : newsArticle.viewCount.gt(cursorValue);
+    }
+
     Instant afterValue = Instant.parse(request.after());
 
     if (request.direction() == NewsArticleDirection.DESC) {
@@ -239,6 +259,14 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
       NumberExpression<Long> commentCountExpr
   ) {
     Long cursorValue = Long.parseLong(request.cursor());
+
+    // after가 없으면 commentCount만으로 다음 페이지 조건 생성
+    if (request.after() == null || request.after().isBlank()) {
+      return request.direction() == NewsArticleDirection.DESC
+          ? commentCountExpr.lt(cursorValue)
+          : commentCountExpr.gt(cursorValue);
+    }
+
     Instant afterValue = Instant.parse(request.after());
 
     if (request.direction() == NewsArticleDirection.DESC) {
