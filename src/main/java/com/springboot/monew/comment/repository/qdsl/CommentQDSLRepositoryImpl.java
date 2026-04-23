@@ -62,15 +62,15 @@ public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
   }
 
   // 정렬 조건
-  private OrderSpecifier<?> orderByCondition(CommentOrderBy orderBy, CommentDirection direction) {
+  private OrderSpecifier<?>[] orderByCondition(CommentOrderBy orderBy, CommentDirection direction) {
     if (orderBy == CommentOrderBy.likeCount) {
       return direction == CommentDirection.DESC
-          ? qComment.likeCount.desc()
-          : qComment.likeCount.asc();
+          ? new OrderSpecifier<?>[] {qComment.likeCount.desc(), qComment.createdAt.asc()}
+          : new OrderSpecifier<?>[] {qComment.likeCount.asc(), qComment.createdAt.desc()};
     }
     return direction == CommentDirection.DESC
-        ? qComment.createdAt.desc()
-        : qComment.createdAt.asc();
+        ? new OrderSpecifier<?>[] {qComment.createdAt.desc()}
+        : new OrderSpecifier<?>[] {qComment.createdAt.asc()};
   }
 
 }
