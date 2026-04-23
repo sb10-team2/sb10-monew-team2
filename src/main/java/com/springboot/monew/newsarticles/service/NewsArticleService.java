@@ -218,8 +218,8 @@ public class NewsArticleService {
 
     //기사 조회수 증가
     // ToDo: 조회수 증가 로직의 동시성 문제를 DB 레벨에서 처리
-    // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려
-    newsArticle.increaseViewCount();
+    // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
+    newsArticleRepository.incrementViewCount(articleId);
 
     return newsArticleViewMapper.toDto(savedArticleView, commentCount);
 
