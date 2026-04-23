@@ -4,6 +4,9 @@ import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
+import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
+import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
@@ -224,6 +227,67 @@ public class NewsArticleService {
     newsArticleRepository.incrementViewCount(articleId);
 
     return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+
+  }
+
+  @Transactional(readOnly = true)
+  public CursorPageResponseNewsArticleDto list(NewsArticlePageRequest request, UUID userId){
+
+    //요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    //validateActiveUser(userId);
+
+    //요청 조건에 맞는 뉴스기사 목록을 limit + 1 개수만큼 조회
+    //limit + 1만큼 조회하는 이유는 다음 페이지 존재여부(hasNext) 판단을 위해서
+    List<NewsArticleCursorRow> rows = new ArrayList<>(newsArticleRepository.findNewsArticles(request, userId));
+
+    //조회된 개수가 요청 limit을 초과하면 다음 페이지가 존재한다고 판단
+    boolean hasNext = rows.size() > request.limit();
+
+    //다음 페이지가 존재하는 경우 반환 데이터는 limit 개수만큼 잘라내기
+    //limit + 1로 가져온 마지막 1개는 hasNext 판단용이라서 제거
+    if(hasNext){
+      rows = new ArrayList<>(rows.subList(0, request.limit()));
+    }
+
+    //내부 조회용 DTO(NewsArticleCursorRow)를 외부 응답용 DTO(NewsArticleDto)로 변환
+    // cretaedAt 내부 필드는 제외
+    List<NewsArticleDto> content = rows.stream()
+        .map(NewsArticleCursorRow::toDto)
+        .toList();
+
+    //다음 페이지를 위한 커서값 초기화
+    String nextCursor = null;
+    String nextAfter = null;
+
+    //다음 페이지 존재하고, 현재 페이지 데이터 비어있지 않은 경우에만 커서 계산
+    if(hasNext && !rows.isEmpty()){
+
+      //현재 페이지의 마지막 데이터를 기준으로 다음 페이지 커서를 생성
+      NewsArticleCursorRow last = rows.get(rows.size() - 1);
+
+      //정렬 기준(orderBy)에 따라 다음 페이지를 위한 cursor 값 설정
+      //주커서: 정렬 기준 필드 값
+      nextCursor = switch(request.orderBy()){
+        case publishDate -> last.publishDate().toString();
+        case commentCount -> String.valueOf(last.commentCount());
+        case viewCount -> String.valueOf(last.viewCount());
+      };
+
+      //보조 커서(after): 동일한 정렬값을 가진 데이터들 사이에서 순서를 안정적으로 유지하기 위한 값.
+      nextAfter = last.createdAt().toString();
+    }
+
+    //전체 데이터 개수 조회
+    long totalElements = newsArticleRepository.countNewsArticles(request);
+
+    return new CursorPageResponseNewsArticleDto(
+        content,
+        nextCursor,
+        nextAfter,
+        content.size(),
+        totalElements,
+        hasNext
+    );
 
   }
   @Transactional(readOnly = true)
