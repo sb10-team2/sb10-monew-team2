@@ -4,6 +4,7 @@ import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
@@ -222,6 +223,27 @@ public class NewsArticleService {
     newsArticleRepository.incrementViewCount(articleId);
 
     return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+
+  }
+  @Transactional(readOnly = true)
+  public NewsArticleDto findById(UUID articleId, UUID userId) {
+
+    //1. 기사 조회
+    NewsArticle article = getNewsArticle(articleId);
+
+    //2. 논리 삭제 체크
+    if (article.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", articleId));
+    }
+
+    // 3. 댓글 수 조회
+    Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
+
+    // 4. 조회했던 기사인지 여부
+    Boolean viewdByMe = articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId);
+
+    return newsArticleMapper.toDto(article, commentCount, viewdByMe);
 
   }
 
