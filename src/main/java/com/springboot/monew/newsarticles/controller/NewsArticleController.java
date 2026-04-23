@@ -1,5 +1,6 @@
 package com.springboot.monew.newsarticles.controller;
 
+import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
@@ -9,10 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -39,6 +42,16 @@ public class NewsArticleController {
 
     //헤더: 생성된 리소스의 URL
     return ResponseEntity.created(URI.create("/api/articles/" + articleId + "/article-views/" + newsArticleViewDto.id())).body(newsArticleViewDto);
+
+  }
+
+  //단건 조회
+  @GetMapping
+  public ResponseEntity<NewsArticleDto> find(@RequestParam("articleId") UUID articleId,
+                                                 @RequestHeader("Monew-Request-User-ID") UUID userId){
+
+    NewsArticleDto newsArticleDto = newsArticleService.findById(articleId, userId);
+    return ResponseEntity.ok(newsArticleDto);
 
   }
 
