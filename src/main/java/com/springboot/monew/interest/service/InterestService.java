@@ -225,7 +225,7 @@ public class InterestService {
     try {
       return keywordRepository.saveAndFlush(new Keyword(keywordName));
     } catch (DataIntegrityViolationException e) {
-      log.debug("키워드 동시 생성 충돌 발생. 기존 키워드 재조회: {}", keywordName);
+      log.debug("키워드 동시 생성 충돌 발생 - 기존 키워드 재조회: {}", keywordName);
       return keywordRepository.findByName(keywordName)
           .orElseThrow(() -> e);
     }

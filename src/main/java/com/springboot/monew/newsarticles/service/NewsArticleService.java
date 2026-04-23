@@ -1,16 +1,25 @@
 package com.springboot.monew.newsarticles.service;
 
+import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
+import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
+import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
+import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
+import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.exception.UserErrorCode;
+import com.springboot.monew.users.exception.UserException;
+import com.springboot.monew.users.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class NewsArticleService {
 
   private final NewsArticleRepository newsArticleRepository;
-  private final NewsArticleMapper newsArticleMapper;
+  private final ArticleViewRepository articleViewRepository;
   private final InterestRepository interestRepository;
   private final ArticleInterestRepository articleInterestRepository;
+  private final UserRepository userRepository;
+
+  private final NewsArticleMapper newsArticleMapper;
+  private final NewsArticleViewMapper newsArticleViewMapper;
+  private final CommentRepository commentRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -163,6 +177,52 @@ public class NewsArticleService {
 
   private String buildRelationKey(Object articleId, Object interestId) {
     return articleId + ":" + interestId;
+  }
+
+  //뉴스기사 뷰(조회 이력) 등록
+  //뉴스기사 클릭시, 조회이력 1건 생성 + 기사 조회수 1 증가
+  @Transactional
+  public NewsArticleViewDto createView(UUID articleId, UUID userId){
+
+    //뉴스기사 존재 확인
+    NewsArticle newsArticle = getNewsArticle(articleId);
+
+    //논리 삭제된 뉴스기사의 경우 예외처리
+    if(newsArticle.isDeleted()){
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
+    }
+
+    //사용자 존재 확인
+    User user = userRepository.findById(userId).orElseThrow(
+        () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+
+    // 이미 본 기사인지 확인
+    // ToDo: 동시에 existsByNewsArticleIdAndUserId false받고, save하면 어떻게 되나? -> DB 유니크 제약 위반 발생
+    if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
+    }
+
+    ArticleView savedArticleView;
+
+    try{
+      //save() : 영속성 컨텍스트에만 저장, 실제 insert는 commit 시점.
+      //saveAndFlush() : 즉시 DB에 insert
+      //요청 A, 요청 B 동시에 요청이 들어왔다 -> A랑 B중 누구든지간에 saveAndFlush()를 먼저 하는 요청이 있을거라 DB 레벨에서 UNIQUE 조건에 의해 예외 발생될것이다.
+      savedArticleView = articleViewRepository.saveAndFlush(new ArticleView(newsArticle, user));
+    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
+    }
+
+    //뉴스기사 댓글수
+    Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
+
+    //기사 조회수 증가
+    // ToDo: 조회수 증가 로직의 동시성 문제를 DB 레벨에서 처리
+    // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
+    newsArticleRepository.incrementViewCount(articleId);
+
+    return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+
   }
 
   // 뉴스기사 물리 삭제
