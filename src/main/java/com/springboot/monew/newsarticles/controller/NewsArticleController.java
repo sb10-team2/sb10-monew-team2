@@ -47,7 +47,7 @@ public class NewsArticleController {
 
   //단건 조회
   @GetMapping("/{articleId}")
-  public ResponseEntity<NewsArticleDto> find(@RequestParam("articleId") UUID articleId,
+  public ResponseEntity<NewsArticleDto> find(@PathVariable("articleId") UUID articleId,
                                                  @RequestHeader("Monew-Request-User-ID") UUID userId){
 
     NewsArticleDto newsArticleDto = newsArticleService.findById(articleId, userId);
