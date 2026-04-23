@@ -30,7 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class UserActivityDocument {
 
   @Id
-  private UUID userId;
+  private UUID id;
 
   private String email;
 
@@ -46,8 +46,8 @@ public class UserActivityDocument {
 
   private List<ArticleViewItem> articleViews = new ArrayList<>();
 
-  public UserActivityDocument(UUID userId, String email, String nickname, Instant createdAt) {
-    this.userId = userId;
+  public UserActivityDocument(UUID id, String email, String nickname, Instant createdAt) {
+    this.id = id;
     this.email = email;
     this.nickname = nickname;
     this.createdAt = createdAt;
@@ -58,7 +58,7 @@ public class UserActivityDocument {
       UUID interestId,
       String interestName,
       List<String> interestKeywords,
-      Long interestSubscriberCount,
+      long interestSubscriberCount,
       Instant createdAt
   ) {
 
@@ -71,7 +71,7 @@ public class UserActivityDocument {
       UUID userId,
       String userNickname,
       String content,
-      Long likeCount,
+      long likeCount,
       Instant createdAt
   ) {
 
@@ -86,7 +86,7 @@ public class UserActivityDocument {
       UUID commentUserId,
       String commentUserNickname,
       String commentContent,
-      Long commentLikeCount,
+      long commentLikeCount,
       Instant commentCreatedAt
   ) {
 
@@ -102,8 +102,8 @@ public class UserActivityDocument {
       String articleTitle,
       Instant articlePublishedDate,
       String articleSummary,
-      Long articleCommentCount,
-      Long articleViewCount
+      long articleCommentCount,
+      long articleViewCount
   ) {
 
   }

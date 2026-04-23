@@ -114,9 +114,7 @@ public class UserService {
 
   // 논리 삭제
   @Transactional
-  public void delete(UUID userId, UUID requestUserId) {
-    validateOwner(userId, requestUserId);
-
+  public void delete(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
           log.warn("사용자 탈퇴 실패: 사용자를 찾을 수 없음 - userId={}", userId);
@@ -140,9 +138,7 @@ public class UserService {
 
   // 수동 물리 삭제
   @Transactional
-  public void hardDelete(UUID userId, UUID requestUserId) {
-    validateOwner(userId, requestUserId);
-
+  public void hardDelete(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
           log.warn("사용자 물리 삭제 실패: 사용자를 찾을 수 없음 - userId={}", userId);
