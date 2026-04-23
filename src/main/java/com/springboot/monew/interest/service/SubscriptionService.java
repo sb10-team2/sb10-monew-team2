@@ -75,9 +75,10 @@ public class SubscriptionService {
     // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
     validateActiveUser(userId);
     // 존재하는 관심사인지 검증
-    interestRepository.findById(interestId).orElseThrow(
-        () -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
-            Map.of("interestId", interestId)));
+    if (!interestRepository.existsById(interestId)) {
+      throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+          Map.of("interestId", interestId));
+    }
 
     // 해당 관심사를 실제로 구독 중인지 확인하고 구독 삭제
     deleteSubscription(interestId, userId);
