@@ -1,10 +1,13 @@
 package com.springboot.monew.newsarticles.controller;
 
+import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
+import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +50,15 @@ public class NewsArticleController {
 
   }
 
-  //단건 조회
+  //뉴스기사 목록 조회
+  @GetMapping
+  public CursorPageResponseNewsArticleDto list(@Valid NewsArticlePageRequest request,
+      @RequestHeader("Monew-Request-User-ID") UUID userId){
+    return newsArticleService.list(request, userId);
+
+  }
+
+  //뉴스기사 단건 조회
   @GetMapping("/{articleId}")
   public ResponseEntity<NewsArticleDto> find(@PathVariable("articleId") UUID articleId,
                                                  @RequestHeader("Monew-Request-User-ID") UUID userId){
