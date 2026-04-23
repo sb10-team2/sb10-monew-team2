@@ -61,7 +61,7 @@ public class NewsArticle extends BaseEntity {
 //    public void increaseViewCount() {
 //        this.viewCount++;
 //    }
-//
+
     public void delete() {
         this.isDeleted = true;
     }

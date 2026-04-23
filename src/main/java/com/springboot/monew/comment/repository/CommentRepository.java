@@ -64,4 +64,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
       @Param("cursor") String cursor,
       @Param("after") Instant after,
       @Param("limit") int limit);
+
+  //is_deleted가 false인 댓글 수 조회
+  long countByArticleIdAndIsDeletedFalse(UUID articleId);
 }
