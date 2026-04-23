@@ -8,7 +8,9 @@ import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.newsarticles.exception.ArticleException;
+import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
+import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -26,26 +28,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentService {
   private final CommentRepository commentRepository;
   private final CommentLikeRepository commentLikeRepository;
-  // TODO : Article 구현 시 주석 해제
-  // private final ArticleRepository articleRepository;
+  private final NewsArticleRepository articleRepository;
   private final UserRepository userRepository;
   private final CommentMapper commentMapper;
 
   // 댓글 등록
   @Transactional
   public CommentDto create(CommentRegisterRequest request) {
-    // TODO: Article 구현 시 주석 해제
     // 존재하는 기사인지 check
-    // Article article = articleRepository.findById(request.articleId())
-    // .orElseThrow(커스텀 예외);
+    NewsArticle article = articleRepository.findById(request.articleId())
+        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", request.articleId())));
 
-    NewsArticle article = new NewsArticle(ArticleSource.NAVER, "임시", "임시", Instant.now(), "임시");
-
-    // TODO: Article 논리 삭제 check
+    if (article.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", request.articleId()));
+    }
 
     User user = getActiveUser(request.userId());
 
-    // TODO: Article 추가
     Comment comment = new Comment(user, article, request.content());
     commentRepository.save(comment);
     log.info(
@@ -100,10 +99,15 @@ public class CommentService {
     log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
   }
 
-  // Todo: 기사의 전체 댓글 조회 -> Article 구현 끝나면 다시 체크 (고려해야할 것이 너무 많음)
   @Transactional(readOnly = true)
   public CursorPageResponseCommentDto<CommentDto> list(CommentPageRequest request, UUID userId) {
-    // Todo: articleId 조회 -> 존재 + 소프드딜릿 여부
+    // 기사 조회 -> 존재, 삭제 여부
+    NewsArticle article = articleRepository.findById(request.articleId())
+        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", request.articleId())));
+
+    if (article.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", request.articleId()));
+    }
 
     // userId 조회 -> 존재 + 소프트딜릿 여부, 검증 느낌 ?
     User user = getActiveUser(userId);
@@ -112,8 +116,8 @@ public class CommentService {
     List<Comment> comments =
         commentRepository.findComments(
             request.articleId(),
-            request.orderBy().name(),
-            request.direction().name(),
+            request.orderBy(),
+            request.direction(),
             request.cursor(),
             request.after(), // 보조 커서
             request.limit() + 1);
@@ -145,7 +149,7 @@ public class CommentService {
     int size = comments.size();
 
     // 댓글 전체 개수
-    int totalElements = 0; // Todo: countByArticleIdAndIsDeletedFalse(request.articleId());
+    long totalElements = commentRepository.countByArticleIdAndIsDeletedFalse(request.articleId());
 
     // Dto 변환
     List<CommentDto> content =

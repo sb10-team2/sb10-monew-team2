@@ -146,7 +146,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 10);
 
     // then
@@ -166,7 +166,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 10);
 
     // then
@@ -189,7 +189,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.ASC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.ASC,
         null, null, 10);
 
     // then
@@ -215,7 +215,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.likeCount.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.likeCount, CommentDirection.DESC,
         null, null, 10);
 
     // then
@@ -240,7 +240,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.likeCount.name(), CommentDirection.ASC.name(),
+        article.getId(), CommentOrderBy.likeCount, CommentDirection.ASC,
         null, null, 10);
 
     // then
@@ -261,14 +261,14 @@ class CommentRepositoryTest extends BaseRepositoryTest {
     flushAndClear();
 
     List<Comment> firstPage = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 3);
     // 커서 가져옴
     Comment last = firstPage.get(firstPage.size() - 1);
 
     // when
     List<Comment> secondPage = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         CommentOrderBy.createdAt.getCursor(last), last.getCreatedAt(), 3);
 
     // then
@@ -289,7 +289,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 10);
 
     // then
@@ -309,7 +309,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, limit);
 
     // then
@@ -326,7 +326,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
     // when (원래 기사 댓글 조회)
     List<Comment> result = commentRepository.findComments(
-        article.getId(), CommentOrderBy.createdAt.name(), CommentDirection.DESC.name(),
+        article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 10);
 
     // then
