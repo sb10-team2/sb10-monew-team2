@@ -2,9 +2,11 @@ package com.springboot.monew.newsarticles.controller;
 
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +55,12 @@ public class NewsArticleController {
     NewsArticleDto newsArticleDto = newsArticleService.findById(articleId, userId);
     return ResponseEntity.ok(newsArticleDto);
 
+  }
+
+  //출처 목록 조회
+  @GetMapping("/sources")
+  public ResponseEntity<List<ArticleSource>> findSource(){
+    return ResponseEntity.ok(newsArticleService.findAllSources());
   }
 
   //뉴스기사 논리삭제

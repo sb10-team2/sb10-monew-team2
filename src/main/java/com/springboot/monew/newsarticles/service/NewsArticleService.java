@@ -9,6 +9,7 @@ import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
@@ -245,6 +246,11 @@ public class NewsArticleService {
 
     return newsArticleMapper.toDto(article, commentCount, viewdByMe);
 
+  }
+
+  @Transactional(readOnly = true)
+  public List<ArticleSource> findAllSources() {
+    return List.of(ArticleSource.values());
   }
 
   // 뉴스기사 물리 삭제
