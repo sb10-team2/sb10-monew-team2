@@ -74,11 +74,6 @@ public class SubscriptionService {
   public void unsubscribe(UUID interestId, UUID userId) {
     // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
     validateActiveUser(userId);
-    // 존재하는 관심사인지 검증
-    if (!interestRepository.existsById(interestId)) {
-      throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
-          Map.of("interestId", interestId));
-    }
 
     // 해당 관심사를 실제로 구독 중인지 확인하고 구독 삭제
     deleteSubscription(interestId, userId);
@@ -121,6 +116,12 @@ public class SubscriptionService {
 
     // 정확히 한 개의 구독만 삭제되어야 하므로, 삭제된 행 수가 1이 아니면 예외 발생
     if (deletedRowCount != 1) {
+      // 관심사가 존재하지 않아서 발생한 예외인지 확인
+      if (!interestRepository.existsById(interestId)) {
+        throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+            Map.of("interestId", interestId));
+      }
+
       throw new InterestException(InterestErrorCode.SUBSCRIPTION_NOT_FOUND,
           Map.of("interestId", interestId, "userId", userId));
     }
