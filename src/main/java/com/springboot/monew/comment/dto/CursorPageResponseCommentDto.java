@@ -10,5 +10,5 @@ public record CursorPageResponseCommentDto<T>(
     String nextCursor,
     Instant nextAfter,
     int size,
-    int totalElements,
+    long totalElements,
     boolean hasNext) {}
