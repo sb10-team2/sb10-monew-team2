@@ -68,6 +68,6 @@ public class InterestController implements InterestApiDocs {
   public ResponseEntity<Void> unsubscribe(@PathVariable UUID interestId,
       @RequestHeader("Monew-Request-User-ID") UUID userId) {
     subscriptionService.unsubscribe(interestId, userId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 }
