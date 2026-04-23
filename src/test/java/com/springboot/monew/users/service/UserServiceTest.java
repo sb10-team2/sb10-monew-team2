@@ -386,31 +386,11 @@ public class UserServiceTest {
     assertThat(user.isDeleted()).isFalse();
 
     // when
-    userService.delete(userId, userId);
+    userService.delete(userId);
 
     // then
     assertThat(user.isDeleted()).isTrue();
     verify(userRepository).findById(userId);
-  }
-
-  @Test
-  @DisplayName("요청 사용자와 삭제 대상 사용자가 다르면 USER_NOT_OWNED 예외가 발생한다")
-  void delete_userNotOwned() {
-    // given
-    UUID userId = UUID.randomUUID();
-    UUID requestUserId = UUID.randomUUID();
-
-    // when & then
-    assertThatThrownBy(() -> userService.delete(userId, requestUserId))
-        .isInstanceOf(UserException.class)
-        .satisfies(throwable -> {
-          UserException exception = (UserException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_OWNED);
-          assertThat(exception.getDetails()).isEqualTo(
-              Map.of("userId", userId, "requestUserId", requestUserId));
-        });
-    verify(userRepository, never()).findById(any());
-    verify(userMapper, never()).toDto(any());
   }
 
   @Test
@@ -422,7 +402,7 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.delete(userId, userId))
+    assertThatThrownBy(() -> userService.delete(userId))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
@@ -443,7 +423,7 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(deletedUser));
 
     // when & then
-    assertThatThrownBy(() -> userService.delete(userId, userId))
+    assertThatThrownBy(() -> userService.delete(userId))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
@@ -464,31 +444,11 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
-    userService.hardDelete(userId, userId);
+    userService.hardDelete(userId);
 
     // then
     verify(userRepository).findById(userId);
     verify(userRepository).delete(user);
-  }
-
-  @Test
-  @DisplayName("요청 사용자와 물리 삭제 대상 사용자가 다르면 USER_NOT_OWNED 예외가 발생한다")
-  void hardDelete_userNotOwned() {
-    // given
-    UUID userId = UUID.randomUUID();
-    UUID requestUserId = UUID.randomUUID();
-
-    // when & then
-    assertThatThrownBy(() -> userService.hardDelete(userId, requestUserId))
-        .isInstanceOf(UserException.class)
-        .satisfies(throwable -> {
-          UserException exception = (UserException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_OWNED);
-          assertThat(exception.getDetails()).isEqualTo(
-              Map.of("userId", userId, "requestUserId", requestUserId));
-        });
-
-    verify(userRepository, never()).findById(any());
   }
 
   @Test
@@ -500,7 +460,7 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.hardDelete(userId, userId))
+    assertThatThrownBy(() -> userService.hardDelete(userId))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;

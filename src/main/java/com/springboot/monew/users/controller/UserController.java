@@ -1,9 +1,9 @@
 package com.springboot.monew.users.controller;
 
-import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.dto.request.UserLoginRequest;
 import com.springboot.monew.users.dto.request.UserRegisterRequest;
 import com.springboot.monew.users.dto.request.UserUpdateRequest;
+import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.service.UserService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -60,19 +60,17 @@ public class UserController implements UserApiDocs {
 
   @DeleteMapping("/{userId}")
   public ResponseEntity<Void> delete(
-      @PathVariable UUID userId,
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId
+      @PathVariable UUID userId
   ) {
-    userService.delete(userId, requestUserId);
+    userService.delete(userId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{userId}/hard")
   public ResponseEntity<Void> hardDelete(
-      @PathVariable UUID userId,
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId
+      @PathVariable UUID userId
   ) {
-    userService.hardDelete(userId, requestUserId);
+    userService.hardDelete(userId);
     return ResponseEntity.noContent().build();
   }
 }

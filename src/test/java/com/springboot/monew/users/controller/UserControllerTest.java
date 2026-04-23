@@ -214,11 +214,10 @@ public class UserControllerTest {
     UUID userId = UUID.randomUUID();
 
     // when & then
-    mockMvc.perform(delete("/api/users/{userId}", userId)
-            .header("MoNew-Request-User-ID", userId))
+    mockMvc.perform(delete("/api/users/{userId}", userId))
         .andExpect(status().isNoContent());
 
-    verify(userService).delete(userId, userId);
+    verify(userService).delete(userId);
   }
 
   @Test
@@ -228,10 +227,9 @@ public class UserControllerTest {
     UUID userId = UUID.randomUUID();
 
     // when & then
-    mockMvc.perform(delete("/api/users/{userId}/hard", userId)
-            .header("MoNew-Request-User-ID", userId))
+    mockMvc.perform(delete("/api/users/{userId}/hard", userId))
         .andExpect(status().isNoContent());
 
-    verify(userService).hardDelete(userId, userId);
+    verify(userService).hardDelete(userId);
   }
 }
