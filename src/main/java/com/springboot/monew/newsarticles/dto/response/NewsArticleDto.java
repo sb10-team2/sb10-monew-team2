@@ -7,7 +7,7 @@ import java.util.UUID;
 public record NewsArticleDto(
     UUID id,
     ArticleSource source,
-    String sorceUrl,
+    String sourceUrl,
     String title,
     Instant publishDate,
     String summary,
