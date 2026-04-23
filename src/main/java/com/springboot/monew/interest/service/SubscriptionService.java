@@ -70,6 +70,19 @@ public class SubscriptionService {
     return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords, subscriberCount);
   }
 
+  @Transactional
+  public void unsubscribe(UUID interestId, UUID userId) {
+    // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    validateActiveUser(userId);
+
+    // 해당 관심사를 실제로 구독 중인지 확인하고 구독 삭제
+    deleteSubscription(interestId, userId);
+    // 관심사의 구독자 수를 DB에서 원자적으로 1 감소
+    decrementSubscriberCount(interestId);
+
+    log.info("관심사 구독 취소 완료 - interestId: {}, userId: {}", interestId, userId);
+  }
+
   private Subscription saveSubscriptionSafely(User user, Interest interest, UUID userId,
       UUID interestId) {
     try {
@@ -97,9 +110,31 @@ public class SubscriptionService {
     }
   }
 
+  private void deleteSubscription(UUID interestId, UUID userId) {
+    // 구독 row를 삭제하고 실제 삭제된 행 수를 확인
+    int deletedRowCount = subscriptionRepository.deleteByUserIdAndInterestId(userId, interestId);
+
+    // 정확히 한 개의 구독만 삭제되어야 하므로, 삭제된 행 수가 1이 아니면 예외 발생
+    if (deletedRowCount != 1) {
+      throw new InterestException(InterestErrorCode.SUBSCRIPTION_NOT_FOUND,
+          Map.of("interestId", interestId, "userId", userId));
+    }
+  }
+
   private void incrementSubscriberCount(UUID interestId) {
     // 구독자 수를 DB update 쿼리로 증가시키고 영향 받은 행 수를 확인
     int updatedRowCount = interestRepository.incrementSubscriberCount(interestId);
+
+    // 정확히 한 개의 관심사만 수정되어야 하므로, 수정된 행 수가 1이 아니면 예외 발생
+    if (updatedRowCount != 1) {
+      throw new InterestException(InterestErrorCode.INTEREST_NOT_FOUND,
+          Map.of("interestId", interestId));
+    }
+  }
+
+  private void decrementSubscriberCount(UUID interestId) {
+    // subscriberCount를 DB update 쿼리로 감소시키고 영향받은 행 수를 확인
+    int updatedRowCount = interestRepository.decrementSubscriberCount(interestId);
 
     // 정확히 한 개의 관심사만 수정되어야 하므로, 수정된 행 수가 1이 아니면 예외 발생
     if (updatedRowCount != 1) {
