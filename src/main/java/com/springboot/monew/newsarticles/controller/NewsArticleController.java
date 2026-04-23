@@ -46,7 +46,7 @@ public class NewsArticleController {
   }
 
   //단건 조회
-  @GetMapping
+  @GetMapping("/{articleId}")
   public ResponseEntity<NewsArticleDto> find(@RequestParam("articleId") UUID articleId,
                                                  @RequestHeader("Monew-Request-User-ID") UUID userId){
 
