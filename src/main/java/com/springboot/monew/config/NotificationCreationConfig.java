@@ -8,7 +8,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @EnableAsync
 @Configuration
-public class AsyncConfig {
+public class NotificationCreationConfig {
 
   @Bean(name = "notificationCreationPool")
   public Executor notificationCreationExecutor() {
