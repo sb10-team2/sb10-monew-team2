@@ -60,11 +60,20 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 등록에 성공한다")
-  void create_성공() {
+  void create_성공() throws NoSuchFieldException, IllegalAccessException{
     // given
+    UUID userId = UUID.randomUUID();
+    UUID articleId = UUID.randomUUID();
+
     User user = new User("email", "nickname", "password");
     NewsArticle article = new NewsArticle(
         ArticleSource.NAVER, "https://test.com", "제목", Instant.now(), "요약");
+
+    // id 필드 리플렉션 -> id가 DB insert 되어야 생성되서 리플렉션 사용했습니다.
+    Field idField = BaseEntity.class.getDeclaredField("id");
+    idField.setAccessible(true);
+    idField.set(user, userId);
+    idField.set(article, articleId);
 
     CommentRegisterRequest request = new CommentRegisterRequest(
         article.getId(),
@@ -218,6 +227,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.update(commentId, userId, request))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_NOT_FOUND);
@@ -243,6 +253,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.update(commentId, userId, request))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -280,6 +291,7 @@ class CommentServiceTest {
 
     // when
     assertThatThrownBy(() -> commentService.update(commentId, userId, request))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_NOT_OWNED_BY_USER);
@@ -321,6 +333,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.softDelete(commentId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           CommentException exception = (CommentException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_NOT_FOUND);
@@ -343,6 +356,7 @@ class CommentServiceTest {
 
     // when
     assertThatThrownBy(() -> commentService.softDelete(commentId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           CommentException exception = (CommentException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_ALREADY_DELETED);
@@ -379,6 +393,7 @@ class CommentServiceTest {
     given(commentRepository.findById(commentId)).willReturn(Optional.empty());
     // when
     assertThatThrownBy(() -> commentService.hardDelete(commentId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           CommentException exception = (CommentException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_NOT_FOUND);
@@ -565,6 +580,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.list(request, userId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
@@ -591,6 +607,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.list(request, userId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED);
@@ -618,6 +635,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.list(request, userId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -647,6 +665,7 @@ class CommentServiceTest {
 
     // when & then
     assertThatThrownBy(() -> commentService.list(request, userId))
+        .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.entity.Comment;
+import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.comment.exception.CommentErrorCode;
 import com.springboot.monew.comment.mapper.CommentLikeMapper;
@@ -54,6 +55,11 @@ class CommentLikeServiceTest {
     Comment comment = Instancio.of(Comment.class).create();
 
     Comment refreshed = Instancio.of(Comment.class)
+        .set(field(BaseEntity.class, "id"), comment.getId())
+        .set(field(BaseEntity.class, "createdAt"), comment.getCreatedAt())
+        .set(field(Comment.class, "article"), comment.getArticle())
+        .set(field(Comment.class, "user"), comment.getUser())
+        .set(field(Comment.class, "content"), comment.getContent())
         .set(field(Comment.class, "likeCount"), comment.getLikeCount() + 1)
         .create();
 
@@ -143,6 +149,38 @@ class CommentLikeServiceTest {
 
     verify(commentRepository, times(1)).findByIdAndIsDeletedFalse(comment.getId());
     verify(userRepository, never()).findById(any());
+    verify(commentLikeRepository, never()).save(any(CommentLike.class));
+    verify(eventPublisher, never()).publishEvent(any(CommentLikeNotificationEvent.class));
+    verify(commentLikeMapper, never()).toCommentLikeDto(any(CommentLike.class));
+  }
+
+  @Test
+  @DisplayName("좋아요 실패 테스트 케이스 - 중복 좋아요")
+  void like_실패_CommentLikeAlreadyExists() {
+    // given
+    Comment comment = Instancio.of(Comment.class)
+          .create();
+    User user = Instancio.of(User.class)
+        .set(field(User.class, "deletedAt"), null)
+        .create();
+
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+    // 중복 좋아요
+    given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(true);
+
+    // when & then
+    assertThatThrownBy(() -> commentLikeService.like(comment.getId(), user.getId()))
+        .isInstanceOf(MonewException.class)
+        .satisfies(throwable -> {
+          MonewException exception = (MonewException) throwable;
+          assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS);
+          assertThat(exception.getDetails()).isEqualTo(Map.of("commentId", comment.getId(), "userId", user.getId()));
+        });
+
+    verify(commentRepository, times(1)).findByIdAndIsDeletedFalse(comment.getId());
+    verify(userRepository, times(1)).findById(user.getId());
+    verify(commentLikeRepository, times(1)).existsByCommentIdAndUserId(comment.getId(), user.getId());
     verify(commentLikeRepository, never()).save(any(CommentLike.class));
     verify(eventPublisher, never()).publishEvent(any(CommentLikeNotificationEvent.class));
     verify(commentLikeMapper, never()).toCommentLikeDto(any(CommentLike.class));
