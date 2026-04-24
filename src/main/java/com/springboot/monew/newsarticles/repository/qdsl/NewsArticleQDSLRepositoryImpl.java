@@ -231,7 +231,8 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     ParsedCursor parsedCursor = parseCursor(request.cursor());
 
     //주커서
-    Instant cursorValue = Instant.parse(parsedCursor.value());
+    //cursor값을 Instant로 파싱하는 과정에서 깨질때 대비한 예외처리
+    Instant cursorValue = parseInstantCursor(parsedCursor.value(), "cursor.value");;
 
     //마지막 row의 publishedAt이 2026.04.24라면 2026.04.24 > publishedAt
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
@@ -258,7 +259,7 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   private BooleanExpression viewCountCursorCondition(NewsArticlePageRequest request) {
     ParsedCursor parsedCursor = parseCursor(request.cursor());
 
-    Long cursorValue = Long.parseLong(parsedCursor.value());
+    Long cursorValue = parseLongCursor(parsedCursor.value(), "cursor.value");
 
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
         ? newsArticle.viewCount.lt(cursorValue)
@@ -285,7 +286,7 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   ) {
     ParsedCursor parsedCursor = parseCursor(request.cursor());
 
-    Long cursorValue = Long.parseLong(parsedCursor.value());
+    Long cursorValue = parseLongCursor(parsedCursor.value(), "cursor.value");
 
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
         ? commentCountExpr.lt(cursorValue)
@@ -335,10 +336,27 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     String[] parts = cursor.split("\\|");
 
     String value = parts[0];
-    Instant after = parts.length > 1 ? Instant.parse(parts[1]) : null;
+    Instant after = parts.length > 1 ? parseInstantCursor(parts[1], "cursor.after") : null;
 
     return new ParsedCursor(value, after);
   }
 
+  //cursor값을 Instant로 파싱하는 과정에서 깨질때 대비한 예외처리
+  private Instant parseInstantCursor(String raw, String field){
+    try {
+      return Instant.parse(raw);
+    }catch (Exception e){
+      throw new IllegalArgumentException("잘못된 커서 형식입니다." + field);
+    }
+  }
+
+  //cursor값을 Long으로 파싱하는 과정에서 깨질때 대비한 예외처리
+  private Long parseLongCursor(String raw, String field) {
+    try {
+      return Long.parseLong(raw);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("잘못된 커서 형식입니다: " + field);
+    }
+  }
 
 }
