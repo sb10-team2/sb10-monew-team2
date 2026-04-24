@@ -332,11 +332,24 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     if (cursor == null || cursor.isBlank()) {
       return new ParsedCursor(null, null);
     }
-
+    // 1. |가 아예 없는 경우 통과
+    // 2. |가 여러개 있는 경우 통과
+    // 3. cursor = "10|" 인 경우 통과
+    // 4. cursor = "|2026-04-24T10:00:00Z"인 경우 통과
+    // ToDo: 위 4가지 경우를 막아야한다. -> 아래 if절로 3번까지 방어
     String[] parts = cursor.split("\\|");
 
+    //[value(cursor), after(보조 cursor)]형태가 아니면 예외처리
+    if(parts.length != 2) {
+      throw new IllegalArgumentException("잘못된 커서 형식입니다: cursor|after");
+    }
+
     String value = parts[0];
-    Instant after = parts.length > 1 ? parseInstantCursor(parts[1], "cursor.after") : null;
+    if (value.isBlank()) {
+      throw new IllegalArgumentException("cursor는 비어 있을 수 없습니다");
+    }
+
+    Instant after = parseInstantCursor(parts[1], "cursor.after");
 
     return new ParsedCursor(value, after);
   }
