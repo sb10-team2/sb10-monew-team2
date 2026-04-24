@@ -50,7 +50,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 성공 테스트 케이스")
-  void like_성공() {
+  void like_ReturnsCommentLikeDto_WhenValidRequest() {
     // given, instancio -> random 값으로 객체를 생성해주는 라이브러리 ?
     Comment comment = Instancio.of(Comment.class).create();
 
@@ -103,7 +103,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 실패 테스트 케이스 - SoftDelete 된 User")
-  void like_실패_UserNotFound() {
+  void like_ThrowsException_WhenUserNotFound() {
     // given
     // softDelete된 User 생성
     User user = Instancio.of(User.class)
@@ -131,7 +131,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 실패 테스트 케이스 - SoftDelete 된 Comment")
-  void like_실패_CommentNotFound() {
+  void like_ThrowsException_WhenCommentNotFound() {
     // given
     Comment comment = Instancio.of(Comment.class)
         .set(field(Comment.class, "isDeleted"), true)
@@ -156,7 +156,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 실패 테스트 케이스 - 중복 좋아요")
-  void like_실패_CommentLikeAlreadyExists() {
+  void like_ThrowsException_WhenLikeAlreadyExists() {
     // given
     Comment comment = Instancio.of(Comment.class)
           .create();
@@ -188,7 +188,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 취소 성공 테스트 케이스")
-  void unlike_성공() {
+  void unlike_DeletesLikeAndDecrementsCount_WhenValidRequest() {
     // given
     Comment comment = Instancio.of(Comment.class)
         .set(field(Comment.class, "likeCount"), 1)
@@ -214,7 +214,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 취소 실패 테스트 - UserNotFound, softDelete된 경우")
-  void unlike_실패_UserNotFound() {
+  void unlike_ThrowsException_WhenUserNotFound() {
     // given
     Comment comment = Instancio.of(Comment.class).create();
     User user = Instancio.of(User.class)
@@ -242,7 +242,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 취소 실패 테스트 - CommentNotFound")
-  void unlike_실패_CommentNotFound() {
+  void unlike_ThrowsException_WhenCommentNotFound() {
     // given
     Comment comment = Instancio.of(Comment.class)
         .set(field(Comment.class, "isDeleted"), true)
@@ -270,7 +270,7 @@ class CommentLikeServiceTest {
 
   @Test
   @DisplayName("좋아요 취소 실패 테스트 - CommentLikeNotFound")
-  void unlike_실패_CommentLikeNotFound() {
+  void unlike_ThrowsException_WhenLikeNotFound() {
     // given
     Comment comment = Instancio.of(Comment.class).create();
     User user = Instancio.of(User.class)

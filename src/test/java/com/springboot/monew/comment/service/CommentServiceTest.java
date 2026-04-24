@@ -60,7 +60,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 등록에 성공한다")
-  void create_성공() throws NoSuchFieldException, IllegalAccessException{
+  void create_ReturnsCommentDto_WhenValidRequest() throws NoSuchFieldException, IllegalAccessException{
     // given
     UUID userId = UUID.randomUUID();
     UUID articleId = UUID.randomUUID();
@@ -112,7 +112,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("Article이 존재하지 않는 경우는 ArticleNotFound를 반환한다")
-  void create_실패_ArticleNotFound() {
+  void create_ThrowsException_WhenArticleNotFound() {
     // given
     UUID articleId = UUID.randomUUID();
     CommentRegisterRequest request = new CommentRegisterRequest(articleId, UUID.randomUUID(), "테스트 댓글");
@@ -136,7 +136,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("User가 존재하지 않는 경우는 UserNotFound를 반환한다")
-  void create_실패_UserNotFound() {
+  void create_ThrowsException_WhenUserNotFound() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -163,7 +163,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 수정에 성공한다.")
-  void update_성공() throws NoSuchFieldException, IllegalAccessException {
+  void update_ReturnsUpdatedCommentDto_WhenValidRequest() throws NoSuchFieldException, IllegalAccessException {
     // given
     NewsArticle article = mock(NewsArticle.class);
     User user = new User("email", "nickname", "password");
@@ -217,7 +217,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("comment가 존재하지 않는 경우 댓글 수정에 실패한다.")
-  void update_실패_CommentNotFound() {
+  void update_ThrowsException_WhenCommentNotFound() {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -241,7 +241,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("user가 존재하지 않는 경우 댓글 수정에 실패한다.")
-  void update_실패_UserNotFound() {
+  void update_ThrowsException_WhenUserNotFound() {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -267,7 +267,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("본인 댓글이 아닌 경우 수정에 실패한다.")
-  void update_실패_CommentNotOwnedByUser() throws NoSuchFieldException, IllegalAccessException {
+  void update_ThrowsException_WhenNotOwnedByUser() throws NoSuchFieldException, IllegalAccessException {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -306,7 +306,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("논리 삭제가 되었을 경우에는 댓글의 isDeleted 필드가 true가 되어야 한다")
-  void softDelete_성공() {
+  void softDelete_SetsIsDeletedTrue_WhenCommentExists() {
     // given
     UUID commentId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
@@ -324,7 +324,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("존재하지 않는 댓글은 논리 삭제에 실패한다.")
-  void softDelete_실패_COMMENT_NOT_FOUND() {
+  void softDelete_ThrowsException_WhenCommentNotFound() {
     // given
     UUID commentId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
@@ -346,7 +346,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("이미 논리 삭제된 댓글은 논리 삭제에 실패한다.")
-  void softDelete_실패_COMMENT_ALREADY_DELETED() {
+  void softDelete_ThrowsException_WhenAlreadyDeleted() {
     // given
     UUID commentId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
@@ -369,7 +369,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 물리 삭제에 성공한다.")
-  void hardDelete_성공() {
+  void hardDelete_DeletesComment_WhenCommentExists() {
     // given
     UUID commentId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
@@ -385,7 +385,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("존재하지 않는 댓글일 경우 댓글 물리 삭제에 실패한다.")
-  void hardDelete_실패_CommentNotFound() {
+  void hardDelete_ThrowsException_WhenCommentNotFound() {
     // given
     UUID commentId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
@@ -405,7 +405,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 목록 조회 성공 - hasNext = false")
-  void list_성공_hasNext_false() {
+  void list_ReturnsCursorPage_WhenHasNextFalse() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -483,7 +483,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 목록 조회 성공 - hasNext = true")
-  void list_성공_hasNext_true() {
+  void list_ReturnsCursorPageWithNextCursor_WhenHasNextTrue() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -569,7 +569,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("존재하지 않는 기사로 댓글 목록 조회 시 실패한다")
-  void list_실패_ArticleNotFound() {
+  void list_ThrowsException_WhenArticleNotFound() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -594,7 +594,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("논리 삭제된 기사로 댓글 목록 조회 시 실패한다")
-  void list_실패_ArticleAlreadyDeleted() {
+  void list_ThrowsException_WhenArticleAlreadyDeleted() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -621,7 +621,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("존재하지 않는 유저로 댓글 목록 조회 시 실패한다")
-  void list_실패_UserNotFound() {
+  void list_ThrowsException_WhenUserNotFound() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -649,7 +649,7 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("논리 삭제된 유저로 댓글 목록 조회 시 실패한다")
-  void list_실패_UserAlreadyDeleted() {
+  void list_ThrowsException_WhenUserAlreadyDeleted() {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
