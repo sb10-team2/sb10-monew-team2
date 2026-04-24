@@ -296,6 +296,9 @@ public class NewsArticleService {
   @Transactional(readOnly = true)
   public NewsArticleDto findById(UUID articleId, UUID userId) {
 
+    // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    validateActiveUser(userId);
+
     //1. 기사 조회
     NewsArticle article = getNewsArticle(articleId);
 
