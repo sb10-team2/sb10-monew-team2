@@ -38,7 +38,7 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
   public Optional<Interest> findByIdWithArticleCount(UUID id) {
     Tuple result = queryFactory.select(qInterest, qArticleInterest.count())
         .from(qInterest)
-        .leftJoin(qInterest, qArticleInterest.interest)
+        .leftJoin(qArticleInterest).on(qArticleInterest.interest.eq(qInterest))
         .where(qInterest.id.eq(id))
         .groupBy(qInterest)
         .fetchOne();
