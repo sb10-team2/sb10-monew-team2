@@ -1,4 +1,4 @@
-package com.springboot.monew.users.event.ArticleView;
+package com.springboot.monew.users.event.articleView;
 
 import com.springboot.monew.users.document.UserActivityDocument.ArticleViewItem;
 import java.util.UUID;

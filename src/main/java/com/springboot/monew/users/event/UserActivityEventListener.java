@@ -1,6 +1,6 @@
 package com.springboot.monew.users.event;
 
-import com.springboot.monew.users.event.ArticleView.ArticleViewedEvent;
+import com.springboot.monew.users.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.users.event.comment.CommentCreatedEvent;
 import com.springboot.monew.users.event.comment.CommentDeletedEvent;
 import com.springboot.monew.users.event.comment.CommentLikeCountUpdatedEvent;

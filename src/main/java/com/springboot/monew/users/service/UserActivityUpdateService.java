@@ -9,7 +9,6 @@ import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserActivityRepository;
-import com.springboot.monew.users.repository.UserRepository;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
