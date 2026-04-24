@@ -53,7 +53,7 @@ class CommentLikeControllerTest {
         UUID.randomUUID(),
         "작성자닉네임",
         "댓글내용",
-        0,
+        0L,
         Instant.now()
     );
 
