@@ -224,12 +224,16 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   }
 
   // 날짜 정렬 기준 커서 조건
-  // after가 null로 들어와서 cursor로만 조회
+  //ORDER BY published_at DESC, created_at DESC
   private BooleanExpression publishDateCursorCondition(NewsArticlePageRequest request) {
+
+    //parsedCursor = (value(주커서), after(보조커서)) 형태로 있다.
     ParsedCursor parsedCursor = parseCursor(request.cursor());
 
+    //주커서
     Instant cursorValue = Instant.parse(parsedCursor.value());
 
+    //마지막 row의 publishedAt이 2026.04.24라면 2026.04.24 > publishedAt
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
         ? newsArticle.publishedAt.lt(cursorValue)
         : newsArticle.publishedAt.gt(cursorValue);
@@ -238,6 +242,7 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
       return primaryCondition;
     }
 
+    //주커서 값이 값은경우 createdAt으로 비교
     BooleanExpression sameValueCondition = request.direction() == NewsArticleDirection.DESC
         ? newsArticle.createdAt.lt(parsedCursor.after())
         : newsArticle.createdAt.gt(parsedCursor.after());
