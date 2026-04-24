@@ -234,7 +234,7 @@ public class NewsArticleService {
   public CursorPageResponseNewsArticleDto list(NewsArticlePageRequest request, UUID userId){
 
     //요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
-    //validateActiveUser(userId);
+    validateActiveUser(userId);
 
     //요청 조건에 맞는 뉴스기사 목록을 limit + 1 개수만큼 조회
     //limit + 1만큼 조회하는 이유는 다음 페이지 존재여부(hasNext) 판단을 위해서
@@ -349,5 +349,15 @@ public class NewsArticleService {
     return newsArticleRepository.findById(articleId).orElseThrow(
         () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND,
             Map.of("articleId", articleId)));
+  }
+
+  private void validateActiveUser(UUID userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
+            Map.of("userId", userId)));
+
+    if (user.isDeleted()) {
+      throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+    }
   }
 }
