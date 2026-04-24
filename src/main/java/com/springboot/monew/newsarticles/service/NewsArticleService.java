@@ -312,9 +312,9 @@ public class NewsArticleService {
     Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
 
     // 4. 조회했던 기사인지 여부
-    Boolean viewdByMe = articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId);
+    Boolean viewedByMe = articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId);
 
-    return newsArticleMapper.toDto(article, commentCount, viewdByMe);
+    return newsArticleMapper.toDto(article, commentCount, viewedByMe);
 
   }
 
