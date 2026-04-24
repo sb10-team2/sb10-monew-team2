@@ -4,10 +4,15 @@ import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
+import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
+import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
@@ -184,6 +189,9 @@ public class NewsArticleService {
   @Transactional
   public NewsArticleViewDto createView(UUID articleId, UUID userId){
 
+    //사용자 유효성 검증
+    validateActiveUser(userId);
+
     //뉴스기사 존재 확인
     NewsArticle newsArticle = getNewsArticle(articleId);
 
@@ -225,6 +233,99 @@ public class NewsArticleService {
 
   }
 
+  @Transactional(readOnly = true)
+  public CursorPageResponseNewsArticleDto list(NewsArticlePageRequest request, UUID userId){
+
+    //요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    validateActiveUser(userId);
+
+    //요청 조건에 맞는 뉴스기사 목록을 limit + 1 개수만큼 조회
+    //limit + 1만큼 조회하는 이유는 다음 페이지 존재여부(hasNext) 판단을 위해서
+    List<NewsArticleCursorRow> rows = new ArrayList<>(newsArticleRepository.findNewsArticles(request, userId));
+
+    //조회된 개수가 요청 limit을 초과하면 다음 페이지가 존재한다고 판단
+    boolean hasNext = rows.size() > request.limit();
+
+    //다음 페이지가 존재하는 경우 반환 데이터는 limit 개수만큼 잘라내기
+    //limit + 1로 가져온 마지막 1개는 hasNext 판단용이라서 제거
+    if(hasNext){
+      rows = new ArrayList<>(rows.subList(0, request.limit()));
+    }
+
+    //내부 조회용 DTO(NewsArticleCursorRow)를 외부 응답용 DTO(NewsArticleDto)로 변환
+    // cretaedAt 내부 필드는 제외
+    List<NewsArticleDto> content = rows.stream()
+        .map(NewsArticleCursorRow::toDto)
+        .toList();
+
+    //다음 페이지를 위한 커서값 초기화
+    String nextCursor = null;
+    String nextAfter = null;
+
+    //다음 페이지 존재하고, 현재 페이지 데이터 비어있지 않은 경우에만 커서 계산
+    if(hasNext && !rows.isEmpty()){
+
+      //현재 페이지의 마지막 데이터를 기준으로 다음 페이지 커서를 생성
+      NewsArticleCursorRow last = rows.get(rows.size() - 1);
+
+      //정렬 기준(orderBy)에 따라 다음 페이지를 위한 cursor 값 설정
+      //주커서: 정렬 기준 필드 값
+      String cursor = switch(request.orderBy()){
+        case publishDate -> last.publishDate().toString();
+        case commentCount -> String.valueOf(last.commentCount());
+        case viewCount -> String.valueOf(last.viewCount());
+      };
+
+      nextAfter = last.createdAt().toString();
+
+      // cursor 안에 정렬값 + createdAt 포함
+      // 클라이언트에서 after를 안보내줘서 cursor에 cursor + after값을 넣었다.
+      nextCursor = cursor + "|" + nextAfter;
+    }
+
+    //전체 데이터 개수 조회
+    long totalElements = newsArticleRepository.countNewsArticles(request);
+
+    return new CursorPageResponseNewsArticleDto(
+        content,
+        nextCursor,
+        nextAfter,
+        content.size(),
+        totalElements,
+        hasNext
+    );
+
+  }
+  @Transactional(readOnly = true)
+  public NewsArticleDto findById(UUID articleId, UUID userId) {
+
+    // 요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
+    validateActiveUser(userId);
+
+    //1. 기사 조회
+    NewsArticle article = getNewsArticle(articleId);
+
+    //2. 논리 삭제 체크
+    if (article.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", articleId));
+    }
+
+    // 3. 댓글 수 조회
+    Long commentCount = commentRepository.countByArticleIdAndIsDeletedFalse(articleId);
+
+    // 4. 조회했던 기사인지 여부
+    Boolean viewedByMe = articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId);
+
+    return newsArticleMapper.toDto(article, commentCount, viewedByMe);
+
+  }
+
+  @Transactional(readOnly = true)
+  public List<ArticleSource> findAllSources() {
+    return List.of(ArticleSource.values());
+  }
+
   // 뉴스기사 물리 삭제
   // 뉴스기사 관련된 모든 row 삭제 -> DB 제약조건에 따라 삭제
   @Transactional
@@ -254,5 +355,15 @@ public class NewsArticleService {
     return newsArticleRepository.findById(articleId).orElseThrow(
         () -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND,
             Map.of("articleId", articleId)));
+  }
+
+  private void validateActiveUser(UUID userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
+            Map.of("userId", userId)));
+
+    if (user.isDeleted()) {
+      throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+    }
   }
 }

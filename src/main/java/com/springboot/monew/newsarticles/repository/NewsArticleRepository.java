@@ -1,6 +1,8 @@
 package com.springboot.monew.newsarticles.repository;
 
+import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticles.repository.qdsl.NewsArticleQDSLRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -9,7 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface NewsArticleRepository extends JpaRepository<NewsArticle, UUID> {
+public interface NewsArticleRepository extends JpaRepository<NewsArticle, UUID>, NewsArticleQDSLRepository {
 
   //원본링크목록 조회
   List<NewsArticle> findAllByOriginalLinkIn(Collection<String> originalLinks);
