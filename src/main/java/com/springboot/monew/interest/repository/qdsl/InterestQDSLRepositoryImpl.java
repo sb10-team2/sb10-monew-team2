@@ -212,7 +212,19 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
 
     // 요청 객체에서 커서 값과 after 값을 꺼내 CursorValue로 변환
     private static CursorValue from(InterestPageRequest request) {
-      return new CursorValue(normalize(request.cursor()), request.after());
+      String cursor = normalize(request.cursor());
+
+      if (cursor == null) {
+        return new CursorValue(null, request.after());
+      }
+
+      // 정렬값이 구독자 수일 경우 커서에서 구독자 수와 생성 시각 분리
+      if (request.orderBy() == InterestOrderBy.subscriberCount && cursor.contains("|")) {
+        String[] parts = cursor.split("\\|", 2);
+        return new CursorValue(parts[0], Instant.parse(parts[1]));
+      }
+
+      return new CursorValue(cursor, request.after());
     }
 
     private static String normalize(String value) {

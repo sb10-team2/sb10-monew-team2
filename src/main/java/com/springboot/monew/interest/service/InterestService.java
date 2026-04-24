@@ -7,6 +7,7 @@ import com.springboot.monew.interest.dto.response.CursorPageResponseInterestDto;
 import com.springboot.monew.interest.dto.response.InterestDto;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.entity.InterestKeyword;
+import com.springboot.monew.interest.entity.InterestOrderBy;
 import com.springboot.monew.interest.entity.Keyword;
 import com.springboot.monew.interest.exception.InterestErrorCode;
 import com.springboot.monew.interest.exception.InterestException;
@@ -317,7 +318,15 @@ public class InterestService {
 
   private String getNextCursor(InterestPageRequest request, Interest interest) {
     // 요청한 정렬 기준에 맞는 커서 값을 관심사 엔티티에서 추출하여 반환
-    return request.orderBy().getCursor(interest);
+    String cursor = request.orderBy().getCursor(interest);
+
+    // 정렬값이 구독자 수일 경우 구독자 수가 같은 데이터의 누락을 막기 위해 생성 시각을 커서에 포함
+    // 현재 프론트엔트 코드에선 after를 전달하지 않음
+    if (request.orderBy() == InterestOrderBy.subscriberCount) {
+      return cursor + "|" + interest.getCreatedAt();
+    }
+
+    return cursor;
   }
 
   private void validateActiveUser(UUID userId) {
