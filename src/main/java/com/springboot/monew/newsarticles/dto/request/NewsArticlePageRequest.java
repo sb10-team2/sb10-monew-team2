@@ -30,6 +30,8 @@ public record NewsArticlePageRequest(
     @NotNull NewsArticleDirection direction,
 
     //커서 기반 페이징
+    // after는 Swagger 스펙 상 별도 파라미터로 정의되어 있으나,
+    // 실제 페이지네이션 조회 시에는 cursor 파라미터 내부에 "cursor|after" 형태로 인코딩되어 전달됩니다.
     String cursor,
     String after,
 
