@@ -267,14 +267,17 @@ public class NewsArticleService {
 
       //정렬 기준(orderBy)에 따라 다음 페이지를 위한 cursor 값 설정
       //주커서: 정렬 기준 필드 값
-      nextCursor = switch(request.orderBy()){
+      String cursor = switch(request.orderBy()){
         case publishDate -> last.publishDate().toString();
         case commentCount -> String.valueOf(last.commentCount());
         case viewCount -> String.valueOf(last.viewCount());
       };
 
-      //보조 커서(after): 동일한 정렬값을 가진 데이터들 사이에서 순서를 안정적으로 유지하기 위한 값.
       nextAfter = last.createdAt().toString();
+
+      // cursor 안에 정렬값 + createdAt 포함
+      // 클라이언트에서 after를 안보내줘서 cursor에 cursor + after값을 넣었다.
+      nextCursor = cursor + "|" + nextAfter;
     }
 
     //전체 데이터 개수 조회

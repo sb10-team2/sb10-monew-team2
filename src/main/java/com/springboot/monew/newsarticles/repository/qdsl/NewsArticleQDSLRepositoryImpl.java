@@ -11,7 +11,9 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.springboot.monew.newsarticles.dto.ParsedCursor;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
 import com.springboot.monew.newsarticles.enums.NewsArticleDirection;
@@ -56,34 +58,33 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
 
     // cursor, after 값이 있으면 다음 페이지 조건 생성
     // 정렬 기준(orderBy)에 따라 날짜/댓글수/조회수 기준 커서 조건이 달라진다.
-    BooleanExpression cursorCondition = buildCursorCondition(request, commentCountExpr);
-    if (cursorCondition != null) {
-      where.and(cursorCondition);
+    BooleanExpression whereCursorCondition = buildWhereCursorCondition(request);
+    if (whereCursorCondition != null) {
+      where.and(whereCursorCondition);
     }
 
-    return queryFactory
+    BooleanExpression havingCursorCondition = buildHavingCursorCondition(request, commentCountExpr);
+
+    JPAQuery<NewsArticleCursorRow> query = queryFactory
         .select(constructor(
             NewsArticleCursorRow.class,
             newsArticle.id,
             newsArticle.source,
-            newsArticle.originalLink,   // sourceUrl
+            newsArticle.originalLink,
             newsArticle.title,
-            newsArticle.publishedAt,    // publishDate
+            newsArticle.publishedAt,
             newsArticle.summary,
             commentCountExpr,
             newsArticle.viewCount,
-            articleView.id.isNotNull(), // viewedByMe
-            newsArticle.createdAt       // nextAfter 계산용 내부 필드
+            articleView.id.isNotNull(),
+            newsArticle.createdAt
         ))
         .from(newsArticle)
-        // 관심사 필터용 조인
         .leftJoin(articleInterest).on(articleInterest.newsArticle.eq(newsArticle))
-        // 댓글 수 집계용 조인
         .leftJoin(comment).on(
             comment.article.eq(newsArticle)
                 .and(comment.isDeleted.isFalse())
         )
-        // 현재 유저가 조회했는지 확인용 조인
         .leftJoin(articleView).on(
             articleView.newsArticle.eq(newsArticle)
                 .and(articleView.user.id.eq(userId))
@@ -99,9 +100,14 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
             newsArticle.viewCount,
             articleView.id,
             newsArticle.createdAt
-        )
+        );
+
+    if (havingCursorCondition != null) {
+      query.having(havingCursorCondition);
+    }
+
+    return query
         .orderBy(getOrderSpecifiers(request, commentCountExpr).toArray(OrderSpecifier[]::new))
-        // 다음 페이지 존재 여부 확인 위해 limit + 1 조회
         .limit(request.limit() + 1L)
         .fetch();
   }
@@ -187,69 +193,83 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   }
 
   // 정렬 기준에 따른 커서 조건 생성
-  private BooleanExpression buildCursorCondition(
-      NewsArticlePageRequest request,
-      NumberExpression<Long> commentCountExpr
-  ) {
-    // cursor 자체가 없으면 커서 페이지네이션 조건을 적용할 수 없음
+  // publishDate 커서조건 -> where절
+  // viewCount 커서조건 -> where절
+  private BooleanExpression buildWhereCursorCondition(NewsArticlePageRequest request) {
     if (request.cursor() == null || request.cursor().isBlank()) {
       return null;
     }
 
     return switch (request.orderBy()) {
       case publishDate -> publishDateCursorCondition(request);
-      case commentCount -> commentCountCursorCondition(request, commentCountExpr);
       case viewCount -> viewCountCursorCondition(request);
+      case commentCount -> null;
+    };
+  }
+
+  // commentCount 커서조건 -> having절
+  // 집계함수라서 having절에 써야한다.
+  private BooleanExpression buildHavingCursorCondition(
+      NewsArticlePageRequest request,
+      NumberExpression<Long> commentCountExpr
+  ) {
+    if (request.cursor() == null || request.cursor().isBlank()) {
+      return null;
+    }
+
+    return switch (request.orderBy()) {
+      case commentCount -> commentCountCursorCondition(request, commentCountExpr);
+      case publishDate, viewCount -> null;
     };
   }
 
   // 날짜 정렬 기준 커서 조건
+  // after가 null로 들어와서 cursor로만 조회
   private BooleanExpression publishDateCursorCondition(NewsArticlePageRequest request) {
-    Instant cursorValue = Instant.parse(request.cursor());
+    ParsedCursor parsedCursor = parseCursor(request.cursor());
 
-    // after가 없으면 publishDate만으로 다음 페이지 조건 생성
-    if (request.after() == null || request.after().isBlank()) {
-      return request.direction() == NewsArticleDirection.DESC
-          ? newsArticle.publishedAt.lt(cursorValue)
-          : newsArticle.publishedAt.gt(cursorValue);
+    Instant cursorValue = Instant.parse(parsedCursor.value());
+
+    BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
+        ? newsArticle.publishedAt.lt(cursorValue)
+        : newsArticle.publishedAt.gt(cursorValue);
+
+    if (parsedCursor.after() == null) {
+      return primaryCondition;
     }
 
-    Instant afterValue = Instant.parse(request.after());
+    BooleanExpression sameValueCondition = request.direction() == NewsArticleDirection.DESC
+        ? newsArticle.createdAt.lt(parsedCursor.after())
+        : newsArticle.createdAt.gt(parsedCursor.after());
 
-    if (request.direction() == NewsArticleDirection.DESC) {
-      return newsArticle.publishedAt.lt(cursorValue)
-          .or(newsArticle.publishedAt.eq(cursorValue)
-              .and(newsArticle.createdAt.lt(afterValue)));
-    }
-
-    return newsArticle.publishedAt.gt(cursorValue)
-        .or(newsArticle.publishedAt.eq(cursorValue)
-            .and(newsArticle.createdAt.gt(afterValue)));
+    return primaryCondition.or(
+        newsArticle.publishedAt.eq(cursorValue).and(sameValueCondition)
+    );
   }
 
 
   // 조회수 정렬 기준 커서 조건
+  // after가 null로 들어와서 cursor로만 조회
   private BooleanExpression viewCountCursorCondition(NewsArticlePageRequest request) {
-    Long cursorValue = Long.parseLong(request.cursor());
+    ParsedCursor parsedCursor = parseCursor(request.cursor());
 
-    // after가 없으면 viewCount만으로 다음 페이지 조건 생성
-    if (request.after() == null || request.after().isBlank()) {
-      return request.direction() == NewsArticleDirection.DESC
-          ? newsArticle.viewCount.lt(cursorValue)
-          : newsArticle.viewCount.gt(cursorValue);
+    Long cursorValue = Long.parseLong(parsedCursor.value());
+
+    BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
+        ? newsArticle.viewCount.lt(cursorValue)
+        : newsArticle.viewCount.gt(cursorValue);
+
+    if (parsedCursor.after() == null) {
+      return primaryCondition;
     }
 
-    Instant afterValue = Instant.parse(request.after());
+    BooleanExpression sameValueCondition = request.direction() == NewsArticleDirection.DESC
+        ? newsArticle.createdAt.lt(parsedCursor.after())
+        : newsArticle.createdAt.gt(parsedCursor.after());
 
-    if (request.direction() == NewsArticleDirection.DESC) {
-      return newsArticle.viewCount.lt(cursorValue)
-          .or(newsArticle.viewCount.eq(cursorValue)
-              .and(newsArticle.createdAt.lt(afterValue)));
-    }
-
-    return newsArticle.viewCount.gt(cursorValue)
-        .or(newsArticle.viewCount.eq(cursorValue)
-            .and(newsArticle.createdAt.gt(afterValue)));
+    return primaryCondition.or(
+        newsArticle.viewCount.eq(cursorValue).and(sameValueCondition)
+    );
   }
 
   // 댓글 수 정렬 기준 커서 조건
@@ -258,26 +278,25 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
       NewsArticlePageRequest request,
       NumberExpression<Long> commentCountExpr
   ) {
-    Long cursorValue = Long.parseLong(request.cursor());
+    ParsedCursor parsedCursor = parseCursor(request.cursor());
 
-    // after가 없으면 commentCount만으로 다음 페이지 조건 생성
-    if (request.after() == null || request.after().isBlank()) {
-      return request.direction() == NewsArticleDirection.DESC
-          ? commentCountExpr.lt(cursorValue)
-          : commentCountExpr.gt(cursorValue);
+    Long cursorValue = Long.parseLong(parsedCursor.value());
+
+    BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
+        ? commentCountExpr.lt(cursorValue)
+        : commentCountExpr.gt(cursorValue);
+
+    if (parsedCursor.after() == null) {
+      return primaryCondition;
     }
 
-    Instant afterValue = Instant.parse(request.after());
+    BooleanExpression sameValueCondition = request.direction() == NewsArticleDirection.DESC
+        ? newsArticle.createdAt.lt(parsedCursor.after())
+        : newsArticle.createdAt.gt(parsedCursor.after());
 
-    if (request.direction() == NewsArticleDirection.DESC) {
-      return commentCountExpr.lt(cursorValue)
-          .or(commentCountExpr.eq(cursorValue)
-              .and(newsArticle.createdAt.lt(afterValue)));
-    }
-
-    return commentCountExpr.gt(cursorValue)
-        .or(commentCountExpr.eq(cursorValue)
-            .and(newsArticle.createdAt.gt(afterValue)));
+    return primaryCondition.or(
+        commentCountExpr.eq(cursorValue).and(sameValueCondition)
+    );
   }
 
   // 정렬 기준 + 보조 정렬(createdAt) 생성
@@ -301,6 +320,19 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     orderSpecifiers.add(new OrderSpecifier<>(direction, newsArticle.createdAt));
 
     return orderSpecifiers;
+  }
+
+  private ParsedCursor parseCursor(String cursor) {
+    if (cursor == null || cursor.isBlank()) {
+      return new ParsedCursor(null, null);
+    }
+
+    String[] parts = cursor.split("\\|");
+
+    String value = parts[0];
+    Instant after = parts.length > 1 ? Instant.parse(parts[1]) : null;
+
+    return new ParsedCursor(value, after);
   }
 
 
