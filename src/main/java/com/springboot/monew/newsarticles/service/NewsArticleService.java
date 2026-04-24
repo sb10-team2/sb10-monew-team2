@@ -189,6 +189,9 @@ public class NewsArticleService {
   @Transactional
   public NewsArticleViewDto createView(UUID articleId, UUID userId){
 
+    //사용자 유효성 검증
+    validateActiveUser(userId);
+
     //뉴스기사 존재 확인
     NewsArticle newsArticle = getNewsArticle(articleId);
 
