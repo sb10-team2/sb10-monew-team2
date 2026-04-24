@@ -16,6 +16,7 @@ import com.springboot.monew.interest.entity.QInterestKeyword;
 import com.springboot.monew.interest.entity.QKeyword;
 import com.springboot.monew.newsarticles.entity.QArticleInterest;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -221,7 +222,12 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
       // 정렬값이 구독자 수일 경우 커서에서 구독자 수와 생성 시각 분리
       if (request.orderBy() == InterestOrderBy.subscriberCount && cursor.contains("|")) {
         String[] parts = cursor.split("\\|", 2);
-        return new CursorValue(parts[0], Instant.parse(parts[1]));
+
+        try {
+          return new CursorValue(parts[0], Instant.parse(parts[1]));
+        } catch (DateTimeParseException e) {
+          throw new IllegalArgumentException("Invalid subscriberCount cursor: " + cursor, e);
+        }
       }
 
       return new CursorValue(cursor, request.after());
