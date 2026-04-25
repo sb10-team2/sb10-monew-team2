@@ -9,6 +9,7 @@ import com.springboot.monew.users.event.comment.CommentUnlikedEvent;
 import com.springboot.monew.users.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.users.event.interest.InterestSubscribedEvent;
 import com.springboot.monew.users.event.interest.InterestUnsubscribedEvent;
+import com.springboot.monew.users.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.users.event.user.UserNicknameUpdatedEvent;
 import com.springboot.monew.users.event.user.UserRegisteredEvent;
 import com.springboot.monew.users.service.UserActivityUpdateService;
@@ -33,6 +34,18 @@ public class UserActivityEventListener {
   public void handle(UserNicknameUpdatedEvent event) {
     userActivityUpdateService.updateUserNickname(event.userId(), event.nickname());
   }
+
+  // 관심사 수정 이벤트를 수신하여 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
+  @TransactionalEventListener
+  public void handle(InterestUpdatedEvent event) {
+    userActivityUpdateService.updateSubscriptionInterest(
+        event.interestId(),
+        event.interestName(),
+        event.keywords(),
+        event.subscriberCount()
+    );
+  }
+
 
   // 관심사 구독 이벤트를 수신하여 사용자 활동 문서에 구독 내역을 추가
   @TransactionalEventListener
@@ -92,4 +105,6 @@ public class UserActivityEventListener {
   public void handle(ArticleViewedEvent event) {
     userActivityUpdateService.addArticleView(event.userId(), event.item());
   }
+
+
 }
