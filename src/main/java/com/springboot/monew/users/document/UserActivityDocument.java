@@ -1,6 +1,7 @@
 package com.springboot.monew.users.document;
 
 
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -203,7 +204,7 @@ public class UserActivityDocument {
       UUID viewedBy,
       Instant createdAt,
       UUID articleId,
-      String source,
+      ArticleSource source,
       String sourceUrl,
       String articleTitle,
       Instant articlePublishedDate,

@@ -22,6 +22,7 @@ import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
@@ -228,6 +229,14 @@ public class NewsArticleService {
     // ToDo: 조회수 증가 로직의 동시성 문제를 DB 레벨에서 처리
     // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
     newsArticleRepository.incrementViewCount(articleId);
+
+    // 기사를 조회한 사용자의 활동 문서에 기사 조회 활동을 추가한다.
+    eventPublisher.publishEvent(
+        new ArticleViewedEvent(
+            userId,
+            newsArticleViewMapper.toArticleViewItem(savedArticleView, commentCount)
+        )
+    );
 
     return newsArticleViewMapper.toDto(savedArticleView, commentCount);
 
