@@ -17,7 +17,7 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, UUID>,
   List<NewsArticle> findAllByOriginalLinkIn(Collection<String> originalLinks);
 
   //뉴스기사 조회수 증가
-  @Modifying
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("UPDATE NewsArticle n SET n.viewCount = n.viewCount + 1 WHERE n.id = :articleId")
   void incrementViewCount(@Param("articleId") UUID articleId);
 

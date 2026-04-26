@@ -27,7 +27,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE  c.id = :id")
   void incrementLikeCount(@Param("id") UUID id);
 
-  @Modifying
+  // bulk update 후 재조회 시 최신 likeCount를 반영할 수 있도록 영속성 컨텍스트를 초기화한다.
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
       """
               UPDATE Comment c

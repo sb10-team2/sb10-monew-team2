@@ -114,7 +114,6 @@ public class CommentLikeService {
         )
     );
 
-
     log.info("좋아요 취소 완료 - commentId: {}, userId: {}", commentId, userId);
   }
 
