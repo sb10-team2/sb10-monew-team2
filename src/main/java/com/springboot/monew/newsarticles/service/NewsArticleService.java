@@ -230,15 +230,19 @@ public class NewsArticleService {
     // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
     newsArticleRepository.incrementViewCount(articleId);
 
+    // bulk update는 영속성 컨텍스트의 newsArticle 상태를 갱신하지 않으므로, 증가된 viewCount를 반영하기 위해 재조회한다.
+    NewsArticle refreshedArticle = getNewsArticle(articleId);
+    ArticleView refreshedArticleView = new ArticleView(refreshedArticle, user);
+
     // 기사를 조회한 사용자의 활동 문서에 기사 조회 활동을 추가한다.
     eventPublisher.publishEvent(
         new ArticleViewedEvent(
             userId,
-            newsArticleViewMapper.toArticleViewItem(savedArticleView, commentCount)
+            newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount)
         )
     );
 
-    return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+    return newsArticleViewMapper.toDto(refreshedArticleView, commentCount);
 
   }
 
