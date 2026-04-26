@@ -250,7 +250,7 @@ public class UserServiceTest {
     given(userMapper.toDto(user)).willReturn(expected);
 
     // when
-    UserDto result = userService.update(userId, userId, request);
+    UserDto result = userService.update(userId, request);
 
     // then
     assertThat(result).isEqualTo(expected);
@@ -259,28 +259,6 @@ public class UserServiceTest {
     verify(userRepository).existsByNickname(request.nickname());
     verify(userMapper).toDto(user);
     verify(applicationEventPublisher).publishEvent(any(UserNicknameUpdatedEvent.class));
-  }
-
-  @Test
-  @DisplayName("요청 사용자와 수정 대상 사용자가 다르면 USER_NOT_OWNED 예외가 발생한다.")
-  void update_userNotOwned() {
-    // given
-    UUID userId = UUID.randomUUID();
-    UUID requestUserId = UUID.randomUUID();
-    UserUpdateRequest request = new UserUpdateRequest("newNickname");
-
-    // when & then
-    assertThatThrownBy(() -> userService.update(userId, requestUserId, request))
-        .isInstanceOf(UserException.class)
-        .satisfies(throwable -> {
-          UserException exception = (UserException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_OWNED);
-          assertThat(exception.getDetails()).isEqualTo(
-              Map.of("userId", userId, "requestUserId", requestUserId));
-        });
-    verify(userRepository, never()).findById(any());
-    verify(userRepository, never()).existsByNickname(anyString());
-    verify(userMapper, never()).toDto(any());
   }
 
   @Test
@@ -293,7 +271,7 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.update(userId, userId, request))
+    assertThatThrownBy(() -> userService.update(userId, request))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
@@ -317,7 +295,7 @@ public class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(deletedUser));
 
     // when & then
-    assertThatThrownBy(() -> userService.update(userId, userId, request))
+    assertThatThrownBy(() -> userService.update(userId, request))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
@@ -341,7 +319,7 @@ public class UserServiceTest {
     given(userRepository.existsByNickname(request.nickname())).willReturn(true);
 
     // when & then
-    assertThatThrownBy(() -> userService.update(userId, userId, request))
+    assertThatThrownBy(() -> userService.update(userId, request))
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
@@ -372,7 +350,7 @@ public class UserServiceTest {
     given(userMapper.toDto(user)).willReturn(expected);
 
     // when
-    UserDto result = userService.update(userId, userId, request);
+    UserDto result = userService.update(userId, request);
 
     // then
     assertThat(result).isEqualTo(expected);
