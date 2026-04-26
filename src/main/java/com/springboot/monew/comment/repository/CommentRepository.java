@@ -12,7 +12,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentQDSLRepository {
-  @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.id = :id AND c.isDeleted = false")
+  @Query("""
+      SELECT c
+      FROM Comment c
+      JOIN FETCH c.user
+      JOIN FETCH c.article
+      WHERE c.id = :id
+        AND c.isDeleted = false
+  """)
   Optional<Comment> findByIdAndIsDeletedFalse(@Param("id") UUID id);
 
   // increment 시에 영속
@@ -20,7 +27,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE  c.id = :id")
   void incrementLikeCount(@Param("id") UUID id);
 
-  @Modifying
+  // bulk update 후 재조회 시 최신 likeCount를 반영할 수 있도록 영속성 컨텍스트를 초기화한다.
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
       """
               UPDATE Comment c

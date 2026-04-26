@@ -1,6 +1,7 @@
 package com.springboot.monew.users.document;
 
 
+import com.springboot.monew.newsarticles.enums.ArticleSource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,7 +165,6 @@ public class UserActivityDocument {
       UUID interestId,
       String interestName,
       List<String> interestKeywords,
-      long interestSubscriberCount,
       Instant createdAt
   ) {
 
@@ -203,7 +203,7 @@ public class UserActivityDocument {
       UUID viewedBy,
       Instant createdAt,
       UUID articleId,
-      String source,
+      ArticleSource source,
       String sourceUrl,
       String articleTitle,
       Instant articlePublishedDate,
@@ -213,6 +213,21 @@ public class UserActivityDocument {
   ) {
 
   }
+
+  // 관심사 정보가 변경되면 문서의 subscriptions에 저장된 해당 관심사의 키워드를 최신 값으로 갱신한다.
+  public void updateSubscriptionInterest(UUID interestId, List<String> keywords) {
+    subscriptions.replaceAll(subscription -> {
+      if (!subscription.interestId().equals(interestId)) {
+        return subscription;
+      }
+
+      return new SubscriptionItem(
+          subscription.id(),
+          subscription.interestId(),
+          subscription.interestName(),
+          keywords,
+          subscription.createdAt()
+      );
+    });
+  }
 }
-
-

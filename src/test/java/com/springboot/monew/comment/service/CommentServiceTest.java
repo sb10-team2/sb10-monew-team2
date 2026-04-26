@@ -45,6 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -54,6 +55,8 @@ class CommentServiceTest {
   @Mock NewsArticleRepository articleRepository;
   @Mock UserRepository userRepository;
   @Mock CommentMapper commentMapper;
+  // CommentService에 추가된 이벤트 발행 의존성을 테스트에서 주입하기 위한 mock이다.
+  @Mock ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CommentService commentService;
@@ -375,6 +378,11 @@ class CommentServiceTest {
     Comment comment = mock(Comment.class);
 
     given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    // 물리 삭제 이벤트 발행 시 댓글 작성자 ID와 댓글 ID를 사용하므로 필요한 값만 stub 처리한다.
+    User user = mock(User.class);
+    given(comment.getUser()).willReturn(user);
+    given(user.getId()).willReturn(UUID.randomUUID());
+    given(comment.getId()).willReturn(commentId);
     // when
     commentService.hardDelete(commentId);
 

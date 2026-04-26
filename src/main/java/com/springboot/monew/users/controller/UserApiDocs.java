@@ -17,7 +17,6 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 @Tag(name = "사용자 관리", description = "사용자 관련 API")
 public interface UserApiDocs {
@@ -130,7 +129,6 @@ public interface UserApiDocs {
       @PathVariable UUID userId,
 
       @Parameter(description = "요청자 ID")
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId,
 
       @Valid
       @RequestBody

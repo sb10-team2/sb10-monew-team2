@@ -83,10 +83,7 @@ public class UserService {
 
   // 닉네임 수정
   @Transactional
-  public UserDto update(UUID userId, UUID requestUserId, UserUpdateRequest request) {
-    // 다른 개발자 도구로 닉네임 수정을 막기 위해 '수정 대상 사용자'와 '요청을 보낸 사용자'가 같은지 검사
-    validateOwner(userId, requestUserId);
-
+  public UserDto update(UUID userId, UserUpdateRequest request) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
           log.warn("닉네임 수정 실패: 사용자를 찾을 수 없음 - userId={}", userId);
@@ -194,16 +191,6 @@ public class UserService {
       throw new UserException(
           UserErrorCode.DUPLICATE_NICKNAME,
           Map.of("nickname", nickname)
-      );
-    }
-  }
-
-  private void validateOwner(UUID userId, UUID requestUserId) {
-    if (!userId.equals(requestUserId)) {
-      log.warn("사용자 권한 검증 실패: 사용자 불일치 - userId={}, requestUserId={}", userId, requestUserId);
-      throw new UserException(
-          UserErrorCode.USER_NOT_OWNED,
-          Map.of("userId", userId, "requestUserId", requestUserId)
       );
     }
   }

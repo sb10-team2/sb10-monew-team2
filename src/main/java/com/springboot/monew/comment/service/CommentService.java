@@ -12,6 +12,9 @@ import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.comment.CommentCreatedEvent;
+import com.springboot.monew.users.event.comment.CommentDeletedEvent;
+import com.springboot.monew.users.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
@@ -19,6 +22,7 @@ import java.time.Instant;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ public class CommentService {
   private final NewsArticleRepository articleRepository;
   private final UserRepository userRepository;
   private final CommentMapper commentMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   // 댓글 등록
   @Transactional
@@ -47,6 +52,9 @@ public class CommentService {
 
     Comment comment = new Comment(user, article, request.content());
     commentRepository.save(comment);
+    eventPublisher.publishEvent(
+        new CommentCreatedEvent(user.getId(), commentMapper.toCommentItem(comment))
+    );
     log.info(
         "댓글 등록 완료 - commentId: {}, articleId: {}, userId: {}",
         comment.getId(),
@@ -68,6 +76,9 @@ public class CommentService {
 
     comment.updateContent(request.content());
     boolean likeByMe = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+    eventPublisher.publishEvent(
+        new CommentUpdatedEvent(userId, commentMapper.toCommentItem(comment))
+    );
 
     log.info("댓글 수정 완료 - commentId: {} userId: {}", commentId, userId);
     log.debug(
@@ -95,7 +106,13 @@ public class CommentService {
   @Transactional
   public void hardDelete(UUID commentId) {
     Comment comment = getComment(commentId);
+    // 삭제 되기 전에 사용자 활동내역에서 지울 userId만 먼저 추출(
+    UUID userId = comment.getUser().getId();
     commentRepository.delete(comment);
+    // 프로토타입에서는 논리삭제하면 사용자 활동내역엔 남아있음. 따라서 물리삭제 시에만 이벤트 발행되도록 설정
+    eventPublisher.publishEvent(
+        new CommentDeletedEvent(userId, comment.getId())
+    );
     log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
   }
 

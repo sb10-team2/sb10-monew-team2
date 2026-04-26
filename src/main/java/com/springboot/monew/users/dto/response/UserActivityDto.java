@@ -1,6 +1,7 @@
 package com.springboot.monew.users.dto.response;
 
 import com.springboot.monew.interest.dto.response.SubscriptionDto;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
@@ -29,7 +30,7 @@ public record UserActivityDto(
     List<CommentLikeActivityDto> commentLikes,
 
     @Schema(description = "최근 본 기사 (최대 10건)")
-    List<TemporaryArticleViewDto> articleViews
+    List<NewsArticleViewDto> articleViews
 ) {
 
 }

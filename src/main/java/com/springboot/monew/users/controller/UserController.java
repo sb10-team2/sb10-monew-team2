@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,16 +44,12 @@ public class UserController implements UserApiDocs {
   @PatchMapping("/{userId}")
   public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
-      @RequestHeader("Monew-Request-User-ID") UUID requestUserId,
       @Valid @RequestBody UserUpdateRequest request
   ) {
-        /* userId: 수정 대상 사용자 ID
-           requestUserId: 로그인한 사용자 ID(요구사항상 헤더로 전달)
-           - 아마 닉네임 수정 요청을 보낸 로그인 사용자가 누구인지 판별하기 위해서 헤더로 넣는 것 같음.
-           request: 수정할 닉네임 값
-           서비스에서 userId와 requestUserId를 비교해 본인 요청인지 검증한 뒤 닉네임을 수정한다.
+        /* 헤더 요청을 보내고 싶어도 프론트엔드에서 Monew-Request-User-ID 헤더를 전달하지 않아,
+           그냥 swagger문서 요구사항에 맞게 userId와 요청 본문만으로 닉네임 수정 요청을 처리하도록 변경하였다.
          */
-    UserDto userDto = userService.update(userId, requestUserId, request);
+    UserDto userDto = userService.update(userId, request);
     return ResponseEntity.ok(userDto);
   }
 

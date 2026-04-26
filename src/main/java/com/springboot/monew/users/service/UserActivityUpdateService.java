@@ -9,6 +9,7 @@ import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserActivityRepository;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,19 @@ public class UserActivityUpdateService {
     document.updateNickname(nickname);
     userActivityRepository.save(document);
   }
+
+  // 관심사 키워드가 변경되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
+  public void updateSubscriptionInterest(UUID interestId, List<String> keywords) {
+    List<UserActivityDocument> documents =
+        userActivityRepository.findAllBySubscriptionsInterestId(interestId);
+
+    documents.forEach(document ->
+      document.updateSubscriptionInterest(interestId, keywords)
+    );
+
+    userActivityRepository.saveAll(documents);
+  }
+
 
   // 관심사 구독 시 사용자 활동 문서에 구독 내역을 추가한다.
   public void addSubscription(UUID userId, SubscriptionItem item) {
