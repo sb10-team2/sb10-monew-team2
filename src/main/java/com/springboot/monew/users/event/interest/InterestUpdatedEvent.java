@@ -5,9 +5,7 @@ import java.util.UUID;
 
 public record InterestUpdatedEvent(
     UUID interestId,
-    String interestName,
-    List<String> keywords,
-    long subscriberCount
+    List<String> keywords
 ) {
 
 }

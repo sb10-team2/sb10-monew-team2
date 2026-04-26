@@ -40,9 +40,7 @@ public class UserActivityEventListener {
   public void handle(InterestUpdatedEvent event) {
     userActivityUpdateService.updateSubscriptionInterest(
         event.interestId(),
-        event.interestName(),
-        event.keywords(),
-        event.subscriberCount()
+        event.keywords()
     );
   }
 
@@ -105,6 +103,4 @@ public class UserActivityEventListener {
   public void handle(ArticleViewedEvent event) {
     userActivityUpdateService.addArticleView(event.userId(), event.item());
   }
-
-
 }

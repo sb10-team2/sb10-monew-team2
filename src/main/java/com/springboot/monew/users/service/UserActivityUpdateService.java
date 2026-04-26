@@ -42,8 +42,16 @@ public class UserActivityUpdateService {
     userActivityRepository.save(document);
   }
 
-  public void updateSubscriptionInterest(UUID interestId, String interestName, List<String> keywords, long subscriberCount) {
-    // TODO: 관심사 정보가 수정되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신하는 기능 구현 예정
+  // 관심사 키워드가 변경되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
+  public void updateSubscriptionInterest(UUID interestId, List<String> keywords) {
+    List<UserActivityDocument> documents =
+        userActivityRepository.findAllBySubscriptionsInterestId(interestId);
+
+    documents.forEach(document ->
+      document.updateSubscriptionInterest(interestId, keywords)
+    );
+
+    userActivityRepository.saveAll(documents);
   }
 
 
