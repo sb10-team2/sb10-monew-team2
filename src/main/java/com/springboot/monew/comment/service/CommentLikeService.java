@@ -38,7 +38,6 @@ public class CommentLikeService {
   @Transactional
   public CommentLikeDto like(UUID commentId, UUID userId) {
     Comment comment = getActiveComment(commentId);
-    User user = getActiveUser(userId);
 
     // 중복 좋아요 check
     if (commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
@@ -52,6 +51,8 @@ public class CommentLikeService {
     // comment 재조회 , incrementLikeCount 영속성 컨텍스트 초기화가 일어나 좋아요가 증가한 comment를 받으려면 재조회가 필요하다고 판단
     Comment refreshed = commentRepository.findByIdAndIsDeletedFalse(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+    // bulk update 후 영속성 컨텍스트가 초기화되므로, user는 clear 이후에 조회한다.
+    User user = getActiveUser(userId);
     CommentLike commentLike = new CommentLike(refreshed, user);
     commentLikeRepository.save(commentLike);
 
