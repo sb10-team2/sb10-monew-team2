@@ -12,7 +12,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentQDSLRepository {
-  @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.id = :id AND c.isDeleted = false")
+  @Query("""
+      SELECT c
+      FROM Comment c
+      JOIN FETCH c.user
+      JOIN FETCH c.article
+      WHERE c.id = :id
+        AND c.isDeleted = false
+  """)
   Optional<Comment> findByIdAndIsDeletedFalse(@Param("id") UUID id);
 
   // increment 시에 영속
