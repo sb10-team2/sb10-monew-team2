@@ -74,7 +74,7 @@ public class SubscriptionService {
     eventPublisher.publishEvent(
         new InterestSubscribedEvent(
             userId,
-            subscriptionDtoMapper.toSubscriptionItem(subscription, keywords, subscriberCount)
+            subscriptionDtoMapper.toSubscriptionItem(subscription, keywords)
         )
     );
 

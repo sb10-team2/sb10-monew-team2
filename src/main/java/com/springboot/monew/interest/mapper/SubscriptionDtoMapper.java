@@ -24,11 +24,6 @@ public interface SubscriptionDtoMapper {
   @Mapping(source = "subscription.interest.id", target = "interestId")
   @Mapping(source = "subscription.interest.name", target = "interestName")
   @Mapping(source = "keywords", target = "interestKeywords")
-  @Mapping(source = "subscriberCount", target = "interestSubscriberCount")
   @Mapping(source = "subscription.createdAt", target = "createdAt")
-  SubscriptionItem toSubscriptionItem(
-      Subscription subscription,
-      List<String> keywords,
-      long subscriberCount
-  );
+  SubscriptionItem toSubscriptionItem(Subscription subscription, List<String> keywords);
 }
