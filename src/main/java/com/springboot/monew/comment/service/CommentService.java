@@ -106,10 +106,12 @@ public class CommentService {
   @Transactional
   public void hardDelete(UUID commentId) {
     Comment comment = getComment(commentId);
+    // 삭제 되기 전에 사용자 활동내역에서 지울 userId만 먼저 추출(
+    UUID userId = comment.getUser().getId();
     commentRepository.delete(comment);
     // 프로토타입에서는 논리삭제하면 사용자 활동내역엔 남아있음. 따라서 물리삭제 시에만 이벤트 발행되도록 설정
     eventPublisher.publishEvent(
-        new CommentDeletedEvent(comment.getUser().getId(), comment.getId())
+        new CommentDeletedEvent(userId, comment.getId())
     );
     log.info("댓글 물리 삭제 완료 - commentId: {}", commentId);
   }
