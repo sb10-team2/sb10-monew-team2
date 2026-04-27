@@ -8,9 +8,9 @@ public record CursorPageResponseInterestDto(
     List<InterestDto> content,
     String nextCursor,
     Instant nextAfter,
-    int size,
-    long totalElements,
-    boolean hasNext
+    Integer size,
+    Long totalElements,
+    Boolean hasNext
 ) {
 
 }
