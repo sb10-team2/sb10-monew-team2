@@ -2,6 +2,7 @@ package com.springboot.monew.comment.controller;
 
 import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.service.CommentLikeService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "댓글 관리", description = "댓글 관련 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comments/{commentId}/comment-likes")
-public class CommentLikeController {
+public class CommentLikeController implements CommentLikeApiDocs {
   private final CommentLikeService commentLikeService;
 
   // 관심사 댓글 좋아요 API

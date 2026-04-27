@@ -156,6 +156,7 @@ public class NewsArticleService {
             return Stream.empty();
           }
 
+          //A뉴스기사에 관심사1, 관심사2, 관심사3이 들어있으면
           return item.interestIds().stream()
               .map(interestId -> {
                 String relationKey = buildRelationKey(article.getId(), interestId);
@@ -163,8 +164,9 @@ public class NewsArticleService {
                 if (existingRelationKeys.contains(relationKey)) {
                   return null;
                 }
-
+                //interestRepository.getReferenceById()를 관심사1, 관심사2, 관심사3 이렇게 각각 3번 호출 -> Interest 엔티티 3개 생성
                 Interest interestRef = interestRepository.getReferenceById(interestId);
+                //ArticleInterest 3개 생성
                 return new ArticleInterest(article, interestRef);
               })
               .filter(articleInterest -> articleInterest != null);
@@ -191,7 +193,7 @@ public class NewsArticleService {
   public NewsArticleViewDto createView(UUID articleId, UUID userId){
 
     //사용자 유효성 검증
-    validateActiveUser(userId);
+    User user = validateActiveUser(userId);
 
     //뉴스기사 존재 확인
     NewsArticle newsArticle = getNewsArticle(articleId);
@@ -200,10 +202,6 @@ public class NewsArticleService {
     if(newsArticle.isDeleted()){
       throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
     }
-
-    //사용자 존재 확인
-    User user = userRepository.findById(userId).orElseThrow(
-        () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
     // 이미 본 기사인지 확인
     // ToDo: 동시에 existsByNewsArticleIdAndUserId false받고, save하면 어떻게 되나? -> DB 유니크 제약 위반 발생
@@ -370,7 +368,7 @@ public class NewsArticleService {
             Map.of("articleId", articleId)));
   }
 
-  private void validateActiveUser(UUID userId) {
+  private User validateActiveUser(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
@@ -378,5 +376,7 @@ public class NewsArticleService {
     if (user.isDeleted()) {
       throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
     }
+
+    return user;
   }
 }

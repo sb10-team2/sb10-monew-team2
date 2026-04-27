@@ -2,6 +2,7 @@ package com.springboot.monew.comment.controller;
 
 import com.springboot.monew.comment.dto.*;
 import com.springboot.monew.comment.service.CommentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "댓글 관리", description = "댓글 관련 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
