@@ -151,10 +151,11 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
-  @DisplayName("comment_like_id가 존재하면 resource_type은 'COMMENT'이어야 한다\n"
-      + "domain integrity violation\n"
-      + "객체 생성 단계에서 위 과정을 검사한다\n"
-      + "그래서 객체를 만들고 reflection으로 값을 주입 하겠다")
+  @DisplayName("""
+      comment_like_id가 존재하면 resource_type은 'COMMENT'이어야 한다
+      domain integrity violation
+      객체 생성 단계에서 위 과정을 검사한다
+      그래서 객체를 만들고 reflection으로 값을 주입 하겠다""")
   void failToCreateDueToMismatchResourceType() {
     // given
     Notification expected = Notification.builder()
@@ -271,7 +272,6 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     clear();
 
     // when
-    List<UUID> ids = getIds(expected);
     UUID userId = expected.get(0).getUser().getId();
     int updatedSuccessCount = repository.bulkUpdateConfirmed(userId, updatedAt);
     ensureQueryCount(1);
@@ -299,7 +299,8 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     Instant now = Instant.now();
     Instant threshold = now.minus(7, ChronoUnit.DAYS);
     Instant twoWeekAgo = threshold.minus(7, ChronoUnit.DAYS);
-    Supplier<Instant> past = () -> Instancio.gen().temporal().instant().range(twoWeekAgo, now).get();
+    Supplier<Instant> past = () -> Instancio.gen().temporal().instant().range(twoWeekAgo, now)
+        .get();
     List<Notification> entities = testEntityManager.generateNotifications(size);
     entities.forEach(n -> n.updateConfirmed(past.get()));
     long expected = entities.stream().filter(n -> threshold.isAfter(n.getUpdatedAt())).count();
@@ -315,5 +316,21 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     Assertions.assertThat(actual).isEqualTo(expected);
     List<Notification> results = repository.findAll();
     Assertions.assertThat(results.size()).isEqualTo(size - expected);
+  }
+
+  @Test
+  @DisplayName("cursor=null, after=null, limit=50, userId=... 에 대해 알림 데이터가 없어도 조회 성공")
+  void successToFindByCursorWithNoData() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID cursor = null;
+    Instant after = null;
+    int limit = 50;
+
+    // when
+    Slice<Notification> actual = repository.findByCursor(cursor, after, userId, PageRequest.of(0, limit));
+
+    // then
+    Assertions.assertThat(actual.getContent()).hasSize(0);
   }
 }
