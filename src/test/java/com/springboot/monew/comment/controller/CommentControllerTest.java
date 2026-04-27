@@ -49,7 +49,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글이 등록이 성공하면 201을 반환한다")
-  void create_성공() throws Exception {
+  void create_Returns201_WhenValidRequest() throws Exception {
     // given
     UUID userId = UUID.randomUUID();
     UUID articleId = UUID.randomUUID();
@@ -78,7 +78,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 내용이 없다면 등록에 실패한다")
-  void create_실패() throws Exception {
+  void create_Returns400_WhenContentIsBlank() throws Exception {
     // given
     UUID userId = UUID.randomUUID();
     UUID articleId = UUID.randomUUID();
@@ -97,7 +97,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 논리 삭제 시 204를 반환한다.")
-  void softDelete_성공() throws Exception {
+  void softDelete_Returns204_WhenCommentExists() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
 
@@ -110,7 +110,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("이미 논리 삭제가 된 댓글은 실패한다")
-  void softDelete_실패() throws Exception {
+  void softDelete_Returns400_WhenAlreadyDeleted() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
 
@@ -125,7 +125,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 수정 성공 시 200을 반환한다.")
-  void update_성공() throws Exception {
+  void update_Returns200_WhenValidRequest() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -156,7 +156,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 수정 실패 시 400을 반환한다.")
-  void update_실패() throws Exception {
+  void update_Returns400_WhenContentIsBlank() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -177,7 +177,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("Monew-Request-User-ID 헤더 누락 시 401을 반환한다")
-  void update_실패_헤더누락() throws Exception {
+  void update_Returns401_WhenHeaderMissing() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     CommentUpdateRequest request = new CommentUpdateRequest("수정한 댓글");
@@ -193,7 +193,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("본인 댓글이 아닌 것들 수정하려고 하면 수정에 실패한다.")
-  void update_실패_본인댓글아님() throws Exception {
+  void update_Returns403_WhenNotOwnedByUser() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -212,7 +212,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 물리 삭제 시 204를 반환한다.")
-  void hardDelete_성공() throws Exception {
+  void hardDelete_Returns204_WhenCommentExists() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
 
@@ -227,7 +227,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 목록 조회 성공")
-  void list_성공() throws Exception {
+  void list_Returns200_WhenValidRequest() throws Exception {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -237,7 +237,7 @@ class CommentControllerTest {
         "댓글2", 1L, true, Instant.now());
 
     CursorPageResponseCommentDto<CommentDto> response = new CursorPageResponseCommentDto<>(
-        List.of(comment1, comment2), null, null, 2, 2, false
+        List.of(comment1, comment2), null, null, 2, 2L, false
     );
 
     given(commentService.list(any(CommentPageRequest.class), any(UUID.class))).willReturn(response);
@@ -259,7 +259,7 @@ class CommentControllerTest {
 
   @Test
   @DisplayName("댓글 목록 조회 실패 - 잘못된 정렬 속성")
-  void list_실패() throws Exception {
+  void list_Returns400_WhenInvalidOrderBy() throws Exception {
     // given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
