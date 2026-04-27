@@ -8,6 +8,7 @@ import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.exception.NotificationException;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
@@ -23,7 +24,8 @@ class NotificationTest {
         .ignore(field(Notification::getCommentLike))
         .set(field(Notification::getResourceType), ResourceType.INTEREST)
         .create();
-    UUID resourceId = notification.getInterest().map(Interest::getId).orElseThrow();
+    Optional<Interest> interest = Optional.ofNullable(notification.getInterest());
+    UUID resourceId = interest.map(Interest::getId).orElseThrow();
     Assertions.assertThat(resourceId).isEqualTo(notification.getResourceId());
   }
 
@@ -34,7 +36,8 @@ class NotificationTest {
         .ignore(field(Notification::getInterest))
         .set(field(Notification::getResourceType), ResourceType.COMMENT)
         .create();
-    UUID resourceId = notification.getCommentLike().map(CommentLike::getId).orElseThrow();
+    Optional<CommentLike> commentLike = Optional.ofNullable(notification.getCommentLike());
+    UUID resourceId = commentLike.map(CommentLike::getId).orElseThrow();
     Assertions.assertThat(resourceId).isEqualTo(notification.getResourceId());
   }
 

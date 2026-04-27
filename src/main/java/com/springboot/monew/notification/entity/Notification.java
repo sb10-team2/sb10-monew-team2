@@ -87,14 +87,6 @@ public class Notification extends BaseEntity {
     throw new NotificationException(NotificationErrorCode.INVALID_DATA, details);
   }
 
-  public Optional<Interest> getInterest() {
-    return Optional.ofNullable(interest);
-  }
-
-  public Optional<CommentLike> getCommentLike() {
-    return Optional.ofNullable(commentLike);
-  }
-
   public void updateConfirmed(Instant updatedAt) {
     if (confirmed) {
       throw new NotificationException(NotificationErrorCode.ALREADY_CONFIRMED, getId());
