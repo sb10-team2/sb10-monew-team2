@@ -10,7 +10,6 @@ import com.springboot.monew.interest.service.InterestService;
 import com.springboot.monew.interest.service.SubscriptionService;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
