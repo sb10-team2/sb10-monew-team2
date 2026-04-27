@@ -41,25 +41,37 @@ public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
 
   private BooleanExpression cursorCondition(CommentOrderBy orderBy,
       CommentDirection direction, String cursor, Instant after) {
-    if (cursor == null || after == null) {return null;}
 
-    if(orderBy == CommentOrderBy.likeCount) {
-      long likeCountCursor = Long.parseLong(cursor);
+    if (orderBy == CommentOrderBy.likeCount) {
+      if (cursor == null) return null;
+
+      // "likeCount|createdAt" 파싱, after는 fallback
+      String[] parts = cursor.split("\\|", 2);
+      long likeCountCursor = Long.parseLong(parts[0]);
+      Instant afterCursor = parts.length > 1 ? Instant.parse(parts[1]) : after;
+
       if (direction == CommentDirection.ASC) {
-        return qComment.likeCount.gt(likeCountCursor)
-            .or(qComment.likeCount.eq(likeCountCursor)
-                .and(qComment.createdAt.lt(after)));
+        BooleanExpression primary = qComment.likeCount.gt(likeCountCursor);
+        if (afterCursor == null) return primary;
+        return primary.or(qComment.likeCount.eq(likeCountCursor)
+            .and(qComment.createdAt.lt(afterCursor)));
       } else {
-        return qComment.likeCount.lt(likeCountCursor)
-            .or(qComment.likeCount.eq(likeCountCursor)
-                .and(qComment.createdAt.gt(after)));
+        BooleanExpression primary = qComment.likeCount.lt(likeCountCursor);
+        if (afterCursor == null) return primary;
+        return primary.or(qComment.likeCount.eq(likeCountCursor)
+            .and(qComment.createdAt.gt(afterCursor)));
       }
     }
 
+    // createdAt 정렬
+    Instant createdAtCursor = after != null ? after : (cursor != null ? Instant.parse(cursor) : null);
+    if (createdAtCursor == null) return null;
+
     return direction == CommentDirection.DESC
-        ? qComment.createdAt.lt(after)
-        : qComment.createdAt.gt(after);
+        ? qComment.createdAt.lt(createdAtCursor)
+        : qComment.createdAt.gt(createdAtCursor);
   }
+
 
   // 정렬 조건
   private OrderSpecifier<?>[] orderByCondition(CommentOrderBy orderBy, CommentDirection direction) {
