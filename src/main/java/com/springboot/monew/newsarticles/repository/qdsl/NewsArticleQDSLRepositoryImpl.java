@@ -233,7 +233,6 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     //주커서
     //cursor값을 Instant로 파싱하는 과정에서 깨질때 대비한 예외처리
     Instant cursorValue = parseInstantCursor(parsedCursor.value(), "cursor.value");
-    ;
 
     //마지막 row의 publishedAt이 2026.04.24라면 2026.04.24 > publishedAt
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC

@@ -24,7 +24,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run tests, coverage, and Checkstyle
+      - name: Run checks and coverage
         run: ./gradlew clean check jacocoTestReport
 
       - name: Upload quality reports
