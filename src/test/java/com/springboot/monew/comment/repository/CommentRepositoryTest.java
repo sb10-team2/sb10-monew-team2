@@ -31,7 +31,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("삭제되지 않은 댓글 조회 성공 - user JOIN FETCH로 쿼리 1번")
-  void findByIdAndIsDeletedFalse_성공() {
+  void findByIdAndIsDeletedFalse_ReturnsComment_WhenCommentExists() {
     // given
     User user = testEntityManager.generateUser();
     Comment comment = new Comment(user, article, "테스트 댓글");
@@ -52,7 +52,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("논리 삭제된 댓글은 조회되지 않는다")
-  void findByIdAndIsDeletedFalse_삭제된댓글_empty() {
+  void findByIdAndIsDeletedFalse_ReturnsEmpty_WhenCommentDeleted() {
     // given
     User user = testEntityManager.generateUser();
     Comment comment = new Comment(user, article, "테스트 댓글");
@@ -71,7 +71,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("좋아요 수 1 증가 성공")
-  void incrementLikeCount_성공() {
+  void incrementLikeCount_IncreasesLikeCountByOne_WhenCommentExists() {
     // given
     NewsArticle article = testEntityManager.generateNewsArticle();
     User user = testEntityManager.generateUser();
@@ -92,7 +92,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("좋아요 수 1 감소 성공")
-  void decrementLikeCount_성공() {
+  void decrementLikeCount_DecreasesLikeCountByOne_WhenLikeCountIsPositive() {
     // given
     NewsArticle article = testEntityManager.generateNewsArticle();
     User user = testEntityManager.generateUser();
@@ -116,7 +116,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("좋아요 수가 0일 때 감소 시도 → 0 유지")
-  void decrementLikeCount_0이하_음수안됨() {
+  void decrementLikeCount_MaintainsZero_WhenLikeCountIsZero() {
     // given
     NewsArticle article = testEntityManager.generateNewsArticle();
     User user = testEntityManager.generateUser();
@@ -139,7 +139,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("cursor null이면 첫 페이지 반환")
-  void findComments_커서없음_첫페이지() {
+  void findComments_ReturnsFirstPage_WhenCursorIsNull() {
     // given
     testEntityManager.generateComments(3, article);
     flushAndClear();
@@ -155,14 +155,14 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("createdAt DESC 정렬 - 최신순으로 반환")
-  void findComments_createdAt_DESC() {
+  void findComments_ReturnsDescOrder_WhenOrderByCreatedAtDesc() {
     // given
     List<Comment> comments = testEntityManager.generateComments(3, article);
     Instant base = Instant.now();
     setCreatedAt(comments.get(0).getId(), base.minusSeconds(20));
     setCreatedAt(comments.get(1).getId(), base.minusSeconds(10));
     setCreatedAt(comments.get(2).getId(), base);
-    flushAndClear(); //DB INSERT && 영속성 컨텍스트 초기화
+    flushAndClear();
 
     // when
     List<Comment> result = commentRepository.findComments(
@@ -170,7 +170,6 @@ class CommentRepositoryTest extends BaseRepositoryTest {
         null, null, 10);
 
     // then
-    // 역순과 동일해야 함
     Assertions.assertThat(result)
         .extracting(Comment::getCreatedAt)
         .isSortedAccordingTo(Comparator.reverseOrder());
@@ -178,14 +177,14 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("createdAt ASC 정렬 - 오래된순으로 반환")
-  void findComments_createdAt_ASC() {
+  void findComments_ReturnsAscOrder_WhenOrderByCreatedAtAsc() {
     // given
     List<Comment> comments = testEntityManager.generateComments(3, article);
     Instant base = Instant.now();
     setCreatedAt(comments.get(0).getId(), base.minusSeconds(20));
     setCreatedAt(comments.get(1).getId(), base.minusSeconds(10));
     setCreatedAt(comments.get(2).getId(), base);
-    flushAndClear(); // DB INSERT && 영속성 컨텍스트 초기화
+    flushAndClear();
 
     // when
     List<Comment> result = commentRepository.findComments(
@@ -193,7 +192,6 @@ class CommentRepositoryTest extends BaseRepositoryTest {
         null, null, 10);
 
     // then
-    // ASC면 원래 순서랑 동일해야 함.
     Assertions.assertThat(result)
         .extracting(Comment::getCreatedAt)
         .isSortedAccordingTo(Comparator.naturalOrder());
@@ -201,10 +199,9 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("likeCount DESC 정렬 - 좋아요 많은순으로 반환")
-  void findComments_likeCount_DESC() {
+  void findComments_ReturnsDescOrder_WhenOrderByLikeCountDesc() {
     // given
     List<Comment> comments = testEntityManager.generateComments(3, article);
-    // comments.get(0) → likeCount 1, get(1) → 2, get(2) → 3
     commentRepository.incrementLikeCount(comments.get(0).getId());
     commentRepository.incrementLikeCount(comments.get(1).getId());
     commentRepository.incrementLikeCount(comments.get(1).getId());
@@ -219,7 +216,6 @@ class CommentRepositoryTest extends BaseRepositoryTest {
         null, null, 10);
 
     // then
-    // 좋아요 순이면 역순으로!
     Assertions.assertThat(result)
         .extracting(Comment::getLikeCount)
         .isSortedAccordingTo(Comparator.reverseOrder());
@@ -227,7 +223,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("likeCount ASC 정렬 - 좋아요 적은순으로 반환")
-  void findComments_likeCount_ASC() {
+  void findComments_ReturnsAscOrder_WhenOrderByLikeCountAsc() {
     // given
     List<Comment> comments = testEntityManager.generateComments(3, article);
     commentRepository.incrementLikeCount(comments.get(0).getId());
@@ -251,7 +247,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("cursor 있을 때 해당 커서 이후 데이터만 반환 - 1·2페이지 중복 없음")
-  void findComments_커서있음_이후데이터만() {
+  void findComments_ReturnsNextPageOnly_WhenCursorProvided() {
     // given
     List<Comment> comments = testEntityManager.generateComments(5, article);
     Instant base = Instant.now();
@@ -263,7 +259,6 @@ class CommentRepositoryTest extends BaseRepositoryTest {
     List<Comment> firstPage = commentRepository.findComments(
         article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 3);
-    // 커서 가져옴
     Comment last = firstPage.get(firstPage.size() - 1);
 
     // when
@@ -272,7 +267,6 @@ class CommentRepositoryTest extends BaseRepositoryTest {
         CommentOrderBy.createdAt.getCursor(last), last.getCreatedAt(), 3);
 
     // then
-    // 두번 째 Page에 첫번 째 Page가 들어있으면 안됨 !
     List<UUID> firstPageIds = firstPage.stream().map(Comment::getId).toList();
     Assertions.assertThat(secondPage)
         .extracting(Comment::getId)
@@ -281,7 +275,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("논리 삭제된 댓글은 목록에서 제외")
-  void findComments_삭제된댓글_제외() {
+  void findComments_ExcludesDeletedComments_WhenCommentDeleted() {
     // given
     List<Comment> comments = testEntityManager.generateComments(3, article);
     comments.get(0).delete();
@@ -301,7 +295,7 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("limit 적용 - 지정한 개수만큼만 반환")
-  void findComments_limit_적용() {
+  void findComments_ReturnsLimitedCount_WhenLimitProvided() {
     // given
     int limit = 3;
     testEntityManager.generateComments(5, article);
@@ -318,19 +312,18 @@ class CommentRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("다른 article의 댓글은 제외")
-  void findComments_다른article_제외() {
+  void findComments_ReturnsEmpty_WhenDifferentArticle() {
     // given
     NewsArticle otherArticle = testEntityManager.generateNewsArticle();
     testEntityManager.generateComments(3, otherArticle);
     flushAndClear();
 
-    // when (원래 기사 댓글 조회)
+    // when
     List<Comment> result = commentRepository.findComments(
         article.getId(), CommentOrderBy.createdAt, CommentDirection.DESC,
         null, null, 10);
 
     // then
-    // 기사 댓글은 비어 있어야 함
     Assertions.assertThat(result).isEmpty();
   }
 

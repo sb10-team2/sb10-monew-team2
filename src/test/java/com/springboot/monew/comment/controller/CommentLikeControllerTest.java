@@ -39,7 +39,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("댓글 좋아요 성공 시 201을 반환한다.")
-  void like_성공() throws Exception {
+  void like_Returns201_WhenValidRequest() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -70,7 +70,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("존재하지 않는 댓글에 좋아요 시 404를 반환한다.")
-  void like_실패_댓글없음() throws Exception {
+  void like_Returns404_WhenCommentNotFound() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -88,7 +88,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("존재하지 않는 유저가 좋아요 시 404를 반환한다.")
-  void like_실패_유저없음() throws Exception {
+  void like_Returns404_WhenUserNotFound() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -106,7 +106,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("중복 좋아요 시 409를 반환한다.")
-  void like_실패_중복좋아요() throws Exception {
+  void like_Returns409_WhenAlreadyLiked() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -125,7 +125,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("Monew-Request-User-ID 헤더 누락 시 401을 반환한다.")
-  void like_실패_헤더누락() throws Exception {
+  void like_Returns401_WhenHeaderMissing() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -140,7 +140,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("댓글 좋아요 취소 성공 시 200을 반환한다.")
-  void unlike_성공() throws Exception {
+  void unlike_Returns200_WhenValidRequest() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -155,7 +155,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("존재하지 않는 댓글에 좋아요 취소 시 404를 반환한다.")
-  void unlike_실패_댓글없음() throws Exception {
+  void unlike_Returns404_WhenCommentNotFound() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -173,7 +173,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("좋아요를 누르지 않은 댓글에 좋아요 취소 시 404를 반환한다.")
-  void unlike_실패_좋아요없음() throws Exception {
+  void unlike_Returns404_WhenLikeNotFound() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -191,7 +191,7 @@ class CommentLikeControllerTest {
 
   @Test
   @DisplayName("Monew-Request-User-ID 헤더 누락 시 401을 반환한다.")
-  void unlike_실패_헤더누락() throws Exception {
+  void unlike_Returns401_WhenHeaderMissing() throws Exception {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
