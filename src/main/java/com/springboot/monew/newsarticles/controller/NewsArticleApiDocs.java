@@ -9,6 +9,7 @@ import com.springboot.monew.newsarticles.enums.ArticleSource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -432,7 +433,14 @@ public interface NewsArticleApiDocs {
       operationId = "findSource"
   )
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "출처 목록 조회 성공"),
+      @ApiResponse(
+          responseCode = "200",
+          description = "출처 목록 조회 성공",
+          content = @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ArticleSource.class))
+          )
+      ),
       @ApiResponse(
           responseCode = "500",
           description = "서버 내부 오류",

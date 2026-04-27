@@ -63,7 +63,7 @@ public interface NotificationApiDocs {
                         "userId": "770e8400-e29b-41d4-a716-446655440002",
                         "resourceType": "COMMENT",
                         "resourceId": "660e8400-e29b-41d4-a716-446655440001",
-                        "message": "홍길동님이 회원님의 댓글에 좋아요를 눌렀습니다.",
+                        "content": "홍길동님이 회원님의 댓글에 좋아요를 눌렀습니다.",
                         "confirmed": false,
                         "createdAt": "2024-01-15T10:30:00.000Z",
                         "updatedAt": "2024-01-15T10:30:00.000Z"
