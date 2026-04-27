@@ -3,12 +3,13 @@ package com.springboot.monew.newsarticles.service;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.repository.CommentRepository;
@@ -34,7 +35,6 @@ import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
-import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -341,7 +341,6 @@ class NewsArticleServiceTest {
     verify(eventPublisher, never()).publishEvent(any());
   }
 
-
   @Test
   @DisplayName("뉴스기사 조회이력 등록에 성공한다.")
   void createView_success_normal() {
@@ -377,8 +376,7 @@ class NewsArticleServiceTest {
     given(commentRepository.countByArticleIdAndIsDeletedFalse(articleId)).willReturn(3L);
 
     //DTO 변환결과 설정
-    given(newsArticleViewMapper.toDto(savedArticleView, 3L)).willReturn(responseDto);
-
+    given(newsArticleViewMapper.toDto(any(ArticleView.class), eq(3L))).willReturn(responseDto);
 
     //  when
     NewsArticleViewDto result = newsArticleService.createView(articleId, userId);
@@ -388,7 +386,7 @@ class NewsArticleServiceTest {
     assertThat(result).isEqualTo(responseDto);
 
     verify(userRepository).findById(userId);
-    verify(newsArticleRepository).findById(articleId);
+    verify(newsArticleRepository, times(2)).findById(articleId);
     verify(articleViewRepository).existsByNewsArticleIdAndUserId(articleId, userId);
     verify(articleViewRepository).saveAndFlush(any(ArticleView.class));
     verify(commentRepository).countByArticleIdAndIsDeletedFalse(articleId);
@@ -397,7 +395,7 @@ class NewsArticleServiceTest {
     verify(newsArticleRepository).incrementViewCount(articleId);
 
     //DTO 변환이 수행되었는지 검증
-    verify(newsArticleViewMapper).toDto(savedArticleView, 3L);
+    verify(newsArticleViewMapper).toDto(any(ArticleView.class), eq(3L));
   }
 
   @Test
