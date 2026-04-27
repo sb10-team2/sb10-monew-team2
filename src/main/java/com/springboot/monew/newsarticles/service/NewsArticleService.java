@@ -200,10 +200,6 @@ public class NewsArticleService {
       throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
     }
 
-    //사용자 존재 확인
-    User user = userRepository.findById(userId).orElseThrow(
-        () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
-
     // 이미 본 기사인지 확인
     // ToDo: 동시에 existsByNewsArticleIdAndUserId false받고, save하면 어떻게 되나? -> DB 유니크 제약 위반 발생
     if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
