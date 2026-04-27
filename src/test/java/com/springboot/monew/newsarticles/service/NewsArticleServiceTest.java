@@ -1,6 +1,8 @@
 package com.springboot.monew.newsarticles.service;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -10,11 +12,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.repository.InterestRepository;
+import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
+import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
@@ -24,8 +31,10 @@ import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
 import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
+import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.users.entity.User;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
@@ -34,6 +43,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +51,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 //Mockito를 사용하기위한 어노테이션
 //UserRepository같은 가짜 객체 자동 생성(Mock), Mock을 UserService에 주입(@InjectMocks)를 위한 어노테이션
@@ -65,8 +76,271 @@ class NewsArticleServiceTest {
   @Mock
   private NewsArticleViewMapper newsArticleViewMapper;
 
+  @Mock
+  private ArticleInterestRepository articleInterestRepository;
+
+  @Mock
+  private InterestRepository interestRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private NewsArticleService newsArticleService;
+
+  //1. DB에 없는 신규기사 1개가 들어왔을때 기사저장
+  //2. 기사-관심사 연결 저장
+  //3. 알림 이벤트 발행
+  @Test
+  @DisplayName("신규기사와 관심사 연결 저장 saveAll 성공")
+  void saveAll_success_saveNewArticlesAndArticleinterests() {
+
+    //given
+    UUID interestId = UUID.randomUUID();
+
+    //수집된 기사 DTO 생성
+    CollectedArticle collectedArticle = mock(CollectedArticle.class);
+    given(collectedArticle.originalLink()).willReturn("https://test.com/1");
+
+    //수집기사와 관심사 ID연결 DTO생성
+    //(article, Set<UUID> interestIds)
+    CollectedArticleWithInterest item = new CollectedArticleWithInterest(collectedArticle, Set.of(interestId));
+
+    //저장 전 신규 기사 엔티티 생성
+    NewsArticle newsArticle = mock(NewsArticle.class);
+
+    //저장 후 기사 Entity 생성
+    NewsArticle savedArticle = mock(NewsArticle.class);
+
+    //관심사 참조 엔티티 생성
+    Interest interest = mock(Interest.class);
+
+    //DB에 이미 존재하는 기사 조회 -> 없음
+    given(newsArticleRepository.findAllByOriginalLinkIn(Set.of("https://test.com/1"))).willReturn(List.of());
+
+    //수집 기사 DTO를 NewsArticle 엔티티로 변환
+    //DB에 없는 신규기사를 엔티티로 변환
+    given(newsArticleMapper.toEntity(collectedArticle)).willReturn(newsArticle);
+
+    //신규 기사 저장 결과 설정
+    given(newsArticleRepository.saveAll(List.of(newsArticle))).willReturn(List.of(savedArticle));
+
+    //저장된 기사 originalLink 설정
+    given(savedArticle.getOriginalLink()).willReturn("https://test.com/1");
+
+    //저장된 기사 ID 설정
+    given(savedArticle.getId()).willReturn(UUID.randomUUID());
+
+    //기존 article_interest 연결없음.
+    given(articleInterestRepository.findAllByNewsArticleIn(List.of(savedArticle))).willReturn(List.of());
+
+    //관심사 프로시 조회 결과 설정
+    given(interestRepository.getReferenceById(interestId)).willReturn(interest);
+
+    //  when
+    newsArticleService.saveAll(List.of(item));
+
+    //  then
+    //originalLink기준으로 기존 기사 조회가 수행되어야한다.
+    verify(newsArticleRepository).findAllByOriginalLinkIn(Set.of("https://test.com/1"));
+
+    //신규 기사 변환이 수행되어야한다.
+    verify(newsArticleMapper).toEntity(collectedArticle);
+
+    //신규 기사 저장이 수행되어야한다.
+    verify(newsArticleRepository).saveAll(List.of(newsArticle));
+
+    //기존 기사-관심사 연결 조회가 수행되어야한다.
+    verify(articleInterestRepository).findAllByNewsArticleIn(List.of(savedArticle));
+
+    //관심사 참조 조회가 수행되어야한다.
+    verify(interestRepository).getReferenceById(interestId);
+
+    // 신규 article_interest 저장이 수행되어야 한다
+    verify(articleInterestRepository).saveAll(anyList());
+
+    // 관심사 알림 이벤트가 발행되어야 한다
+    verify(eventPublisher).publishEvent(any(List.class));
+  }
+
+  @Test
+  @DisplayName("수집된 CollectedArticleWithInterest가 null 또는 빈목록이면 아무 작업하지 않는다.")
+  void saveAll_success_doNothing_whenNullOrEmpty() {
+    //  given
+    List<CollectedArticleWithInterest> emptyItems = List.of();
+
+    //  when
+    newsArticleService.saveAll(emptyItems);
+
+    //  then
+
+    //입력이 비어있으면 기존 기사 조회가 수행되면 안된다.
+    verify(newsArticleRepository, never()).findAllByOriginalLinkIn(any());
+
+    //입력이 비어있으면 기사 저장이 수행되면 안된다.
+    verify(newsArticleRepository, never()).saveAll(anyList());
+
+    //입력이 비어있으면 기사-관심사 저장이 수행되면 안된다.
+    verify(articleInterestRepository, never()).saveAll(anyList());
+
+    //이벤트도 발행되면 안된다.
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  //List<CollectedArticleWithInterest> articlesWithInterests이 (뉴스A, 관심사1)이렇게 구성돼 있다 치자.
+  //뉴스A의 originalLink가 " "로 들어왔을때 distinctItems가 빈값이 반환되고, return 되는 테스트이다.
+  @Test
+  @DisplayName("originalLink가 없으면 아무작업을 하지 않는다.")
+  void saveAll_success_doNothing_whenNotFoundOriginalLink() {
+    //  given
+    // originalLink가 blank인 수집 기사 생성
+    CollectedArticle collectedArticle = mock(CollectedArticle.class);
+    given(collectedArticle.originalLink()).willReturn(" ");
+
+    CollectedArticleWithInterest item = new CollectedArticleWithInterest(collectedArticle, Set.of(UUID.randomUUID()));
+
+    //  when
+    newsArticleService.saveAll(List.of(item));
+
+    //  then
+    //유효한 originalLink가 없으면 기존 기사 조회가 수행되면 안된다.
+    verify(newsArticleRepository, never()).findAllByOriginalLinkIn(any());
+
+    //신규 기사 저장도 수행되면 안된다.
+    verify(newsArticleRepository, never()).saveAll(anyList());
+
+    //기사-관심사 저장도 수행되면 안된다.
+    verify(articleInterestRepository, never()).saveAll(anyList());
+  }
+
+  //(뉴스A, 관심사1),(뉴스A, 관심사2),(뉴스B, 관심사3)
+  //뉴스A.originalLink -> (관심사1,관심사2)
+  //뉴스B.originalLink -> (관심사3)
+  //이렇게 구성하는 Test
+  @Test
+  @DisplayName("중복 originalLink는 하나의 기사로 저장하고 관심사ID를 합친다.")
+  void saveAll_success_mergeInterestIds_whenOriginalLinkDuplicated() {
+    //  given
+    UUID interestId1 = UUID.randomUUID();
+    UUID interestId2 = UUID.randomUUID();
+
+    //같은 originalLink를 가진 수집 기사 2개 생성
+    CollectedArticle article1 = mock(CollectedArticle.class);
+    CollectedArticle article2 = mock(CollectedArticle.class);
+    given(article1.originalLink()).willReturn("https://test.com/1");
+    given(article2.originalLink()).willReturn("https://test.com/1");
+
+    CollectedArticleWithInterest item1 = new CollectedArticleWithInterest(article1, Set.of(interestId1));
+    CollectedArticleWithInterest item2 = new CollectedArticleWithInterest(article2, Set.of(interestId2));
+
+    NewsArticle newsArticle = mock(NewsArticle.class);
+    NewsArticle savedArticle = mock(NewsArticle.class);
+
+    Interest interest1 = mock(Interest.class);
+    Interest interest2 = mock(Interest.class);
+
+    UUID savedArticleId = UUID.randomUUID();
+
+    //DB에 기존 기사 없음
+    given(newsArticleRepository.findAllByOriginalLinkIn(Set.of("https://test.com/1")))
+        .willReturn(List.of());
+
+    // 중복 제거 후 대표 기사만 엔티티로 변환됨
+    given(newsArticleMapper.toEntity(article1)).willReturn(newsArticle);
+
+    // 신규 기사 저장
+    given(newsArticleRepository.saveAll(List.of(newsArticle))).willReturn(List.of(savedArticle));
+
+    // 저장된 기사 정보 설정
+    given(savedArticle.getOriginalLink()).willReturn("https://test.com/1");
+    given(savedArticle.getId()).willReturn(savedArticleId);
+
+    // 기존 연결 없음
+    given(articleInterestRepository.findAllByNewsArticleIn(List.of(savedArticle)))
+        .willReturn(List.of());
+
+    // 두 관심사 참조 조회
+    given(interestRepository.getReferenceById(interestId1)).willReturn(interest1);
+    given(interestRepository.getReferenceById(interestId2)).willReturn(interest2);
+
+    //  when
+    newsArticleService.saveAll(List.of(item1, item2));
+
+    // then
+    // 같은 originalLink는 한 번만 저장되어야 한다
+    verify(newsArticleRepository).saveAll(List.of(newsArticle));
+
+    // article1만 대표로 변환되고 article2는 별도 기사로 변환되지 않아야 한다
+    verify(newsArticleMapper).toEntity(article1);
+    verify(newsArticleMapper, never()).toEntity(article2);
+
+    // 합쳐진 관심사 ID 2개에 대해 참조 조회가 수행되어야 한다
+    verify(interestRepository).getReferenceById(interestId1);
+    verify(interestRepository).getReferenceById(interestId2);
+
+    // article_interest 저장이 수행되어야 한다
+    // 저장된 list의 크기는 2
+    verify(articleInterestRepository).saveAll(argThat((List<ArticleInterest> list) -> list.size() == 2));
+
+    // 이벤트가 발행되어야 한다
+    // List<InterestNotificationEvent> 타입 객체
+    verify(eventPublisher).publishEvent(any(List.class));
+
+  }
+
+  @Test
+  @DisplayName("기존에 기사-관심사연결이 이미 있으면 중복 저장하지 않는다.")
+  void saveAll_success_skipDuplicateArticleInterest_whenRelationAlreadyExists() {
+    // given
+    UUID interestId = UUID.randomUUID();
+    UUID articleId = UUID.randomUUID();
+
+    CollectedArticle collectedArticle = mock(CollectedArticle.class);
+    given(collectedArticle.originalLink()).willReturn("https://test.com/1");
+
+    CollectedArticleWithInterest item =
+        new CollectedArticleWithInterest(collectedArticle, Set.of(interestId));
+
+    NewsArticle existingArticle = mock(NewsArticle.class);
+    Interest existingInterest = mock(Interest.class);
+    ArticleInterest existingArticleInterest = mock(ArticleInterest.class);
+
+    // 기존 기사 정보 설정
+    given(existingArticle.getOriginalLink()).willReturn("https://test.com/1");
+    given(existingArticle.getId()).willReturn(articleId);
+
+    // 기존 관심사 정보 설정
+    given(existingInterest.getId()).willReturn(interestId);
+
+    // 기존 article_interest 연결 정보 설정
+    given(existingArticleInterest.getNewsArticle()).willReturn(existingArticle);
+    given(existingArticleInterest.getInterest()).willReturn(existingInterest);
+
+    // DB에 이미 기사 존재
+    given(newsArticleRepository.findAllByOriginalLinkIn(Set.of("https://test.com/1")))
+        .willReturn(List.of(existingArticle));
+
+    // 이미 기사-관심사 연결도 존재
+    given(articleInterestRepository.findAllByNewsArticleIn(List.of(existingArticle)))
+        .willReturn(List.of(existingArticleInterest));
+
+    // when
+    newsArticleService.saveAll(List.of(item));
+
+    // then
+    // 기존 기사이므로 신규 기사 저장은 수행되면 안 된다
+    verify(newsArticleRepository, never()).saveAll(anyList());
+
+    // 이미 연결이 있으므로 관심사 참조 조회가 수행되면 안 된다
+    verify(interestRepository, never()).getReferenceById(any());
+
+    // 이미 연결이 있으므로 article_interest 저장도 수행되면 안 된다
+    verify(articleInterestRepository, never()).saveAll(anyList());
+
+    // 신규 연결이 없으므로 이벤트도 발행되면 안 된다
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
 
   @Test
   @DisplayName("뉴스기사 조회이력 등록에 성공한다.")
