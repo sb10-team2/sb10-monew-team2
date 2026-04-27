@@ -156,6 +156,7 @@ public class NewsArticleService {
             return Stream.empty();
           }
 
+          //A뉴스기사에 관심사1, 관심사2, 관심사3이 들어있으면
           return item.interestIds().stream()
               .map(interestId -> {
                 String relationKey = buildRelationKey(article.getId(), interestId);
@@ -163,8 +164,9 @@ public class NewsArticleService {
                 if (existingRelationKeys.contains(relationKey)) {
                   return null;
                 }
-
+                //interestRepository.getReferenceById()를 관심사1, 관심사2, 관심사3 이렇게 각각 3번 호출 -> Interest 엔티티 3개 생성
                 Interest interestRef = interestRepository.getReferenceById(interestId);
+                //ArticleInterest 3개 생성
                 return new ArticleInterest(article, interestRef);
               })
               .filter(articleInterest -> articleInterest != null);
