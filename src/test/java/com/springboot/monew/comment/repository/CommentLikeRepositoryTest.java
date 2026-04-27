@@ -1,6 +1,7 @@
 package com.springboot.monew.comment.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
@@ -42,7 +43,8 @@ class CommentLikeRepositoryTest extends BaseRepositoryTest {
     List<UUID> allCommentIds = comments.stream().map(Comment::getId).toList();
 
     // when
-    List<UUID> result = commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(user.getId(), allCommentIds);
+    List<UUID> result = commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(user.getId(),
+        allCommentIds);
 
     // then (size:2, Id 보유 여부 확인)
     assertEquals(2, result.size());

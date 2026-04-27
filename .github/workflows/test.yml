@@ -19,12 +19,23 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run tests with coverage
-        run: ./gradlew test jacocoTestReport
+      - name: Run tests, coverage, and Checkstyle
+        run: ./gradlew clean check jacocoTestReport
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: |
+            build/reports/checkstyle/
+            build/reports/tests/
+            build/reports/jacoco/
 
       - name: Publish coverage to PR
         uses: madrapps/jacoco-report@v1.6.1

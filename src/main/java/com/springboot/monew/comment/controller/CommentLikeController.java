@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/comments/{commentId}/comment-likes")
 public class CommentLikeController {
+
   private final CommentLikeService commentLikeService;
 
   // 관심사 댓글 좋아요 API

@@ -15,4 +15,6 @@ public record NewsArticleDto(
     Long viewCount,
     Boolean viewedByMe
 
-) {}
+) {
+
+}

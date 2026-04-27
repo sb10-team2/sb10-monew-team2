@@ -10,4 +10,6 @@ public record CommentRegisterRequest(
     @NotNull(message = "articleId는 필수입니다.") UUID articleId,
     @NotNull(message = "userId는 필수입니다.") UUID userId,
     @NotBlank(message = "내용을 입력해주세요.") @Size(max = 200, message = "댓글은 200자 이내로 입력해주세요.")
-        String content) {}
+    String content) {
+
+}

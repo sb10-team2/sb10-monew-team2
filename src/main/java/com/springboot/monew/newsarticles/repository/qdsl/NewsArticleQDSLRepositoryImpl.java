@@ -232,7 +232,8 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
 
     //주커서
     //cursor값을 Instant로 파싱하는 과정에서 깨질때 대비한 예외처리
-    Instant cursorValue = parseInstantCursor(parsedCursor.value(), "cursor.value");;
+    Instant cursorValue = parseInstantCursor(parsedCursor.value(), "cursor.value");
+    ;
 
     //마지막 row의 publishedAt이 2026.04.24라면 2026.04.24 > publishedAt
     BooleanExpression primaryCondition = request.direction() == NewsArticleDirection.DESC
@@ -316,10 +317,8 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     switch (request.orderBy()) {
       case publishDate ->
           orderSpecifiers.add(new OrderSpecifier<>(direction, newsArticle.publishedAt));
-      case commentCount ->
-          orderSpecifiers.add(new OrderSpecifier<>(direction, commentCountExpr));
-      case viewCount ->
-          orderSpecifiers.add(new OrderSpecifier<>(direction, newsArticle.viewCount));
+      case commentCount -> orderSpecifiers.add(new OrderSpecifier<>(direction, commentCountExpr));
+      case viewCount -> orderSpecifiers.add(new OrderSpecifier<>(direction, newsArticle.viewCount));
     }
 
     // 같은 정렬값이 있을 때 페이지 경계를 안정적으로 자르기 위한 보조 정렬
@@ -340,7 +339,7 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
     String[] parts = cursor.split("\\|");
 
     //[value(cursor), after(보조 cursor)]형태가 아니면 예외처리
-    if(parts.length != 2) {
+    if (parts.length != 2) {
       throw new IllegalArgumentException("잘못된 커서 형식입니다: cursor|after");
     }
 
@@ -355,10 +354,10 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   }
 
   //cursor값을 Instant로 파싱하는 과정에서 깨질때 대비한 예외처리
-  private Instant parseInstantCursor(String raw, String field){
+  private Instant parseInstantCursor(String raw, String field) {
     try {
       return Instant.parse(raw);
-    }catch (Exception e){
+    } catch (Exception e) {
       throw new IllegalArgumentException("잘못된 커서 형식입니다." + field);
     }
   }

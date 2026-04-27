@@ -15,13 +15,13 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("""
-        DELETE FROM Keyword k
-        WHERE k.id IN :keywordIds
-          AND NOT EXISTS (
-              SELECT 1
-              FROM InterestKeyword ik
-              WHERE ik.keyword = k
-          )
-    """)
+          DELETE FROM Keyword k
+          WHERE k.id IN :keywordIds
+            AND NOT EXISTS (
+                SELECT 1
+                FROM InterestKeyword ik
+                WHERE ik.keyword = k
+            )
+      """)
   int deleteOrphanKeywordsByIds(@Param("keywordIds") Collection<UUID> keywordIds);
 }

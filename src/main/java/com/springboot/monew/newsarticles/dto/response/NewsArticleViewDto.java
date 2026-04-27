@@ -4,7 +4,7 @@ import com.springboot.monew.newsarticles.enums.ArticleSource;
 import java.time.Instant;
 import java.util.UUID;
 
-public record NewsArticleViewDto (
+public record NewsArticleViewDto(
     UUID id,
     UUID viewedBy,
     Instant createdAt,
@@ -17,4 +17,6 @@ public record NewsArticleViewDto (
     long articleCommentCount,
     long articleViewCount
 
-) {}
+) {
+
+}

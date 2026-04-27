@@ -19,7 +19,6 @@ import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID> {
+
   Optional<CommentLike> findCommentLikeByCommentAndUser(Comment comment, User user);
 
   boolean existsByCommentIdAndUserId(UUID commentId, UUID userId);

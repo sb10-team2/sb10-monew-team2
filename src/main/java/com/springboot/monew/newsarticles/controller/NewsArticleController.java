@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -41,19 +40,21 @@ public class NewsArticleController {
   //기사 뷰 등록
   @PostMapping("/{articleId}/article-views")
   public ResponseEntity<NewsArticleViewDto> createView(@PathVariable("articleId") UUID articleId,
-                                                       @RequestHeader("Monew-Request-User-ID") UUID userId) {
+      @RequestHeader("Monew-Request-User-ID") UUID userId) {
 
     NewsArticleViewDto newsArticleViewDto = newsArticleService.createView(articleId, userId);
 
     //헤더: 생성된 리소스의 URL
-    return ResponseEntity.created(URI.create("/api/articles/" + articleId + "/article-views/" + newsArticleViewDto.id())).body(newsArticleViewDto);
+    return ResponseEntity.created(
+            URI.create("/api/articles/" + articleId + "/article-views/" + newsArticleViewDto.id()))
+        .body(newsArticleViewDto);
 
   }
 
   //뉴스기사 목록 조회
   @GetMapping
   public CursorPageResponseNewsArticleDto list(@Valid NewsArticlePageRequest request,
-      @RequestHeader("Monew-Request-User-ID") UUID userId){
+      @RequestHeader("Monew-Request-User-ID") UUID userId) {
     return newsArticleService.list(request, userId);
 
   }
@@ -61,7 +62,7 @@ public class NewsArticleController {
   //뉴스기사 단건 조회
   @GetMapping("/{articleId}")
   public ResponseEntity<NewsArticleDto> find(@PathVariable("articleId") UUID articleId,
-                                                 @RequestHeader("Monew-Request-User-ID") UUID userId){
+      @RequestHeader("Monew-Request-User-ID") UUID userId) {
 
     NewsArticleDto newsArticleDto = newsArticleService.findById(articleId, userId);
     return ResponseEntity.ok(newsArticleDto);
@@ -70,7 +71,7 @@ public class NewsArticleController {
 
   //출처 목록 조회
   @GetMapping("/sources")
-  public ResponseEntity<List<ArticleSource>> findSource(){
+  public ResponseEntity<List<ArticleSource>> findSource() {
     return ResponseEntity.ok(newsArticleService.findAllSources());
   }
 

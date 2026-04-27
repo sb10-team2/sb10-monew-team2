@@ -188,7 +188,7 @@ public class NewsArticleService {
   //뉴스기사 뷰(조회 이력) 등록
   //뉴스기사 클릭시, 조회이력 1건 생성 + 기사 조회수 1 증가
   @Transactional
-  public NewsArticleViewDto createView(UUID articleId, UUID userId){
+  public NewsArticleViewDto createView(UUID articleId, UUID userId) {
 
     //사용자 유효성 검증
     validateActiveUser(userId);
@@ -197,8 +197,9 @@ public class NewsArticleService {
     NewsArticle newsArticle = getNewsArticle(articleId);
 
     //논리 삭제된 뉴스기사의 경우 예외처리
-    if(newsArticle.isDeleted()){
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", articleId));
+    if (newsArticle.isDeleted()) {
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", articleId));
     }
 
     //사용자 존재 확인
@@ -208,18 +209,22 @@ public class NewsArticleService {
     // 이미 본 기사인지 확인
     // ToDo: 동시에 existsByNewsArticleIdAndUserId false받고, save하면 어떻게 되나? -> DB 유니크 제약 위반 발생
     if (articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED,
+          Map.of("articleId", articleId, "userId", userId));
     }
 
     ArticleView savedArticleView;
 
-    try{
+    try {
       //save() : 영속성 컨텍스트에만 저장, 실제 insert는 commit 시점.
       //saveAndFlush() : 즉시 DB에 insert
-      //요청 A, 요청 B 동시에 요청이 들어왔다 -> A랑 B중 누구든지간에 saveAndFlush()를 먼저 하는 요청이 있을거라 DB 레벨에서 UNIQUE 조건에 의해 예외 발생될것이다.
+      //요청 A, 요청 B 동시에 요청이 들어왔다
+      // -> A랑 B중 누구든지간에 saveAndFlush()를 먼저 하는 요청이 있을거라
+      // DB 레벨에서 UNIQUE 조건에 의해 예외 발생될것이다.
       savedArticleView = articleViewRepository.saveAndFlush(new ArticleView(newsArticle, user));
     } catch (org.springframework.dao.DataIntegrityViolationException e) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED, Map.of("articleId", articleId, "userId", userId));
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED,
+          Map.of("articleId", articleId, "userId", userId));
     }
 
     //뉴스기사 댓글수
@@ -247,21 +252,22 @@ public class NewsArticleService {
   }
 
   @Transactional(readOnly = true)
-  public CursorPageResponseNewsArticleDto list(NewsArticlePageRequest request, UUID userId){
+  public CursorPageResponseNewsArticleDto list(NewsArticlePageRequest request, UUID userId) {
 
     //요청 유저가 존재하는지 확인하고 삭제되지 않은 활성 사용자인지 검증
     validateActiveUser(userId);
 
     //요청 조건에 맞는 뉴스기사 목록을 limit + 1 개수만큼 조회
     //limit + 1만큼 조회하는 이유는 다음 페이지 존재여부(hasNext) 판단을 위해서
-    List<NewsArticleCursorRow> rows = new ArrayList<>(newsArticleRepository.findNewsArticles(request, userId));
+    List<NewsArticleCursorRow> rows = new ArrayList<>(
+        newsArticleRepository.findNewsArticles(request, userId));
 
     //조회된 개수가 요청 limit을 초과하면 다음 페이지가 존재한다고 판단
     boolean hasNext = rows.size() > request.limit();
 
     //다음 페이지가 존재하는 경우 반환 데이터는 limit 개수만큼 잘라내기
     //limit + 1로 가져온 마지막 1개는 hasNext 판단용이라서 제거
-    if(hasNext){
+    if (hasNext) {
       rows = new ArrayList<>(rows.subList(0, request.limit()));
     }
 
@@ -276,14 +282,14 @@ public class NewsArticleService {
     String nextAfter = null;
 
     //다음 페이지 존재하고, 현재 페이지 데이터 비어있지 않은 경우에만 커서 계산
-    if(hasNext && !rows.isEmpty()){
+    if (hasNext && !rows.isEmpty()) {
 
       //현재 페이지의 마지막 데이터를 기준으로 다음 페이지 커서를 생성
       NewsArticleCursorRow last = rows.get(rows.size() - 1);
 
       //정렬 기준(orderBy)에 따라 다음 페이지를 위한 cursor 값 설정
       //주커서: 정렬 기준 필드 값
-      String cursor = switch(request.orderBy()){
+      String cursor = switch (request.orderBy()) {
         case publishDate -> last.publishDate().toString();
         case commentCount -> String.valueOf(last.commentCount());
         case viewCount -> String.valueOf(last.viewCount());
@@ -309,6 +315,7 @@ public class NewsArticleService {
     );
 
   }
+
   @Transactional(readOnly = true)
   public NewsArticleDto findById(UUID articleId, UUID userId) {
 

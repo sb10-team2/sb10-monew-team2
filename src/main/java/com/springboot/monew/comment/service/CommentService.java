@@ -1,6 +1,10 @@
 package com.springboot.monew.comment.service;
 
-import com.springboot.monew.comment.dto.*;
+import com.springboot.monew.comment.dto.CommentDto;
+import com.springboot.monew.comment.dto.CommentPageRequest;
+import com.springboot.monew.comment.dto.CommentRegisterRequest;
+import com.springboot.monew.comment.dto.CommentUpdateRequest;
+import com.springboot.monew.comment.dto.CursorPageResponseCommentDto;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.exception.CommentErrorCode;
 import com.springboot.monew.comment.exception.CommentException;
@@ -19,7 +23,11 @@ import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class CommentService {
+
   private final CommentRepository commentRepository;
   private final CommentLikeRepository commentLikeRepository;
   private final NewsArticleRepository articleRepository;
@@ -42,10 +51,12 @@ public class CommentService {
   public CommentDto create(CommentRegisterRequest request) {
     // 존재하는 기사인지 check
     NewsArticle article = articleRepository.findById(request.articleId())
-        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", request.articleId())));
+        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND,
+            Map.of("articleId", request.articleId())));
 
     if (article.isDeleted()) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", request.articleId()));
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", request.articleId()));
     }
 
     User user = getActiveUser(request.userId());
@@ -120,10 +131,12 @@ public class CommentService {
   public CursorPageResponseCommentDto<CommentDto> list(CommentPageRequest request, UUID userId) {
     // 기사 조회 -> 존재, 삭제 여부
     NewsArticle article = articleRepository.findById(request.articleId())
-        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND, Map.of("articleId", request.articleId())));
+        .orElseThrow(() -> new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND,
+            Map.of("articleId", request.articleId())));
 
     if (article.isDeleted()) {
-      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED, Map.of("articleId", request.articleId()));
+      throw new ArticleException(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED,
+          Map.of("articleId", request.articleId()));
     }
 
     // userId 조회 -> 존재 + 소프트딜릿 여부, 검증 느낌 ?

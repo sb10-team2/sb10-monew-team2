@@ -3,14 +3,12 @@ package com.springboot.monew.comment.controller;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.exception.CommentErrorCode;
 import com.springboot.monew.comment.exception.CommentException;
@@ -24,7 +22,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -76,7 +73,8 @@ class CommentLikeControllerTest {
     UUID userId = UUID.randomUUID();
 
     given(commentLikeService.like(commentId, userId))
-        .willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+        .willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_FOUND,
+            Map.of("commentId", commentId)));
 
     // when & then
     mockMvc.perform(post("/api/comments/{commentId}/comment-likes", commentId)
@@ -160,7 +158,8 @@ class CommentLikeControllerTest {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
 
-    willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)))
+    willThrow(
+        new CommentException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)))
         .given(commentLikeService).unlike(commentId, userId);
 
     // when & then
@@ -178,7 +177,8 @@ class CommentLikeControllerTest {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
 
-    willThrow(new CommentException(CommentErrorCode.COMMENT_LIKE_NOT_FOUND, Map.of("commentId", commentId)))
+    willThrow(new CommentException(CommentErrorCode.COMMENT_LIKE_NOT_FOUND,
+        Map.of("commentId", commentId)))
         .given(commentLikeService).unlike(commentId, userId);
 
     // when & then

@@ -207,8 +207,8 @@ public class InterestService {
             Map.of("interestId", interestId)));
 
     // 해당 관심사의 연결 목록 조회
-    List<InterestKeyword> existingInterestKeywords = interestKeywordRepository.findAllByInterestWithKeyword(
-        interest);
+    List<InterestKeyword> existingInterestKeywords =
+        interestKeywordRepository.findAllByInterestWithKeyword(interest);
     // 해당 관심사의 기존 키워드 목록 추출
     List<Keyword> oldKeywords = existingInterestKeywords.stream()
         .map(InterestKeyword::getKeyword)

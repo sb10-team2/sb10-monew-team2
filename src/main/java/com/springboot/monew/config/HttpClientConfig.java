@@ -9,12 +9,12 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class HttpClientConfig {
 
-    //공용도구로 등록
-    //Spring은 RestClient라는 도구를 써서 네이버 서버에 접속해서 뉴스 데이터(JSON)를 받아온다.
-    //new RestClient처럼 한번에 만드는게 아니라.
-    //Builder를 사용해서 조립단계를 거쳐서 객체를 만든다.
-    @Bean
-    public RestClient restClient(RestClient.Builder builder) {
-        return builder.build();
-    }
+  //공용도구로 등록
+  //Spring은 RestClient라는 도구를 써서 네이버 서버에 접속해서 뉴스 데이터(JSON)를 받아온다.
+  //new RestClient처럼 한번에 만드는게 아니라.
+  //Builder를 사용해서 조립단계를 거쳐서 객체를 만든다.
+  @Bean
+  public RestClient restClient(RestClient.Builder builder) {
+    return builder.build();
+  }
 }

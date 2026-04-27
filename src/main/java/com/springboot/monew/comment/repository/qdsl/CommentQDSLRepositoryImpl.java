@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
+public class CommentQDSLRepositoryImpl implements CommentQDSLRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QComment qComment = QComment.comment;
@@ -43,7 +43,9 @@ public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
       CommentDirection direction, String cursor, Instant after) {
 
     if (orderBy == CommentOrderBy.likeCount) {
-      if (cursor == null) return null;
+      if (cursor == null) {
+        return null;
+      }
 
       // "likeCount|createdAt" 파싱, after는 fallback
       String[] parts = cursor.split("\\|", 2);
@@ -52,20 +54,27 @@ public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
 
       if (direction == CommentDirection.ASC) {
         BooleanExpression primary = qComment.likeCount.gt(likeCountCursor);
-        if (afterCursor == null) return primary;
+        if (afterCursor == null) {
+          return primary;
+        }
         return primary.or(qComment.likeCount.eq(likeCountCursor)
             .and(qComment.createdAt.lt(afterCursor)));
       } else {
         BooleanExpression primary = qComment.likeCount.lt(likeCountCursor);
-        if (afterCursor == null) return primary;
+        if (afterCursor == null) {
+          return primary;
+        }
         return primary.or(qComment.likeCount.eq(likeCountCursor)
             .and(qComment.createdAt.gt(afterCursor)));
       }
     }
 
     // createdAt 정렬
-    Instant createdAtCursor = after != null ? after : (cursor != null ? Instant.parse(cursor) : null);
-    if (createdAtCursor == null) return null;
+    Instant createdAtCursor =
+        after != null ? after : (cursor != null ? Instant.parse(cursor) : null);
+    if (createdAtCursor == null) {
+      return null;
+    }
 
     return direction == CommentDirection.DESC
         ? qComment.createdAt.lt(createdAtCursor)
@@ -77,12 +86,12 @@ public class CommentQDSLRepositoryImpl implements CommentQDSLRepository{
   private OrderSpecifier<?>[] orderByCondition(CommentOrderBy orderBy, CommentDirection direction) {
     if (orderBy == CommentOrderBy.likeCount) {
       return direction == CommentDirection.DESC
-          ? new OrderSpecifier<?>[] {qComment.likeCount.desc(), qComment.createdAt.asc()}
-          : new OrderSpecifier<?>[] {qComment.likeCount.asc(), qComment.createdAt.desc()};
+          ? new OrderSpecifier<?>[]{qComment.likeCount.desc(), qComment.createdAt.asc()}
+          : new OrderSpecifier<?>[]{qComment.likeCount.asc(), qComment.createdAt.desc()};
     }
     return direction == CommentDirection.DESC
-        ? new OrderSpecifier<?>[] {qComment.createdAt.desc()}
-        : new OrderSpecifier<?>[] {qComment.createdAt.asc()};
+        ? new OrderSpecifier<?>[]{qComment.createdAt.desc()}
+        : new OrderSpecifier<?>[]{qComment.createdAt.asc()};
   }
 
 }

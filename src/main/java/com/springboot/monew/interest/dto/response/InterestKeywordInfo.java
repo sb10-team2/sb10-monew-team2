@@ -5,6 +5,6 @@ import java.util.UUID;
 public record InterestKeywordInfo(
     UUID interestId,
     String keywordName
-){
+) {
 
 }

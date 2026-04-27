@@ -2,7 +2,6 @@ package com.springboot.monew.newsarticles.repository.qdsl;
 
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
-import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import java.util.List;
 import java.util.UUID;
 

@@ -11,4 +11,6 @@ public record CursorPageResponseCommentDto<T>(
     Instant nextAfter,
     int size,
     long totalElements,
-    boolean hasNext) {}
+    boolean hasNext) {
+
+}

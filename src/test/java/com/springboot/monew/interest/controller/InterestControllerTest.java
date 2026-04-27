@@ -63,7 +63,8 @@ class InterestControllerTest {
         null,
         10
     );
-    InterestDto interestDto = new InterestDto(UUID.randomUUID(), "economy", List.of("macro"), 3L, true);
+    InterestDto interestDto = new InterestDto(UUID.randomUUID(), "economy", List.of("macro"), 3L,
+        true);
     CursorPageResponseInterestDto response = new CursorPageResponseInterestDto(
         List.of(interestDto),
         null,
@@ -228,7 +229,8 @@ class InterestControllerTest {
     InterestUpdateRequest request = new InterestUpdateRequest(List.of("ETF", "채권"));
     InterestDto response = new InterestDto(interestId, "금융", List.of("ETF", "채권"), 7L, false);
 
-    given(interestService.update(eq(interestId), any(InterestUpdateRequest.class))).willReturn(response);
+    given(interestService.update(eq(interestId), any(InterestUpdateRequest.class))).willReturn(
+        response);
 
     // when
     mockMvc.perform(patch("/api/interests/{interestId}", interestId)

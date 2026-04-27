@@ -16,4 +16,6 @@ public record CommentLikeDto(
     String commentUserNickname,
     String commentContent,
     Long commentLikeCount,
-    Instant commentCreatedAt) {}
+    Instant commentCreatedAt) {
+
+}

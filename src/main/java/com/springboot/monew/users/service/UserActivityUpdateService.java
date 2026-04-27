@@ -48,7 +48,7 @@ public class UserActivityUpdateService {
         userActivityRepository.findAllBySubscriptionsInterestId(interestId);
 
     documents.forEach(document ->
-      document.updateSubscriptionInterest(interestId, keywords)
+        document.updateSubscriptionInterest(interestId, keywords)
     );
 
     userActivityRepository.saveAll(documents);

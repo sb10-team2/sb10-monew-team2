@@ -5,19 +5,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.entity.Comment;
-import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.comment.exception.CommentErrorCode;
 import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
+import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.common.exception.MonewException;
 import com.springboot.monew.notification.event.CommentLikeNotificationEvent;
 import com.springboot.monew.users.entity.User;
@@ -39,11 +38,16 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class CommentLikeServiceTest {
 
-  @Mock private CommentLikeRepository commentLikeRepository;
-  @Mock private CommentRepository commentRepository;
-  @Mock private CommentLikeMapper commentLikeMapper;
-  @Mock private UserRepository userRepository;
-  @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock
+  private CommentLikeRepository commentLikeRepository;
+  @Mock
+  private CommentRepository commentRepository;
+  @Mock
+  private CommentLikeMapper commentLikeMapper;
+  @Mock
+  private UserRepository userRepository;
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CommentLikeService commentLikeService;
@@ -67,7 +71,6 @@ class CommentLikeServiceTest {
         .set(field(User.class, "deletedAt"), null)
         .create();
 
-
     CommentLikeDto expected = new CommentLikeDto(
         UUID.randomUUID(),
         user.getId(),
@@ -84,7 +87,7 @@ class CommentLikeServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(commentRepository.findByIdAndIsDeletedFalse(comment.getId()))
         .willReturn(Optional.of(comment))
-            .willReturn(Optional.of(refreshed));
+        .willReturn(Optional.of(refreshed));
     given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId()))
         .willReturn(false);
     given(commentLikeMapper.toCommentLikeDto(any(CommentLike.class))).willReturn(expected);
@@ -111,7 +114,8 @@ class CommentLikeServiceTest {
         .create();
     Comment comment = Instancio.of(Comment.class).create();
 
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     // when & then
     assertThatThrownBy(() -> commentLikeService.like(comment.getId(), user.getId()))
@@ -137,7 +141,8 @@ class CommentLikeServiceTest {
         .set(field(Comment.class, "isDeleted"), true)
         .create();
 
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.empty());
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.empty());
     // when & then
     assertThatThrownBy(() -> commentLikeService.like(comment.getId(), UUID.randomUUID()))
         .isInstanceOf(MonewException.class)
@@ -159,28 +164,34 @@ class CommentLikeServiceTest {
   void like_ThrowsException_WhenLikeAlreadyExists() {
     // given
     Comment comment = Instancio.of(Comment.class)
-          .create();
+        .create();
     User user = Instancio.of(User.class)
         .set(field(User.class, "deletedAt"), null)
         .create();
 
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     // 중복 좋아요
-    given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(true);
+    given(
+        commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(
+        true);
 
     // when & then
     assertThatThrownBy(() -> commentLikeService.like(comment.getId(), user.getId()))
         .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS);
-          assertThat(exception.getDetails()).isEqualTo(Map.of("commentId", comment.getId(), "userId", user.getId()));
+          assertThat(exception.getErrorCode()).isEqualTo(
+              CommentErrorCode.COMMENT_LIKE_ALREADY_EXISTS);
+          assertThat(exception.getDetails()).isEqualTo(
+              Map.of("commentId", comment.getId(), "userId", user.getId()));
         });
 
     verify(commentRepository, times(1)).findByIdAndIsDeletedFalse(comment.getId());
     verify(userRepository, times(1)).findById(user.getId());
-    verify(commentLikeRepository, times(1)).existsByCommentIdAndUserId(comment.getId(), user.getId());
+    verify(commentLikeRepository, times(1)).existsByCommentIdAndUserId(comment.getId(),
+        user.getId());
     verify(commentLikeRepository, never()).save(any(CommentLike.class));
     verify(eventPublisher, never()).publishEvent(any(CommentLikeNotificationEvent.class));
     verify(commentLikeMapper, never()).toCommentLikeDto(any(CommentLike.class));
@@ -200,9 +211,11 @@ class CommentLikeServiceTest {
 
     CommentLike commentLike = new CommentLike(comment, user);
 
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-    given(commentLikeRepository.findCommentLikeByCommentAndUser(comment, user)).willReturn(Optional.of(commentLike));
+    given(commentLikeRepository.findCommentLikeByCommentAndUser(comment, user)).willReturn(
+        Optional.of(commentLike));
 
     // when
     commentLikeService.unlike(comment.getId(), user.getId());
@@ -221,7 +234,8 @@ class CommentLikeServiceTest {
         .set(field(User.class, "deletedAt"), Instant.now())
         .create();
 
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
     // when & then
@@ -274,13 +288,14 @@ class CommentLikeServiceTest {
     // given
     Comment comment = Instancio.of(Comment.class).create();
     User user = Instancio.of(User.class)
-            .set(field(User.class, "deletedAt"), null)
-                .create();
+        .set(field(User.class, "deletedAt"), null)
+        .create();
 
     given(commentRepository.findByIdAndIsDeletedFalse(comment.getId()))
         .willReturn(Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-    given(commentLikeRepository.findCommentLikeByCommentAndUser(comment, user)).willReturn(Optional.empty());
+    given(commentLikeRepository.findCommentLikeByCommentAndUser(comment, user)).willReturn(
+        Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> commentLikeService.unlike(comment.getId(), user.getId()))

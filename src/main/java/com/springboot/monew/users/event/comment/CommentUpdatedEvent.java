@@ -7,5 +7,5 @@ public record CommentUpdatedEvent(
     UUID userId,
     CommentItem item
 ) {
- 
+
 }

@@ -82,8 +82,10 @@ class NotificationServiceTest {
     NotificationDto expectedDto = mapper.toDto(expected);
 
     given(notificationRepository.saveAll(anyList())).willReturn(List.of(expected));
-    given(subscriptionRepository.findUserIdsByInterestId(interest.getId())).willReturn(List.of(user.getId()));
-    given(interestRepository.findByIdWithArticleCount(any(UUID.class))).willReturn(Optional.of(interest));
+    given(subscriptionRepository.findUserIdsByInterestId(interest.getId())).willReturn(
+        List.of(user.getId()));
+    given(interestRepository.findByIdWithArticleCount(any(UUID.class))).willReturn(
+        Optional.of(interest));
     given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
 
     // when
@@ -122,7 +124,8 @@ class NotificationServiceTest {
 
     given(notificationRepository.save(any(Notification.class))).willReturn(expected);
     given(userRepository.getReferenceById(any(UUID.class))).willReturn(user);
-    given(commentLikeRepository.findWithUserById(any(UUID.class))).willReturn(Optional.of(commentLike));
+    given(commentLikeRepository.findWithUserById(any(UUID.class))).willReturn(
+        Optional.of(commentLike));
 
     // when
     NotificationDto actualDto = service.create(event);
@@ -162,8 +165,10 @@ class NotificationServiceTest {
     Slice<Notification> slice = new SliceImpl<>(content, pageable, hasNext);
     Notification last = content.get(size - 1);
 
-    given(notificationRepository.findByCursor(any(), any(), eq(userId), any(Pageable.class))).willReturn(slice);
-    given(notificationRepository.countAllByUser_IdAndConfirmedIsFalse(userId)).willReturn(totalElements);
+    given(notificationRepository.findByCursor(any(), any(), eq(userId),
+        any(Pageable.class))).willReturn(slice);
+    given(notificationRepository.countAllByUser_IdAndConfirmedIsFalse(userId)).willReturn(
+        totalElements);
 
     // when
     CursorPageResponse<NotificationDto> response = service.find(request, userId);

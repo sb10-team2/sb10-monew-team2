@@ -15,6 +15,4 @@ public interface NewsArticleMapper {
   @Mapping(target = "viewedByMe", source = "viewedByMe")
   @Mapping(target = "sourceUrl", source = "article.originalLink")
   NewsArticleDto toDto(NewsArticle article, Long commentCount, Boolean viewedByMe);
-
-
 }

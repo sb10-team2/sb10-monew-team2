@@ -64,7 +64,7 @@ class CommentControllerTest {
         0L,
         false,
         Instant.now()
-        );
+    );
 
     given(commentService.create(request)).willReturn(response);
     // when & then
@@ -114,7 +114,8 @@ class CommentControllerTest {
     // given
     UUID commentId = UUID.randomUUID();
 
-    willThrow(new CommentException(CommentErrorCode.COMMENT_ALREADY_DELETED, Map.of("commentId", commentId)))
+    willThrow(new CommentException(CommentErrorCode.COMMENT_ALREADY_DELETED,
+        Map.of("commentId", commentId)))
         .given(commentService).softDelete(commentId);
 
     // when & then
@@ -199,7 +200,8 @@ class CommentControllerTest {
     UUID userId = UUID.randomUUID();
     CommentUpdateRequest request = new CommentUpdateRequest("수정할 댓글");
 
-    willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_OWNED_BY_USER, Map.of("commentId", commentId)))
+    willThrow(new CommentException(CommentErrorCode.COMMENT_NOT_OWNED_BY_USER,
+        Map.of("commentId", commentId)))
         .given(commentService).update(commentId, userId, request);
 
     // when & then

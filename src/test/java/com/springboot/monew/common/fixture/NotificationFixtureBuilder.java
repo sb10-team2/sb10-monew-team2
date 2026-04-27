@@ -16,7 +16,8 @@ public class NotificationFixtureBuilder {
   private ResourceType resourceType = ResourceType.INTEREST;
   private User user;
 
-  private NotificationFixtureBuilder() {}
+  private NotificationFixtureBuilder() {
+  }
 
   public static NotificationFixtureBuilder builder() {
     return new NotificationFixtureBuilder();

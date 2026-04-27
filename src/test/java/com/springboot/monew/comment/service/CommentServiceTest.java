@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -50,20 +49,27 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
 
-  @Mock CommentRepository commentRepository;
-  @Mock CommentLikeRepository commentLikeRepository;
-  @Mock NewsArticleRepository articleRepository;
-  @Mock UserRepository userRepository;
-  @Mock CommentMapper commentMapper;
+  @Mock
+  CommentRepository commentRepository;
+  @Mock
+  CommentLikeRepository commentLikeRepository;
+  @Mock
+  NewsArticleRepository articleRepository;
+  @Mock
+  UserRepository userRepository;
+  @Mock
+  CommentMapper commentMapper;
   // CommentService에 추가된 이벤트 발행 의존성을 테스트에서 주입하기 위한 mock이다.
-  @Mock ApplicationEventPublisher eventPublisher;
+  @Mock
+  ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CommentService commentService;
 
   @Test
   @DisplayName("댓글 등록에 성공한다")
-  void create_ReturnsCommentDto_WhenValidRequest() throws NoSuchFieldException, IllegalAccessException{
+  void create_ReturnsCommentDto_WhenValidRequest()
+      throws NoSuchFieldException, IllegalAccessException {
     // given
     UUID userId = UUID.randomUUID();
     UUID articleId = UUID.randomUUID();
@@ -118,7 +124,8 @@ class CommentServiceTest {
   void create_ThrowsException_WhenArticleNotFound() {
     // given
     UUID articleId = UUID.randomUUID();
-    CommentRegisterRequest request = new CommentRegisterRequest(articleId, UUID.randomUUID(), "테스트 댓글");
+    CommentRegisterRequest request = new CommentRegisterRequest(articleId, UUID.randomUUID(),
+        "테스트 댓글");
 
     given(articleRepository.findById(articleId)).willReturn(Optional.empty());
 
@@ -127,7 +134,8 @@ class CommentServiceTest {
         .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
+          assertThat(exception.getErrorCode()).isEqualTo(
+              NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
           assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
         });
 
@@ -166,7 +174,8 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("댓글 수정에 성공한다.")
-  void update_ReturnsUpdatedCommentDto_WhenValidRequest() throws NoSuchFieldException, IllegalAccessException {
+  void update_ReturnsUpdatedCommentDto_WhenValidRequest()
+      throws NoSuchFieldException, IllegalAccessException {
     // given
     NewsArticle article = mock(NewsArticle.class);
     User user = new User("email", "nickname", "password");
@@ -198,10 +207,12 @@ class CommentServiceTest {
         Instant.now()
     );
 
-
-    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
+    given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(
+        Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-    given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(false);
+    given(
+        commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(
+        false);
     given(commentMapper.toCommentDto(any(Comment.class), eq(false))).willReturn(expected);
 
     // when
@@ -270,7 +281,8 @@ class CommentServiceTest {
 
   @Test
   @DisplayName("본인 댓글이 아닌 경우 수정에 실패한다.")
-  void update_ThrowsException_WhenNotOwnedByUser() throws NoSuchFieldException, IllegalAccessException {
+  void update_ThrowsException_WhenNotOwnedByUser()
+      throws NoSuchFieldException, IllegalAccessException {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -288,7 +300,6 @@ class CommentServiceTest {
     idField.set(user, wrongUserId);
     idField.set(comment, commentId);
 
-
     given(commentRepository.findByIdAndIsDeletedFalse(commentId)).willReturn(Optional.of(comment));
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -297,7 +308,8 @@ class CommentServiceTest {
         .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(CommentErrorCode.COMMENT_NOT_OWNED_BY_USER);
+          assertThat(exception.getErrorCode()).isEqualTo(
+              CommentErrorCode.COMMENT_NOT_OWNED_BY_USER);
           assertThat(exception.getDetails()).isEqualTo(Map.of("commentId", commentId));
         });
 
@@ -442,8 +454,10 @@ class CommentServiceTest {
     given(comment2.getId()).willReturn(commentId2);
 
     // mapper가 반환할 실제 CommentDto 객체 (mock 사용 시 필드가 null이라 id 검증 불가)
-    CommentDto commentDto1 = new CommentDto(commentId1, articleId, userId, "nickname", "댓글1", 0L, true, Instant.now());
-    CommentDto commentDto2 = new CommentDto(commentId2, articleId, userId, "nickname", "댓글2", 0L, true, Instant.now());
+    CommentDto commentDto1 = new CommentDto(commentId1, articleId, userId, "nickname", "댓글1", 0L,
+        true, Instant.now());
+    CommentDto commentDto2 = new CommentDto(commentId2, articleId, userId, "nickname", "댓글2", 0L,
+        true, Instant.now());
 
     CommentPageRequest request = new CommentPageRequest(
         articleId,
@@ -466,7 +480,8 @@ class CommentServiceTest {
     )).willReturn(List.of(comment1, comment2));
 
     // 두 댓글 모두 userId가 좋아요 누른 상태
-    given(commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(userId, List.of(commentId1, commentId2)))
+    given(commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(userId,
+        List.of(commentId1, commentId2)))
         .willReturn(List.of(commentId1, commentId2));
 
     // 해당 기사의 삭제되지 않은 전체 댓글 수
@@ -480,11 +495,13 @@ class CommentServiceTest {
     CursorPageResponseCommentDto<CommentDto> result = commentService.list(request, userId);
 
     // then
-    assertThat(result.hasNext()).isFalse();                                    // 2개 < limit(10)이므로 다음 페이지 없음
-    assertThat(result.content()).hasSize(2);                                   // 댓글 2개 반환
-    assertThat(result.content().get(0).id()).isEqualTo(commentId1);            // 첫 번째 댓글 id 확인
-    assertThat(result.content().get(1).id()).isEqualTo(commentId2);            // 두 번째 댓글 id 확인
-    assertThat(result.content().get(0).likedByMe()).isTrue();                   // 좋아요 누른 댓글은 likeByMe = true
+    assertThat(
+        result.hasNext()).isFalse(); // 2개 < limit(10)이므로 다음 페이지 없음
+    assertThat(result.content()).hasSize(2); // 댓글 2개 반환
+    assertThat(result.content().get(0).id()).isEqualTo(commentId1); // 첫 번째 댓글 id 확인
+    assertThat(result.content().get(1).id()).isEqualTo(commentId2); // 두 번째 댓글 id 확인
+    assertThat(result.content().get(0)
+        .likedByMe()).isTrue(); // 좋아요 누른 댓글은 likeByMe = true
     assertThat(result.nextCursor()).isNull();
     assertThat(result.nextAfter()).isNull();
   }
@@ -515,7 +532,6 @@ class CommentServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(user.isDeleted()).willReturn(false);
 
-
     // limit=2, 3개 반환(limit+1)
     Comment comment1 = mock(Comment.class);
     Comment comment2 = mock(Comment.class);
@@ -535,9 +551,10 @@ class CommentServiceTest {
     given(comment1.getCreatedAt()).willReturn(comment1CreatedAt);
 
     // mapper가 반환할 실제 CommentDto 객체 (mock 사용 시 필드가 null이라 id 검증 불가)
-    CommentDto commentDto1 = new CommentDto(commentId1, articleId, userId, "nickname", "댓글1", 5L, true, Instant.now());
-    CommentDto commentDto2 = new CommentDto(commentId2, articleId, userId, "nickname", "댓글2", 10L, false, Instant.now());
-
+    CommentDto commentDto1 = new CommentDto(commentId1, articleId, userId, "nickname", "댓글1", 5L,
+        true, Instant.now());
+    CommentDto commentDto2 = new CommentDto(commentId2, articleId, userId, "nickname", "댓글2", 10L,
+        false, Instant.now());
 
     // 좋아요 순 페이지네이션 시 comment2, comment1 순서로
     given(commentRepository.findComments(
@@ -550,8 +567,9 @@ class CommentServiceTest {
         .willReturn(List.of(comment2, comment1, comment3));
 
     // comment1만 좋아요 누른 걸 가정
-    given(commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(userId, List.of(commentId2, commentId1, commentId3)))
-    .willReturn(List.of(commentId1));
+    given(commentLikeRepository.findCommentIdsByUserIdAndCommentIdIn(userId,
+        List.of(commentId2, commentId1, commentId3)))
+        .willReturn(List.of(commentId1));
 
     // 댓글 전체 개수 3개
     given(commentRepository.countByArticleIdAndIsDeletedFalse(articleId))
@@ -591,7 +609,8 @@ class CommentServiceTest {
         .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
+          assertThat(exception.getErrorCode()).isEqualTo(
+              NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
           assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
         });
 
@@ -618,7 +637,8 @@ class CommentServiceTest {
         .isInstanceOf(MonewException.class)
         .satisfies(throwable -> {
           MonewException exception = (MonewException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED);
+          assertThat(exception.getErrorCode()).isEqualTo(
+              NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED);
           assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
         });
 

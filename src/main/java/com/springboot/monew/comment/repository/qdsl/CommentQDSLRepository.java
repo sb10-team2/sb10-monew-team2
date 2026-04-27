@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CommentQDSLRepository {
+
   List<Comment> findComments(UUID articleId, CommentOrderBy orderBy,
       CommentDirection direction, String cursor, Instant after, int limit);
 

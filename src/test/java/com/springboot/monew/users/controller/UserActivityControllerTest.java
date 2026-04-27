@@ -73,9 +73,9 @@ public class UserActivityControllerTest {
 
     given(userActivityService.findUserActivity(userId))
         .willThrow(new UserException(
-        UserErrorCode.USER_NOT_FOUND,
-        Map.of("userId", userId)
-    ));
+            UserErrorCode.USER_NOT_FOUND,
+            Map.of("userId", userId)
+        ));
 
     // when & then
     mockMvc.perform(get("/api/user-activities/{userId}", userId))

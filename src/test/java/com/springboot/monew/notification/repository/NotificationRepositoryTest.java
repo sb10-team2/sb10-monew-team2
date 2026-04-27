@@ -328,7 +328,8 @@ public class NotificationRepositoryTest extends BaseRepositoryTest {
     int limit = 50;
 
     // when
-    Slice<Notification> actual = repository.findByCursor(cursor, after, userId, PageRequest.of(0, limit));
+    Slice<Notification> actual = repository.findByCursor(cursor, after, userId,
+        PageRequest.of(0, limit));
 
     // then
     Assertions.assertThat(actual.getContent()).hasSize(0);

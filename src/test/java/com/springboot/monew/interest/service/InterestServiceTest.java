@@ -458,8 +458,9 @@ class InterestServiceTest {
     given(interestRepository.existsByName("산업")).willReturn(false);
     given(interestRepository.findAllNames()).willReturn(List.of());
     given(interestRepository.save(any(Interest.class))).willReturn(savedInterest);
-    given(keywordRepository.findByName("반도체")).willReturn(Optional.empty(),
-        Optional.of(recoveredKeyword));
+    given(keywordRepository.findByName("반도체"))
+        .willReturn(Optional.empty())
+        .willReturn(Optional.of(recoveredKeyword));
     given(keywordRepository.saveAndFlush(any(Keyword.class)))
         .willThrow(new DataIntegrityViolationException("duplicate"));
     given(interestDtoMapper.toInterestDto(savedInterest, List.of("반도체"), false)).willReturn(

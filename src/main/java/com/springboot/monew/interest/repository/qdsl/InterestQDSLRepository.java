@@ -1,7 +1,7 @@
 package com.springboot.monew.interest.repository.qdsl;
 
-import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.dto.request.InterestPageRequest;
+import com.springboot.monew.interest.entity.Interest;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

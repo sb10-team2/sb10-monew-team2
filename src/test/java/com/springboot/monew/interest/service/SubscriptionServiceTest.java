@@ -93,7 +93,8 @@ class SubscriptionServiceTest {
     given(subscriptionRepository.existsByUserIdAndInterestId(userId, interestId)).willReturn(false);
     given(subscriptionRepository.saveAndFlush(any(Subscription.class))).willReturn(subscription);
     given(interestRepository.incrementSubscriberCount(interestId)).willReturn(1);
-    given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(List.of(firstLink, secondLink));
+    given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(
+        List.of(firstLink, secondLink));
     given(interestRepository.findSubscriberCountById(interestId)).willReturn(2L);
     given(subscriptionDtoMapper.toSubscriptionDto(subscription, List.of("주식", "채권"), 2L))
         .willReturn(expected);
@@ -200,8 +201,10 @@ class SubscriptionServiceTest {
         .isInstanceOf(InterestException.class)
         .satisfies(throwable -> {
           InterestException exception = (InterestException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS);
-          assertThat(exception.getDetails()).isEqualTo(Map.of("interestId", interestId, "userId", userId));
+          assertThat(exception.getErrorCode()).isEqualTo(
+              InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS);
+          assertThat(exception.getDetails()).isEqualTo(
+              Map.of("interestId", interestId, "userId", userId));
         });
 
     verify(subscriptionRepository, never()).saveAndFlush(any(Subscription.class));
@@ -231,8 +234,10 @@ class SubscriptionServiceTest {
         .isInstanceOf(InterestException.class)
         .satisfies(throwable -> {
           InterestException exception = (InterestException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS);
-          assertThat(exception.getDetails()).isEqualTo(Map.of("interestId", interestId, "userId", userId));
+          assertThat(exception.getErrorCode()).isEqualTo(
+              InterestErrorCode.SUBSCRIPTION_ALREADY_EXISTS);
+          assertThat(exception.getDetails()).isEqualTo(
+              Map.of("interestId", interestId, "userId", userId));
         });
   }
 
@@ -459,7 +464,8 @@ class SubscriptionServiceTest {
         .satisfies(throwable -> {
           InterestException exception = (InterestException) throwable;
           assertThat(exception.getErrorCode()).isEqualTo(InterestErrorCode.SUBSCRIPTION_NOT_FOUND);
-          assertThat(exception.getDetails()).isEqualTo(Map.of("interestId", interestId, "userId", userId));
+          assertThat(exception.getDetails()).isEqualTo(
+              Map.of("interestId", interestId, "userId", userId));
         });
 
     verify(interestRepository, never()).decrementSubscriberCount(any());
