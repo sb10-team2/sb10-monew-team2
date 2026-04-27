@@ -562,7 +562,7 @@ class CommentServiceTest {
     assertThat(result.content().get(0).likedByMe()).isFalse();
     assertThat(result.content().get(1).likedByMe()).isTrue();
     assertThat(result.hasNext()).isTrue();
-    assertThat(result.nextCursor()).isEqualTo("5");
+    assertThat(result.nextCursor()).isEqualTo("5|" + comment1CreatedAt.toString());
     assertThat(result.nextAfter()).isEqualTo(comment1CreatedAt);
     assertThat(result.totalElements()).isEqualTo(3L);
   }
