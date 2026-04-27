@@ -22,6 +22,7 @@ import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
@@ -225,7 +226,19 @@ public class NewsArticleService {
     // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
     newsArticleRepository.incrementViewCount(articleId);
 
-    return newsArticleViewMapper.toDto(savedArticleView, commentCount);
+    // bulk update는 영속성 컨텍스트의 newsArticle 상태를 갱신하지 않으므로, 증가된 viewCount를 반영하기 위해 재조회한다.
+    NewsArticle refreshedArticle = getNewsArticle(articleId);
+    ArticleView refreshedArticleView = new ArticleView(refreshedArticle, user);
+
+    // 기사를 조회한 사용자의 활동 문서에 기사 조회 활동을 추가한다.
+    eventPublisher.publishEvent(
+        new ArticleViewedEvent(
+            userId,
+            newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount)
+        )
+    );
+
+    return newsArticleViewMapper.toDto(refreshedArticleView, commentCount);
 
   }
 

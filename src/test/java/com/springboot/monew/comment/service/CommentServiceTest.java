@@ -45,6 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -54,6 +55,8 @@ class CommentServiceTest {
   @Mock NewsArticleRepository articleRepository;
   @Mock UserRepository userRepository;
   @Mock CommentMapper commentMapper;
+  // CommentService에 추가된 이벤트 발행 의존성을 테스트에서 주입하기 위한 mock이다.
+  @Mock ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CommentService commentService;
@@ -101,7 +104,7 @@ class CommentServiceTest {
     // then
     assertThat(result).isEqualTo(expected);
     assertThat(result.content()).isEqualTo(request.content());
-    assertThat(result.likeByMe()).isEqualTo(false);
+    assertThat(result.likedByMe()).isEqualTo(false);
     assertThat(result.likeCount()).isEqualTo(0L);
 
     verify(articleRepository).findById(article.getId());
@@ -207,7 +210,7 @@ class CommentServiceTest {
     // then
     assertThat(result).isEqualTo(expected);
     assertThat(result.content()).isEqualTo(expected.content());
-    assertThat(result.likeByMe()).isEqualTo(expected.likeByMe());
+    assertThat(result.likedByMe()).isEqualTo(expected.likedByMe());
     assertThat(result.likeCount()).isEqualTo(expected.likeCount());
 
     verify(commentRepository).findByIdAndIsDeletedFalse(comment.getId());
@@ -375,6 +378,11 @@ class CommentServiceTest {
     Comment comment = mock(Comment.class);
 
     given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    // 물리 삭제 이벤트 발행 시 댓글 작성자 ID와 댓글 ID를 사용하므로 필요한 값만 stub 처리한다.
+    User user = mock(User.class);
+    given(comment.getUser()).willReturn(user);
+    given(user.getId()).willReturn(UUID.randomUUID());
+    given(comment.getId()).willReturn(commentId);
     // when
     commentService.hardDelete(commentId);
 
@@ -476,7 +484,7 @@ class CommentServiceTest {
     assertThat(result.content()).hasSize(2);                                   // 댓글 2개 반환
     assertThat(result.content().get(0).id()).isEqualTo(commentId1);            // 첫 번째 댓글 id 확인
     assertThat(result.content().get(1).id()).isEqualTo(commentId2);            // 두 번째 댓글 id 확인
-    assertThat(result.content().get(0).likeByMe()).isTrue();                   // 좋아요 누른 댓글은 likeByMe = true
+    assertThat(result.content().get(0).likedByMe()).isTrue();                   // 좋아요 누른 댓글은 likeByMe = true
     assertThat(result.nextCursor()).isNull();
     assertThat(result.nextAfter()).isNull();
   }
@@ -559,10 +567,10 @@ class CommentServiceTest {
     assertThat(result.content()).hasSize(2);
     assertThat(result.content().get(0).id()).isEqualTo(commentId2);
     assertThat(result.content().get(1).id()).isEqualTo(commentId1);
-    assertThat(result.content().get(0).likeByMe()).isFalse();
-    assertThat(result.content().get(1).likeByMe()).isTrue();
+    assertThat(result.content().get(0).likedByMe()).isFalse();
+    assertThat(result.content().get(1).likedByMe()).isTrue();
     assertThat(result.hasNext()).isTrue();
-    assertThat(result.nextCursor()).isEqualTo("5");
+    assertThat(result.nextCursor()).isEqualTo("5|" + comment1CreatedAt.toString());
     assertThat(result.nextAfter()).isEqualTo(comment1CreatedAt);
     assertThat(result.totalElements()).isEqualTo(3L);
   }

@@ -10,7 +10,7 @@ public enum CommentOrderBy {
   likeCount {
     @Override
     public String getCursor(Comment comment) {
-      return String.valueOf(comment.getLikeCount());
+      return comment.getLikeCount() + "|" + comment.getCreatedAt().toString();
     }
   };
 

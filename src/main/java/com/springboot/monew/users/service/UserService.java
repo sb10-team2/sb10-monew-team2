@@ -5,6 +5,8 @@ import com.springboot.monew.users.dto.request.UserRegisterRequest;
 import com.springboot.monew.users.dto.request.UserUpdateRequest;
 import com.springboot.monew.users.dto.response.UserDto;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.user.UserNicknameUpdatedEvent;
+import com.springboot.monew.users.event.user.UserRegisteredEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.mapper.UserMapper;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class UserService {
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   // 사용자 회원가입
   @Transactional
@@ -40,6 +44,8 @@ public class UserService {
     );
 
     User savedUser = userRepository.save(user);
+    // 회원가입 후 사용자 활동 문서 생성을 위해 이벤트 발행
+    applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser));
     log.info("회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
     return userMapper.toDto(savedUser);
   }
@@ -77,10 +83,7 @@ public class UserService {
 
   // 닉네임 수정
   @Transactional
-  public UserDto update(UUID userId, UUID requestUserId, UserUpdateRequest request) {
-    // 다른 개발자 도구로 닉네임 수정을 막기 위해 '수정 대상 사용자'와 '요청을 보낸 사용자'가 같은지 검사
-    validateOwner(userId, requestUserId);
-
+  public UserDto update(UUID userId, UserUpdateRequest request) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
           log.warn("닉네임 수정 실패: 사용자를 찾을 수 없음 - userId={}", userId);
@@ -108,6 +111,10 @@ public class UserService {
     }
 
     user.updateNickname(request.nickname());
+    // 닉네임 수정 후 사용자 활동 문서 갱신을 위해 이벤트 발행
+    applicationEventPublisher.publishEvent(
+        new UserNicknameUpdatedEvent(user.getId(), user.getNickname())
+    );
     log.info("닉네임 수정 완료 - userId={}, nickname={}", user.getId(), user.getNickname());
     return userMapper.toDto(user);
   }
@@ -184,16 +191,6 @@ public class UserService {
       throw new UserException(
           UserErrorCode.DUPLICATE_NICKNAME,
           Map.of("nickname", nickname)
-      );
-    }
-  }
-
-  private void validateOwner(UUID userId, UUID requestUserId) {
-    if (!userId.equals(requestUserId)) {
-      log.warn("사용자 권한 검증 실패: 사용자 불일치 - userId={}, requestUserId={}", userId, requestUserId);
-      throw new UserException(
-          UserErrorCode.USER_NOT_OWNED,
-          Map.of("userId", userId, "requestUserId", requestUserId)
       );
     }
   }

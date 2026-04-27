@@ -170,7 +170,7 @@ public class UserControllerTest {
         createdAt
     );
 
-    given(userService.update(eq(userId), eq(userId), any(UserUpdateRequest.class))).willReturn(
+    given(userService.update(eq(userId), any(UserUpdateRequest.class))).willReturn(
         expected);
 
     // when & then
@@ -184,7 +184,7 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.nickname").value(expected.nickname()))
         .andExpect(jsonPath("$.createdAt").value("2026-04-17T01:46:03.003Z"));
 
-    verify(userService).update(eq(userId), eq(userId), any(UserUpdateRequest.class));
+    verify(userService).update(eq(userId), any(UserUpdateRequest.class));
   }
 
   @Test
@@ -204,7 +204,7 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.details.nickname").isArray());
 
-    verify(userService, never()).update(eq(userId), eq(userId), any(UserUpdateRequest.class));
+    verify(userService, never()).update(eq(userId), any(UserUpdateRequest.class));
   }
 
   @Test
