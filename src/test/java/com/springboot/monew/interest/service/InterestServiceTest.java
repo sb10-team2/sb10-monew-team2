@@ -684,18 +684,24 @@ class InterestServiceTest {
   void delete_DeletesInterest_WhenInterestExists() {
     // given
     UUID interestId = UUID.randomUUID();
-    Interest interest = interest(interestId, "경제", Instant.parse("2026-04-20T00:00:00Z"), 0);
+    UUID keywordId = UUID.randomUUID();
+
+    Interest interest = interest(interestId, "경제", Instant.parse("2026-04-20T00:00:00Z"), 1);
+    Keyword keyword = keyword(keywordId, "환율");
+    InterestKeyword interestKeyword = new InterestKeyword(interest, keyword);
+    List<InterestKeyword> interestKeywords = List.of(interestKeyword);
 
     given(interestRepository.findById(interestId)).willReturn(Optional.of(interest));
-    given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(List.of());
+    given(interestKeywordRepository.findAllByInterestWithKeyword(interest))
+        .willReturn(interestKeywords);
 
     // when
     interestService.delete(interestId);
 
     // then
-    verify(interestKeywordRepository).deleteAll(List.of());
+    verify(interestKeywordRepository).deleteAll(interestKeywords);
     verify(interestRepository).delete(interest);
-    verify(keywordRepository, never()).deleteOrphanKeywordsByIds(any());
+    verify(keywordRepository).deleteOrphanKeywordsByIds(List.of(keywordId));
   }
 
   @Test
