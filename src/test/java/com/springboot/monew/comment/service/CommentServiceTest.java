@@ -104,7 +104,7 @@ class CommentServiceTest {
     // then
     assertThat(result).isEqualTo(expected);
     assertThat(result.content()).isEqualTo(request.content());
-    assertThat(result.likeByMe()).isEqualTo(false);
+    assertThat(result.likedByMe()).isEqualTo(false);
     assertThat(result.likeCount()).isEqualTo(0L);
 
     verify(articleRepository).findById(article.getId());
@@ -210,7 +210,7 @@ class CommentServiceTest {
     // then
     assertThat(result).isEqualTo(expected);
     assertThat(result.content()).isEqualTo(expected.content());
-    assertThat(result.likeByMe()).isEqualTo(expected.likeByMe());
+    assertThat(result.likedByMe()).isEqualTo(expected.likedByMe());
     assertThat(result.likeCount()).isEqualTo(expected.likeCount());
 
     verify(commentRepository).findByIdAndIsDeletedFalse(comment.getId());
@@ -484,7 +484,7 @@ class CommentServiceTest {
     assertThat(result.content()).hasSize(2);                                   // 댓글 2개 반환
     assertThat(result.content().get(0).id()).isEqualTo(commentId1);            // 첫 번째 댓글 id 확인
     assertThat(result.content().get(1).id()).isEqualTo(commentId2);            // 두 번째 댓글 id 확인
-    assertThat(result.content().get(0).likeByMe()).isTrue();                   // 좋아요 누른 댓글은 likeByMe = true
+    assertThat(result.content().get(0).likedByMe()).isTrue();                   // 좋아요 누른 댓글은 likeByMe = true
     assertThat(result.nextCursor()).isNull();
     assertThat(result.nextAfter()).isNull();
   }
@@ -567,10 +567,10 @@ class CommentServiceTest {
     assertThat(result.content()).hasSize(2);
     assertThat(result.content().get(0).id()).isEqualTo(commentId2);
     assertThat(result.content().get(1).id()).isEqualTo(commentId1);
-    assertThat(result.content().get(0).likeByMe()).isFalse();
-    assertThat(result.content().get(1).likeByMe()).isTrue();
+    assertThat(result.content().get(0).likedByMe()).isFalse();
+    assertThat(result.content().get(1).likedByMe()).isTrue();
     assertThat(result.hasNext()).isTrue();
-    assertThat(result.nextCursor()).isEqualTo("5");
+    assertThat(result.nextCursor()).isEqualTo("5|" + comment1CreatedAt.toString());
     assertThat(result.nextAfter()).isEqualTo(comment1CreatedAt);
     assertThat(result.totalElements()).isEqualTo(3L);
   }

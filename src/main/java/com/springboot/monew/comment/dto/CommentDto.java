@@ -11,5 +11,5 @@ public record CommentDto(
     String userNickname,
     String content,
     Long likeCount,
-    Boolean likeByMe,
+    Boolean likedByMe,
     Instant createdAt) {}
