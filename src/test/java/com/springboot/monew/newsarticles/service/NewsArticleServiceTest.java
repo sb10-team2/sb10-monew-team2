@@ -164,8 +164,8 @@ class NewsArticleServiceTest {
   }
 
   @Test
-  @DisplayName("수집된 CollectedArticleWithInterest가 null 또는 빈목록이면 아무 작업하지 않는다.")
-  void saveAll_success_doNothing_whenNullOrEmpty() {
+  @DisplayName("수집된 CollectedArticleWithInterest가 빈목록이면 아무 작업하지 않는다.")
+  void saveAll_success_doNothing_whenEmpty() {
     //  given
     List<CollectedArticleWithInterest> emptyItems = List.of();
 
