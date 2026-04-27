@@ -26,7 +26,7 @@ class CommentLikeRepositoryTest extends BaseRepositoryTest {
 
   @Test
   @DisplayName("유저가 좋아요한 댓글 Id 목록 반환에 성공한다!")
-  void findCommentIdsByUserIdAndCommentIdIn_성공() {
+  void findCommentIdsByUserIdAndCommentIdIn_ReturnsLikedCommentIds_WhenUserLikedSomeComments() {
     // given
     NewsArticle article = testEntityManager.generateNewsArticle();
     List<Comment> comments = testEntityManager.generateComments(5, article);
