@@ -96,7 +96,7 @@ class InterestServiceTest {
     );
     InterestKeyword interestKeyword = new InterestKeyword(interest,
         keyword(UUID.randomUUID(), "macro"));
-    InterestDto interestDto = new InterestDto(interest.getId(), "economy", List.of("macro"), 5,
+    InterestDto interestDto = new InterestDto(interest.getId(), "economy", List.of("macro"), 5L,
         true);
 
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
@@ -154,8 +154,8 @@ class InterestServiceTest {
         Instant.parse("2026-04-22T00:00:00Z"),
         3
     );
-    InterestDto firstDto = new InterestDto(first.getId(), "economy", List.of(), 1, false);
-    InterestDto secondDto = new InterestDto(second.getId(), "finance", List.of(), 2, false);
+    InterestDto firstDto = new InterestDto(first.getId(), "economy", List.of(), 1L, false);
+    InterestDto secondDto = new InterestDto(second.getId(), "finance", List.of(), 2L, false);
 
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(interestRepository.findInterests(request)).willReturn(List.of(first, second, third));
@@ -213,8 +213,8 @@ class InterestServiceTest {
         Instant.parse("2026-04-22T00:00:00Z"),
         1
     );
-    InterestDto firstDto = new InterestDto(first.getId(), "popular", List.of(), 5, false);
-    InterestDto secondDto = new InterestDto(second.getId(), "middle", List.of(), 3, false);
+    InterestDto firstDto = new InterestDto(first.getId(), "popular", List.of(), 5L, false);
+    InterestDto secondDto = new InterestDto(second.getId(), "middle", List.of(), 3L, false);
 
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(interestRepository.findInterests(request)).willReturn(List.of(first, second, third));
@@ -351,7 +351,7 @@ class InterestServiceTest {
         0
     );
     Keyword savedKeyword = keyword(UUID.randomUUID(), "증권");
-    InterestDto expected = new InterestDto(savedInterest.getId(), "금융", List.of("증권"), 0, false);
+    InterestDto expected = new InterestDto(savedInterest.getId(), "금융", List.of("증권"), 0L, false);
 
     given(interestRepository.existsByName("금융")).willReturn(false);
     given(interestRepository.findAllNames()).willReturn(List.of("경제"));
@@ -383,7 +383,7 @@ class InterestServiceTest {
     );
     Keyword firstKeyword = keyword(UUID.randomUUID(), "주식");
     Keyword secondKeyword = keyword(UUID.randomUUID(), "채권");
-    InterestDto expected = new InterestDto(savedInterest.getId(), "투자", request.keywords(), 0,
+    InterestDto expected = new InterestDto(savedInterest.getId(), "투자", request.keywords(), 0L,
         false);
 
     given(interestRepository.existsByName("투자")).willReturn(false);
@@ -416,7 +416,7 @@ class InterestServiceTest {
     );
     Keyword apartment = keyword(UUID.randomUUID(), "아파트");
     Keyword sale = keyword(UUID.randomUUID(), "분양");
-    InterestDto expected = new InterestDto(savedInterest.getId(), "부동산", request.keywords(), 0,
+    InterestDto expected = new InterestDto(savedInterest.getId(), "부동산", request.keywords(), 0L,
         false);
 
     given(interestRepository.existsByName("부동산")).willReturn(false);
@@ -453,7 +453,7 @@ class InterestServiceTest {
         0
     );
     Keyword recoveredKeyword = keyword(UUID.randomUUID(), "반도체");
-    InterestDto expected = new InterestDto(savedInterest.getId(), "산업", List.of("반도체"), 0, false);
+    InterestDto expected = new InterestDto(savedInterest.getId(), "산업", List.of("반도체"), 0L, false);
 
     given(interestRepository.existsByName("산업")).willReturn(false);
     given(interestRepository.findAllNames()).willReturn(List.of());
@@ -553,7 +553,7 @@ class InterestServiceTest {
     Keyword newKeyword = keyword(UUID.randomUUID(), "채권");
     InterestKeyword oldLink = new InterestKeyword(interest, oldKeyword);
     InterestUpdateRequest request = new InterestUpdateRequest(List.of("채권"));
-    InterestDto expected = new InterestDto(interestId, "투자", List.of("채권"), 0, false);
+    InterestDto expected = new InterestDto(interestId, "투자", List.of("채권"), 0L, false);
 
     given(interestRepository.findById(interestId)).willReturn(Optional.of(interest));
     given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(
@@ -583,7 +583,7 @@ class InterestServiceTest {
     Keyword newKeyword = keyword(UUID.randomUUID(), "ETF");
     InterestKeyword existingLink = new InterestKeyword(interest, existingKeyword);
     InterestUpdateRequest request = new InterestUpdateRequest(List.of("주식", "ETF"));
-    InterestDto expected = new InterestDto(interestId, "금융", request.keywords(), 0, false);
+    InterestDto expected = new InterestDto(interestId, "금융", request.keywords(), 0L, false);
 
     given(interestRepository.findById(interestId)).willReturn(Optional.of(interest));
     given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(
@@ -616,7 +616,7 @@ class InterestServiceTest {
     InterestKeyword keepLink = new InterestKeyword(interest, keepKeyword);
     InterestKeyword removeLink = new InterestKeyword(interest, removeKeyword);
     InterestUpdateRequest request = new InterestUpdateRequest(List.of("반도체"));
-    InterestDto expected = new InterestDto(interestId, "산업", List.of("반도체"), 0, false);
+    InterestDto expected = new InterestDto(interestId, "산업", List.of("반도체"), 0L, false);
 
     given(interestRepository.findById(interestId)).willReturn(Optional.of(interest));
     given(interestKeywordRepository.findAllByInterestWithKeyword(interest)).willReturn(

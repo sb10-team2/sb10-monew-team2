@@ -63,13 +63,13 @@ class InterestControllerTest {
         null,
         10
     );
-    InterestDto interestDto = new InterestDto(UUID.randomUUID(), "economy", List.of("macro"), 3, true);
+    InterestDto interestDto = new InterestDto(UUID.randomUUID(), "economy", List.of("macro"), 3L, true);
     CursorPageResponseInterestDto response = new CursorPageResponseInterestDto(
         List.of(interestDto),
         null,
         null,
         1,
-        1,
+        1L,
         false
     );
 
@@ -166,7 +166,7 @@ class InterestControllerTest {
     // given
     UUID interestId = UUID.randomUUID();
     InterestRegisterRequest request = new InterestRegisterRequest("금융", List.of("주식", "채권"));
-    InterestDto response = new InterestDto(interestId, "금융", List.of("주식", "채권"), 0, false);
+    InterestDto response = new InterestDto(interestId, "금융", List.of("주식", "채권"), 0L, false);
 
     given(interestService.create(any(InterestRegisterRequest.class))).willReturn(response);
 
@@ -226,7 +226,7 @@ class InterestControllerTest {
     // given
     UUID interestId = UUID.randomUUID();
     InterestUpdateRequest request = new InterestUpdateRequest(List.of("ETF", "채권"));
-    InterestDto response = new InterestDto(interestId, "금융", List.of("ETF", "채권"), 7, false);
+    InterestDto response = new InterestDto(interestId, "금융", List.of("ETF", "채권"), 7L, false);
 
     given(interestService.update(eq(interestId), any(InterestUpdateRequest.class))).willReturn(response);
 
