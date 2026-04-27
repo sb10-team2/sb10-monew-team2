@@ -58,6 +58,10 @@ public class TestEntityManager {
     return article;
   }
 
+  public List<NewsArticle> generateNewsArticles(int size) {
+    return persistAndFlushWithRecursive(getList(NewsArticle.class, size));
+  }
+
   public Comment generateComment() {
     return persistAndFlushWithRecursive(get(Comment.class));
   }
@@ -70,14 +74,6 @@ public class TestEntityManager {
 
   public User getProxyUser() {
     return em.getReference(User.class, UUID.randomUUID());
-  }
-
-  public Interest getProxyInterest() {
-    return em.getReference(Interest.class, UUID.randomUUID());
-  }
-
-  public CommentLike getProxyCommentLike() {
-    return em.getReference(CommentLike.class, UUID.randomUUID());
   }
 
   private <T> T get(Class<T> type) {
