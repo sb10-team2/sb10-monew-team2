@@ -10,11 +10,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.springboot.monew.comment.repository.CommentRepository;
-import com.springboot.monew.common.exception.MonewException;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
+import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.enums.NewsArticleDirection;
@@ -22,6 +23,7 @@ import com.springboot.monew.newsarticles.enums.NewsArticleOrderBy;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.mapper.NewsArticleMapper;
+import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.users.entity.User;
@@ -60,8 +62,69 @@ class NewsArticleServiceTest {
   @Mock
   private NewsArticleMapper newsArticleMapper;
 
+  @Mock
+  private NewsArticleViewMapper newsArticleViewMapper;
+
   @InjectMocks
   private NewsArticleService newsArticleService;
+
+  @Test
+  @DisplayName("뉴스기사 조회이력 등록에 성공한다.")
+  void createView_success_normal() {
+    //  given
+    UUID articleId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    User user = mock(User.class);
+    NewsArticle newsArticle = mock(NewsArticle.class);
+
+    //저장된 조회이력 mock 생성
+    //ArticleView savedArticleView;
+    ArticleView savedArticleView = mock(ArticleView.class);
+
+    //반환될 DTO mock 생성
+    NewsArticleViewDto responseDto = mock(NewsArticleViewDto.class);
+
+    //validateActiveUser(userId)로 사용자 존재
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    //getNewsArticle(articleId)로 뉴스기사 존재
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(newsArticle));
+
+    //newsArticle.idsDelete()로 논리삭제 안된 뉴스기사 존재
+    given(newsArticle.isDeleted()).willReturn(false);
+
+    //아직 조회하지 않은 기사로 설정
+    given(articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId)).willReturn(false);
+
+    //조회이력 저장 성공
+    given(articleViewRepository.saveAndFlush(any(ArticleView.class))).willReturn(savedArticleView);
+
+    //뉴스기사 댓글 수
+    given(commentRepository.countByArticleIdAndIsDeletedFalse(articleId)).willReturn(3L);
+
+    //DTO 변환결과 설정
+    given(newsArticleViewMapper.toDto(savedArticleView, 3L)).willReturn(responseDto);
+
+
+    //  when
+    NewsArticleViewDto result = newsArticleService.createView(articleId, userId);
+
+    //  then
+    //반환 DTO 검증
+    assertThat(result).isEqualTo(responseDto);
+
+    verify(userRepository).findById(userId);
+    verify(newsArticleRepository).findById(articleId);
+    verify(articleViewRepository).existsByNewsArticleIdAndUserId(articleId, userId);
+    verify(articleViewRepository).saveAndFlush(any(ArticleView.class));
+    verify(commentRepository).countByArticleIdAndIsDeletedFalse(articleId);
+
+    //조회수 증가가 수행되었는지 검증
+    verify(newsArticleRepository).incrementViewCount(articleId);
+
+    //DTO 변환이 수행되었는지 검증
+    verify(newsArticleViewMapper).toDto(savedArticleView, 3L);
+  }
 
 
 
@@ -439,10 +502,101 @@ class NewsArticleServiceTest {
   }
 
   @Test
-  void hardDelete() {
+  @DisplayName("articleId에 해당하는 뉴스기사가 있을경우 물리삭제에 성공해야한다.")
+  void hardDelete_success_existArticle() {
+    //  given
+    UUID articleId = UUID.randomUUID();
+    NewsArticle article = mock(NewsArticle.class);
+
+    //articleId에 해당하는 뉴스기사가 존재한다.
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(article));
+
+    // when
+    newsArticleService.hardDelete(articleId);
+
+    // then
+    verify(newsArticleRepository).findById(articleId);
+    verify(newsArticleRepository).delete(article);
+
   }
 
   @Test
-  void softDelete() {
+  @DisplayName("articleId에 해당하는 뉴스기사가 없을경우 물리삭제에 실패해야한다.")
+  void hardDelete_fail_not_existArticle() {
+    //  given
+    UUID articleId = UUID.randomUUID();
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.empty());
+
+    //  when, then
+    assertThatThrownBy(() -> newsArticleService.hardDelete(articleId))
+        .isInstanceOf(ArticleException.class)
+        .satisfies(throwable -> {
+
+          //발생한 예외를 ArticleException으로 변환
+          ArticleException exception = (ArticleException) throwable;
+
+          //에러코드가 NEWS_ARTICLE_NOT_FOUND인지 검증
+          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
+
+          //details에 articleId가 포함돼있는지 검증
+          assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
+        });
+
+    //articleId로 뉴스기사 조회했는지 검증
+    verify(newsArticleRepository).findById(articleId);
+
+    //뉴스기사 없으므로 delete()가 호출되지 않았는지 검증
+    verify(newsArticleRepository, never()).delete(any(NewsArticle.class));
+  }
+
+  @Test
+  @DisplayName("articleId에 해당하는 뉴스기사가 있을경우 논리삭제에 성공해야한다.")
+  void softDelete_success_existArticle() {
+    //  given
+    UUID articleId = UUID.randomUUID();
+    NewsArticle article = mock(NewsArticle.class);
+
+    //articleId에 해당하는 뉴스기사가 존재한다.
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(article));
+
+    //논리삭제가 안된 뉴스기사이다.
+    given(article.isDeleted()).willReturn(false);
+
+    //  when
+    newsArticleService.softDelete(articleId);
+
+    //then
+    verify(newsArticleRepository).findById(articleId);
+    verify(article).isDeleted();
+    verify(article).delete();
+
+    //논리삭제이므로, repository.delete()는 호출되지 않아야한다.
+    verify(newsArticleRepository, never()).delete(any(NewsArticle.class));
+  }
+
+  @Test
+  @DisplayName("논리삭제된 뉴스기사를 논리삭제할경우, 논리삭제에 실패해야한다.")
+  void softDelete_fail_newsArticle_already_deleted(){
+    //  given
+    UUID articleId = UUID.randomUUID();
+    NewsArticle article = mock(NewsArticle.class);
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(article));
+    given(article.isDeleted()).willReturn(true);
+    //  when, then
+    assertThatThrownBy(() -> newsArticleService.softDelete(articleId))
+        .isInstanceOf(ArticleException.class)
+        .satisfies(throwable -> {
+          ArticleException exception = (ArticleException) throwable;
+
+          //에러코드가 NEWS_ARTICLE_ALREADY_DELETED가 맞는지 검증
+          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED);
+
+          assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
+
+        });
+
+    verify(newsArticleRepository).findById(articleId);
+    verify(article).isDeleted();
+    verify(article, never()).delete();
   }
 }
