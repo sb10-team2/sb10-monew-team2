@@ -190,7 +190,7 @@ public class NewsArticleService {
   public NewsArticleViewDto createView(UUID articleId, UUID userId){
 
     //사용자 유효성 검증
-    validateActiveUser(userId);
+    User user = validateActiveUser(userId);
 
     //뉴스기사 존재 확인
     NewsArticle newsArticle = getNewsArticle(articleId);
@@ -353,7 +353,7 @@ public class NewsArticleService {
             Map.of("articleId", articleId)));
   }
 
-  private void validateActiveUser(UUID userId) {
+  private User validateActiveUser(UUID userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
@@ -361,5 +361,7 @@ public class NewsArticleService {
     if (user.isDeleted()) {
       throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
     }
+
+    return user;
   }
 }
