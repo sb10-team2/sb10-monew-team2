@@ -11,6 +11,6 @@ public interface CommentMapper {
   @Mapping(source = "comment.article.id", target = "articleId")
   @Mapping(source = "comment.user.id", target = "userId")
   @Mapping(source = "comment.user.nickname", target = "userNickname")
-  @Mapping(source = "likeByMe", target = "likeByMe")
+  @Mapping(source = "likeByMe", target = "likedByMe")
   CommentDto toCommentDto(Comment comment, boolean likeByMe);
 }
