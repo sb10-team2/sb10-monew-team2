@@ -126,6 +126,123 @@ class NewsArticleServiceTest {
     verify(newsArticleViewMapper).toDto(savedArticleView, 3L);
   }
 
+  @Test
+  @DisplayName("존재하지 않는 뉴스기사 조회 이력 등록시 실패한다.")
+  void createView_fail_articleNotFound() {
+    //  given
+    UUID articleId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    User user = mock(User.class);
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.empty());
+
+    //  when, then
+    assertThatThrownBy(() -> newsArticleService.createView(articleId, userId))
+        .isInstanceOf(ArticleException.class)
+        .satisfies(throwable -> {
+          ArticleException exception = (ArticleException) throwable;
+
+          //에러코드 검증
+          assertThat(exception.getErrorCode()).isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_NOT_FOUND);
+
+          //details 검증
+          assertThat(exception.getDetails()).isEqualTo(Map.of("articleId", articleId));
+        });
+
+    //사용자조회, 뉴스기사 조회까지만 수행
+    verify(userRepository).findById(userId);
+    verify(newsArticleRepository).findById(articleId);
+
+    //뉴스기사 뷰 save와 조회수 증가는 실행되면 안된다.
+    verify(articleViewRepository, never()).saveAndFlush(any(ArticleView.class));
+    verify(newsArticleRepository, never()).incrementViewCount(articleId);
+  }
+
+  @Test
+  @DisplayName("논리삭제된 뉴스기사 조회 이력 등록 시 실패한다")
+  void createView_fail_articleAlreadyDeleted() {
+    // given
+    UUID articleId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    User user = mock(User.class);
+    NewsArticle newsArticle = mock(NewsArticle.class);
+
+    // 사용자 조회 성공
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(user.isDeleted()).willReturn(false);
+
+    // 뉴스기사 조회 성공
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(newsArticle));
+
+    // 뉴스기사가 논리삭제된 상태
+    given(newsArticle.isDeleted()).willReturn(true);
+
+    // when & then
+    assertThatThrownBy(() -> newsArticleService.createView(articleId, userId))
+        .isInstanceOf(ArticleException.class)
+        .satisfies(throwable -> {
+          ArticleException exception = (ArticleException) throwable;
+
+          assertThat(exception.getErrorCode())
+              .isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_DELETED);
+
+          assertThat(exception.getDetails())
+              .isEqualTo(Map.of("articleId", articleId));
+        });
+
+    // 조회 이력 중복 확인은 수행되면 안 됨
+    verify(articleViewRepository, never()).existsByNewsArticleIdAndUserId(any(), any());
+
+    // 조회 이력 저장도 수행되면 안 됨
+    verify(articleViewRepository, never()).saveAndFlush(any());
+
+    // 조회수 증가도 수행되면 안 됨
+    verify(newsArticleRepository, never()).incrementViewCount(any());
+  }
+
+  @Test
+  @DisplayName("이미 조회한 뉴스기사 조회 이력 등록 시 실패한다")
+  void createView_fail_alreadyViewed() {
+    // given
+    UUID articleId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    User user = mock(User.class);
+    NewsArticle newsArticle = mock(NewsArticle.class);
+
+    // 사용자 조회 성공
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(user.isDeleted()).willReturn(false);
+
+    // 뉴스기사 조회 성공
+    given(newsArticleRepository.findById(articleId)).willReturn(Optional.of(newsArticle));
+    given(newsArticle.isDeleted()).willReturn(false);
+
+    // 이미 조회한 기사로 설정
+    given(articleViewRepository.existsByNewsArticleIdAndUserId(articleId, userId))
+        .willReturn(true);
+
+    // when & then
+    assertThatThrownBy(() -> newsArticleService.createView(articleId, userId))
+        .isInstanceOf(ArticleException.class)
+        .satisfies(throwable -> {
+          ArticleException exception = (ArticleException) throwable;
+
+          assertThat(exception.getErrorCode())
+              .isEqualTo(NewsArticleErrorCode.NEWS_ARTICLE_ALREADY_VIEWED);
+
+          assertThat(exception.getDetails())
+              .isEqualTo(Map.of("articleId", articleId, "userId", userId));
+        });
+
+    // 조회 이력 저장은 수행되면 안 됨
+    verify(articleViewRepository, never()).saveAndFlush(any());
+
+    // 조회수 증가도 수행되면 안 됨
+    verify(newsArticleRepository, never()).incrementViewCount(any());
+  }
+
 
 
   @Test
