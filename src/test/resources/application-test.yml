@@ -1,28 +1,33 @@
 spring:
   sql:
     init:
-      schema-locations: classpath:schema.sql
+#      schema-locations: classpath:schema.sql
+      mode: never
+
   datasource:
-    url: jdbc:postgresql://localhost:5433/monew
-    username: monew
-    password: monew123
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create  #validate
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: false
         jdbc.batch_size: 100
         order_inserts: true
         order_updates: true
         default_batch_fetch_size: 500
     open-in-view: false
+
   data:
     mongodb:
       uri: mongodb://localhost:27017/monew-test?replicaSet=rs0
+
   batch:
     jdbc:
       initialize-schema: always
@@ -40,10 +45,15 @@ naver:
     key: "test-secret-key-for-build-pass"
     secret: "test-secret-key-for-build-pass"
 
+
+#테스트 프로필에서 S3를 기본 활성화하면 테스트 안정성이 떨어진다.
+#enabled: true로 하면 일반 테스트 실행에서도 S3 관련 빈이 항상 활성화됩니다.
+#이 설정은 테스트를 외부 인프라(AWS)동작에 간접 의존하게 만들어 CI 변동성을 키울 수 있다.
+#S3 통합 테스트에서만 명시적으로 켜는 쪽이 안전하다.
 cloud:
   aws:
     s3:
-      enabled: true
+      enabled: false
       access-key: test
       secret-key: test
       region: ap-northeast-2
