@@ -43,6 +43,7 @@ public class UserActivityUpdateService {
   }
 
   // 관심사 키워드가 변경되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
+  @Transactional("mongoTransactionManager")
   public void updateSubscriptionInterest(UUID interestId, List<String> keywords) {
     List<UserActivityDocument> documents =
         userActivityRepository.findAllBySubscriptionsInterestId(interestId);
