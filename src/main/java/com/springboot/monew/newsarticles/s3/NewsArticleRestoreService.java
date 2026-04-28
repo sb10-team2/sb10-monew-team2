@@ -15,11 +15,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+    name = "cloud.aws.s3.enabled",
+    havingValue = "true"
+)
 public class NewsArticleRestoreService {
 
   private final S3BackupService s3BackupService;
