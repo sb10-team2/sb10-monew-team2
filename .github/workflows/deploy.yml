@@ -23,7 +23,7 @@ jobs:
       - name: 빌드
         run: ./gradlew clean test --stacktrace --info
 
-      #AWS CLI 자격 정보 설정
+      #AWS CLI 자격 정보 설정임
       #Public ECR에 배포해야되므로 region은 us-east-1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
