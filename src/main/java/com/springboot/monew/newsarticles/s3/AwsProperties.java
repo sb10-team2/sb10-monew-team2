@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Setter
-@Configuration
 @ConfigurationProperties(prefix = "cloud.aws.s3")  // prefix 변경
 public class AwsProperties {
 
