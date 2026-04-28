@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Slf4j
 @Configuration
-@EnableConfigurationProperties(AwsProperties.class)
 @ConditionalOnProperty(
     name = "cloud.aws.s3.enabled",  // 이 yml 키를 확인해
     havingValue = "true",           // 값이 "true"일 때만

@@ -39,3 +39,8 @@ naver:
   api:
     key: "test-secret-key-for-build-pass"
     secret: "test-secret-key-for-build-pass"
+
+cloud:
+  aws:
+    s3:
+      enabled: false  # 테스트에서는 S3 Bean 안 만듦
