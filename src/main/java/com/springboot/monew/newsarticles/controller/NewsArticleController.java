@@ -6,7 +6,6 @@ import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
-import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -33,7 +32,6 @@ public class NewsArticleController implements NewsArticleApiDocs {
 
   private final NewsArticleCollectService newsArticleCollectService;
   private final NewsArticleService newsArticleService;
-  private final NewsArticleRestoreService  newsArticleRestoreService;
 
   @PostMapping
   public ResponseEntity<String> collectNews() {
