@@ -19,7 +19,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/monew}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/monew?replicaSet=rs0}
   batch:
     jdbc:
       initialize-schema: always
