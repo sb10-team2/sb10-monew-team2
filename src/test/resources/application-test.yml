@@ -3,7 +3,7 @@ spring:
     init:
       schema-locations: classpath:schema.sql
   datasource:
-    url: jdbc:postgresql://localhost:5432/monew_test
+    url: jdbc:postgresql://localhost:5433/monew
     username: monew
     password: monew123
     driver-class-name: org.postgresql.Driver
