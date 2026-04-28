@@ -13,12 +13,20 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Slf4j
+
+//Spring 설정 클래스
+//내부의 @Bean 메서드들을 Bean으로 등록
 @Configuration
+
+//yml값을 객체로 바인딩
 @ConditionalOnProperty(
     name = "cloud.aws.s3.enabled",  // 이 yml 키를 확인해
     havingValue = "true",           // 값이 "true"일 때만
     matchIfMissing = false          // 키가 없으면 → false 취급 (Bean 안 만듦)
 )
+
+//@ConfigurationProperties 클래스(AwsProperties)를 Bean으로 등록.
+@EnableConfigurationProperties(AwsProperties.class)
 public class S3Config {
   private final AwsProperties props;
 

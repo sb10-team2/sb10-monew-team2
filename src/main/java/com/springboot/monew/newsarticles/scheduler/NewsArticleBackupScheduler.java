@@ -6,12 +6,14 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "cloud.aws.s3.enabled", havingValue = "true")
 public class NewsArticleBackupScheduler {
 
   private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");

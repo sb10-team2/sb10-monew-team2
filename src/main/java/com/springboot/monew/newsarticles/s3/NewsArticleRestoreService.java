@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(
-    name = "cloud.aws.s3.enabled",
-    havingValue = "true"
-)
+@ConditionalOnProperty(name = "cloud.aws.s3.enabled", havingValue = "true")
 public class NewsArticleRestoreService {
 
   private final S3BackupService s3BackupService;
