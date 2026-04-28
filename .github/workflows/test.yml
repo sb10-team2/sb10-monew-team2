@@ -28,6 +28,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Check S3 env
+        run: |
+          echo "AWS_S3_REGION=${AWS_S3_REGION:-MISSING}"
+          test -n "$AWS_S3_ACCESS_KEY" && echo "AWS_S3_ACCESS_KEY exists" || echo "AWS_S3_ACCESS_KEY missing"
+          test -n "$AWS_S3_SECRET_KEY" && echo "AWS_S3_SECRET_KEY exists" || echo "AWS_S3_SECRET_KEY missing"
+          test -n "$AWS_S3_BUCKET" && echo "AWS_S3_BUCKET exists" || echo "AWS_S3_BUCKET missing"
+
       - name: Run tests with coverage
         run: ./gradlew test jacocoTestReport
 

@@ -18,6 +18,12 @@ public class S3Config {
   @Bean
   public S3Client s3Client() {//S3Client: S3 API 호출용 클라이언트(S3에 요청 보내는 객체)
 
+    String region = props.getRegion();
+
+    if (region == null || region.isBlank()) {
+      throw new IllegalStateException("AWS_S3_REGION 설정이 누락되었습니다.");
+    }
+
     // 키가 있는경우
     boolean hasAccessKey = props.getAccessKey() != null && !props.getAccessKey().isBlank();
     boolean hasSecretKey = props.getSecretKey() != null && !props.getSecretKey().isBlank();
