@@ -19,8 +19,8 @@ public class S3Config {
   public S3Client s3Client() {//S3Client: S3 API 호출용 클라이언트(S3에 요청 보내는 객체)
 
     // 키가 있는경우
-    Boolean hasAccessKey = props.getAccessKey().equals(props.getAccessKey());
-    Boolean hasSecretKey = props.getSecretKey().equals(props.getSecretKey());
+    boolean hasAccessKey = props.getAccessKey() != null && !props.getAccessKey().isBlank();
+    boolean hasSecretKey = props.getSecretKey() != null && !props.getSecretKey().isBlank();
     if (hasAccessKey || hasSecretKey) {
       if(!(hasAccessKey && hasSecretKey)) {
         throw new IllegalArgumentException("S3 access key와 secret key는 함께 설정되어야 합니다.");
