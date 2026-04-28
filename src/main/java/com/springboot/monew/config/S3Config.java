@@ -2,6 +2,7 @@ package com.springboot.monew.config;
 
 import com.springboot.monew.newsarticles.s3.AwsProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Slf4j
 @Configuration
+@EnableConfigurationProperties(AwsProperties.class)   //AwsProperties라는 클래스를 설정 바인딩 대상으로 등록해
 public class S3Config {
   private final AwsProperties props;
 
