@@ -86,14 +86,14 @@ public class NewsArticleRestoreService {
           .toList();
 
       //5. DB에 존재하는 링크 조회
-      Set<String> exstingLinks = newsArticleRepository.findAllByOriginalLinkIn(links).stream()
+      Set<String> existingLinks = newsArticleRepository.findAllByOriginalLinkIn(links).stream()
           .map(NewsArticle::getOriginalLink)
           .collect(Collectors.toSet());
 
       //6. 유실된 데이터만 필터링
       List<NewsArticle> lostArticles = backupDtos.stream()
           .filter(dto -> Boolean.TRUE.equals(dto.isDeleted()))
-          .filter(dto -> !exstingLinks.contains(dto.originalLink()))
+          .filter(dto -> !existingLinks.contains(dto.originalLink()))
           .map(dto -> new NewsArticle(
               dto.source(),
               dto.originalLink(),
