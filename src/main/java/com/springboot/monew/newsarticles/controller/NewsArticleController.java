@@ -4,11 +4,15 @@ import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticles.dto.response.RestoreResultDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
+import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +37,7 @@ public class NewsArticleController implements NewsArticleApiDocs {
 
   private final NewsArticleCollectService newsArticleCollectService;
   private final NewsArticleService newsArticleService;
+  private final NewsArticleRestoreService  newsArticleRestoreService;
 
   @PostMapping
   public ResponseEntity<String> collectNews() {
@@ -74,6 +79,17 @@ public class NewsArticleController implements NewsArticleApiDocs {
   @GetMapping("/sources")
   public ResponseEntity<List<ArticleSource>> findSource(){
     return ResponseEntity.ok(newsArticleService.findAllSources());
+  }
+
+  @GetMapping("/restore")
+  public ResponseEntity<List<RestoreResultDto>> restore(@RequestParam(value = "from", required = true) String from,
+                                                        @RequestParam(value = "to", required = true) String to){
+
+    LocalDate fromDate = LocalDate.parse(from.substring(0, 10));
+    LocalDate toDate = LocalDate.parse(to.substring(0, 10));
+    List<RestoreResultDto> result = newsArticleRestoreService.restore(fromDate, toDate);
+
+    return ResponseEntity.ok(result);
   }
 
   //뉴스기사 논리삭제
