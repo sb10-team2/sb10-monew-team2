@@ -9,9 +9,9 @@ public record CursorPageResponseNewsArticleDto(
     List<NewsArticleDto> content,
     String nextCursor,
     String nextAfter,
-    int size,
-    long totalElements,
-    boolean hasNext
+    Integer size,
+    Long totalElements,
+    Boolean hasNext
 ) {
 
 
