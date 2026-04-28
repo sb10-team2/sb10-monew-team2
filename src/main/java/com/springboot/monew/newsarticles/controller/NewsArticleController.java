@@ -18,6 +18,7 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "뉴스 관리", description = "뉴스 기사 관련 API")
 @Slf4j
@@ -85,11 +87,16 @@ public class NewsArticleController implements NewsArticleApiDocs {
   public ResponseEntity<List<RestoreResultDto>> restore(@RequestParam(value = "from", required = true) String from,
                                                         @RequestParam(value = "to", required = true) String to){
 
-    LocalDate fromDate = LocalDate.parse(from.substring(0, 10));
-    LocalDate toDate = LocalDate.parse(to.substring(0, 10));
-    List<RestoreResultDto> result = newsArticleRestoreService.restore(fromDate, toDate);
+    LocalDate fromDate;
+    LocalDate toDate;
+    try {
+      fromDate = LocalDate.parse(from.substring(0, 10));
+      toDate = LocalDate.parse(to.substring(0, 10));
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "날짜 형식이 올바르지 않습니다. (예: 2024-01-15)");
+    }
 
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(newsArticleRestoreService.restore(fromDate, toDate));
   }
 
   //뉴스기사 논리삭제
