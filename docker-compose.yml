@@ -7,21 +7,23 @@ services:
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   mongo-init:
     image: mongo:7
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     restart: "no"
     entrypoint:
       - bash
       - -c
       - |
-        until mongosh --host mongodb:27017 --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
-          echo "Waiting for MongoDB to be ready..."
-          sleep 2
-        done
-        
         mongosh --host mongodb:27017 --eval "
           try {
             rs.status();
