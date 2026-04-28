@@ -92,6 +92,7 @@ public class NewsArticleRestoreService {
 
       //6. 유실된 데이터만 필터링
       List<NewsArticle> lostArticles = backupDtos.stream()
+          .filter(dto -> Boolean.TRUE.equals(dto.isDeleted()))
           .filter(dto -> !exstingLinks.contains(dto.originalLink()))
           .map(dto -> new NewsArticle(
               dto.source(),
@@ -101,6 +102,8 @@ public class NewsArticleRestoreService {
               dto.summary()
           ))
           .toList();
+
+      log.debug("유실된 뉴스기사 데이터={}", lostArticles);
 
       //7. 저장
       List<NewsArticle> saved = newsArticleRepository.saveAll(lostArticles);
