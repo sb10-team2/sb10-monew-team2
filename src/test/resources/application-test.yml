@@ -43,4 +43,8 @@ naver:
 cloud:
   aws:
     s3:
-      enabled: false  # 테스트에서는 S3 Bean 안 만듦
+      enabled: true
+      access-key: test
+      secret-key: test
+      region: ap-northeast-2
+      bucket: test-bucket
