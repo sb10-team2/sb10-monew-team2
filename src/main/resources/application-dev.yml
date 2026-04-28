@@ -26,16 +26,6 @@ spring:
     job:
       enabled: false
 
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_S3_BUCKET}
-    region:
-      static: ${AWS_REGION:ap-northeast-2}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
-
 logging:
   level:
     com.springboot.monew: DEBUG
