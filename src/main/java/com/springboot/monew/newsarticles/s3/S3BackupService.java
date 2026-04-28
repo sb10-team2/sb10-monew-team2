@@ -2,6 +2,7 @@ package com.springboot.monew.newsarticles.s3;
 
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -14,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "cloud.aws.s3.enabled", havingValue = "true")
 public class S3BackupService {
 
   private final S3Client s3Client;
