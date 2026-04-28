@@ -115,7 +115,7 @@ public class UserService {
     applicationEventPublisher.publishEvent(
         new UserNicknameUpdatedEvent(user.getId(), user.getNickname())
     );
-    log.info("닉네임 수정 완료 - userId={}, nickname={}", user.getId(), user.getNickname());
+    log.info("닉네임 수정 완료 - userId={}", user.getId());
     return userMapper.toDto(user);
   }
 

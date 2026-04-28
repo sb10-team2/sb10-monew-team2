@@ -43,7 +43,7 @@ public class UserActivityUpdateService {
     UserActivityDocument document = getDocument(userId);
     document.updateNickname(nickname);
     userActivityRepository.save(document);
-    log.info("사용자 활동 닉네임 갱신 완료 - userId={}, nickname={}", userId, nickname);
+    log.info("사용자 활동 닉네임 갱신 완료 - userId={}", userId);
   }
 
   // 관심사 키워드가 변경되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
