@@ -4,21 +4,17 @@ import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
-import com.springboot.monew.newsarticles.dto.response.RestoreResultDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,9 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "뉴스 관리", description = "뉴스 기사 관련 API")
 @Slf4j
@@ -81,22 +75,6 @@ public class NewsArticleController implements NewsArticleApiDocs {
   @GetMapping("/sources")
   public ResponseEntity<List<ArticleSource>> findSource(){
     return ResponseEntity.ok(newsArticleService.findAllSources());
-  }
-
-  @GetMapping("/restore")
-  public ResponseEntity<List<RestoreResultDto>> restore(@RequestParam(value = "from", required = true) String from,
-                                                        @RequestParam(value = "to", required = true) String to){
-
-    LocalDate fromDate;
-    LocalDate toDate;
-    try {
-      fromDate = LocalDate.parse(from.substring(0, 10));
-      toDate = LocalDate.parse(to.substring(0, 10));
-    } catch (Exception e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "날짜 형식이 올바르지 않습니다. (예: 2024-01-15)");
-    }
-
-    return ResponseEntity.ok(newsArticleRestoreService.restore(fromDate, toDate));
   }
 
   //뉴스기사 논리삭제
