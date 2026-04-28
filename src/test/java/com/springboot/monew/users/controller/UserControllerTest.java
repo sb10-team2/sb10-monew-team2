@@ -1,5 +1,7 @@
 package com.springboot.monew.users.controller;
 
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -22,6 +24,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -72,8 +75,17 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.nickname").value("monew123"))
         .andExpect(jsonPath("$.createdAt").value("2026-04-17T01:46:03.003Z"));
 
-    // 컨트롤러가 실제로 register을 호출했는지 검증하기 위해 추가
-    verify(userService).register(any(UserRegisterRequest.class));
+    //ArgumentCaptor로 서비스에 전달된 UserRegisterRequest 값을 잡아서 email, nickname, password가 요청값과 같은지 검증
+    ArgumentCaptor<UserRegisterRequest> captor =
+        ArgumentCaptor.forClass(UserRegisterRequest.class);
+
+    // userService.register()이 호출되었는지 확인하고, 전달된 요청 객체를 가져와 검증
+    verify(userService).register(captor.capture());
+
+    // 컨트롤러가 요청 본문을 UserRegisterRequest로 올바르게 파싱해 서비스에 전달했는지 검증
+    assertThat(captor.getValue().email()).isEqualTo(request.email());
+    assertThat(captor.getValue().nickname()).isEqualTo(request.nickname());
+    assertThat(captor.getValue().password()).isEqualTo(request.password());
   }
 
   @Test
@@ -130,7 +142,16 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.nickname").value(expected.nickname()))
         .andExpect(jsonPath("$.createdAt").value("2026-04-17T01:46:03.003Z"));
 
-    verify(userService).login(any(UserLoginRequest.class));
+    // ArgumentCaptor로 서비스에 전달된 UserLoginRequest 값을 잡아서 email, password가 요청값과 같은지 검증
+    ArgumentCaptor<UserLoginRequest> captor =
+        ArgumentCaptor.forClass(UserLoginRequest.class);
+
+    // userService.login()이 호출되었는지 확인하고, 전달된 요청 객체를 가져와 검증
+    verify(userService).login(captor.capture());
+
+    // 컨트롤러가 요청 본문을 UserLoginRequest로 올바르게 파싱해 서비스에 전달했는지 검증
+    assertThat(captor.getValue().email()).isEqualTo(request.email());
+    assertThat(captor.getValue().password()).isEqualTo(request.password());
   }
 
   @Test
@@ -184,7 +205,15 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.nickname").value(expected.nickname()))
         .andExpect(jsonPath("$.createdAt").value("2026-04-17T01:46:03.003Z"));
 
-    verify(userService).update(eq(userId), any(UserUpdateRequest.class));
+    // 서비스에 전달된 UserUpdateRequest를 가져와 nickname이 요청값과 같은지 검증
+    ArgumentCaptor<UserUpdateRequest> captor =
+        ArgumentCaptor.forClass(UserUpdateRequest.class);
+
+    // userService.update()가 호출되었는지 확인하고, 전달된 요청 객체를 가져와 검증
+    verify(userService).update(eq(userId), captor.capture());
+
+    // 컨트롤러가 요청 본문을 UserUpdateRequest로 올바르게 파싱해 서비스에 전달했는지 검증
+    assertThat(captor.getValue().nickname()).isEqualTo(request.nickname());
   }
 
   @Test

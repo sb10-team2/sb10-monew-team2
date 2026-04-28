@@ -30,7 +30,11 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.users.document.UserActivityDocument.CommentItem;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.comment.CommentCreatedEvent;
+import com.springboot.monew.users.event.comment.CommentDeletedEvent;
+import com.springboot.monew.users.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.repository.UserRepository;
 import java.lang.reflect.Field;
@@ -42,6 +46,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -94,9 +99,23 @@ class CommentServiceTest {
         Instant.now()
     );
 
+    // 이벤트 발행 시 CommentCreatedEvent 안에 담길 CommentItem mock 값을 미리 준비
+    CommentItem commentItem = new CommentItem(
+        UUID.randomUUID(),
+        article.getId(),
+        article.getTitle(),
+        user.getId(),
+        user.getNickname(),
+        request.content(),
+        0L,
+        Instant.now()
+    );
+
     given(articleRepository.findById(article.getId())).willReturn(Optional.of(article));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(commentMapper.toCommentDto(any(Comment.class), eq(false))).willReturn(expected);
+    // commentService.create() 내부에서 이벤트 생성 시 toCommentItem()을 호출하므로 null이 반환되지 않도록 stub 처리
+    given(commentMapper.toCommentItem(any(Comment.class))).willReturn(commentItem);
 
     // when
     CommentDto result = commentService.create(request);
@@ -111,6 +130,16 @@ class CommentServiceTest {
     verify(userRepository).findById(user.getId());
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
 
+    // 발행된 CommentCreatedEvent를 가져와 댓글 생성 정보가 올바르게 담겼는지 검증
+    ArgumentCaptor<CommentCreatedEvent> captor =
+        ArgumentCaptor.forClass(CommentCreatedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().articleId()).isEqualTo(article.getId());
+    assertThat(captor.getValue().item().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().content()).isEqualTo(request.content());
   }
 
   @Test
@@ -198,11 +227,25 @@ class CommentServiceTest {
         Instant.now()
     );
 
+    // 이벤트 발행 시 CommentUpdatedEvent 안에 담길 CommentItem mock 값을 미리 준비
+    CommentItem commentItem = new CommentItem(
+        commentId,
+        UUID.randomUUID(),
+        "기사 제목",
+        user.getId(),
+        user.getNickname(),
+        request.content(),
+        0L,
+        Instant.now()
+    );
+
 
     given(commentRepository.findByIdAndIsDeletedFalse(comment.getId())).willReturn(Optional.of(comment));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(false);
     given(commentMapper.toCommentDto(any(Comment.class), eq(false))).willReturn(expected);
+    // commentService.update() 내부에서 이벤트 생성 시 toCommentItem()을 호출하므로 null이 반환되지 않도록 stub 처리
+    given(commentMapper.toCommentItem(any(Comment.class))).willReturn(commentItem);
 
     // when
     CommentDto result = commentService.update(comment.getId(), user.getId(), request);
@@ -216,6 +259,17 @@ class CommentServiceTest {
     verify(commentRepository).findByIdAndIsDeletedFalse(comment.getId());
     verify(userRepository).findById(user.getId());
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
+
+    // 발행된 CommentUpdatedEvent를 가져와 수정된 댓글 정보가 올바르게 담겼는지 검증
+    ArgumentCaptor<CommentUpdatedEvent> captor =
+        ArgumentCaptor.forClass(CommentUpdatedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().id()).isEqualTo(commentId);
+    assertThat(captor.getValue().item().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().content()).isEqualTo(request.content());
   }
 
   @Test
@@ -375,13 +429,14 @@ class CommentServiceTest {
   void hardDelete_DeletesComment_WhenCommentExists() {
     // given
     UUID commentId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
     Comment comment = mock(Comment.class);
 
     given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
     // 물리 삭제 이벤트 발행 시 댓글 작성자 ID와 댓글 ID를 사용하므로 필요한 값만 stub 처리한다.
     User user = mock(User.class);
     given(comment.getUser()).willReturn(user);
-    given(user.getId()).willReturn(UUID.randomUUID());
+    given(user.getId()).willReturn(userId);
     given(comment.getId()).willReturn(commentId);
     // when
     commentService.hardDelete(commentId);
@@ -389,6 +444,16 @@ class CommentServiceTest {
     // then
     verify(commentRepository).findById(commentId);
     verify(commentRepository).delete(comment);
+
+    // 발행된 CommentDeletedEvent를 가져와 삭제 대상 정보가 올바르게 담겼는지 검증한다.
+    ArgumentCaptor<CommentDeletedEvent> captor =
+        ArgumentCaptor.forClass(CommentDeletedEvent.class);
+
+    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().commentId()).isEqualTo(commentId);
   }
 
   @Test

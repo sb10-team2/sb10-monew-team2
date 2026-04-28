@@ -28,6 +28,7 @@ import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
@@ -40,6 +41,7 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -571,6 +573,16 @@ class InterestServiceTest {
     assertThat(result).isEqualTo(expected);
     verify(interestKeywordRepository).deleteAll(List.of(oldLink));
     verify(interestKeywordRepository).save(any(InterestKeyword.class));
+
+    // 발행된 InterestUpdatedEvent를 가져와 수정된 관심사 ID와 키워드 목록이 올바르게 담겼는지 검증한다.
+    ArgumentCaptor<InterestUpdatedEvent> captor =
+        ArgumentCaptor.forClass(InterestUpdatedEvent.class);
+
+    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().interestId()).isEqualTo(interestId);
+    assertThat(captor.getValue().keywords()).containsExactly("채권");
   }
 
   @Test

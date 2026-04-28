@@ -14,7 +14,7 @@ public record NewsArticleViewDto (
     String articleTitle,
     Instant articlePublishedDate,
     String articleSummary,
-    long articleCommentCount,
-    long articleViewCount
+    Long articleCommentCount,
+    Long articleViewCount
 
 ) {}
