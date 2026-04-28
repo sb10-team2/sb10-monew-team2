@@ -10,6 +10,11 @@ jobs:
     env:
       NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
       NAVER_API_SECRET: ${{ secrets.NAVER_API_SECRET }}
+      AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
+      AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
+      AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_S3_PRESIGNED_URL_EXPIRATION: 600
 
     steps:
       - uses: actions/checkout@v4
