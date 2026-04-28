@@ -35,7 +35,9 @@ import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.users.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.users.entity.User;
+import com.springboot.monew.users.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.users.exception.UserErrorCode;
 import com.springboot.monew.users.exception.UserException;
 import com.springboot.monew.users.repository.UserRepository;
@@ -48,6 +50,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -357,6 +360,21 @@ class NewsArticleServiceTest {
     //반환될 DTO mock 생성
     NewsArticleViewDto responseDto = mock(NewsArticleViewDto.class);
 
+    // 기사 조회 활동 이벤트에 담길 ArticleViewItem을 미리 준비한다.
+    ArticleViewItem articleViewItem = new ArticleViewItem(
+        UUID.randomUUID(),
+        userId,
+        Instant.now(),
+        articleId,
+        ArticleSource.NAVER,
+        "https://example.com/article",
+        "기사 제목",
+        Instant.parse("2026-04-28T00:00:00Z"),
+        "기사 요약",
+        3L,
+        11L
+    );
+
     //validateActiveUser(userId)로 사용자 존재
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -378,6 +396,10 @@ class NewsArticleServiceTest {
     //DTO 변환결과 설정
     given(newsArticleViewMapper.toDto(any(ArticleView.class), eq(3L))).willReturn(responseDto);
 
+    // 활동 이벤트 발행 시 사용할 ArticleViewItem 변환 결과를 stub 한다.
+    given(newsArticleViewMapper.toArticleViewItem(any(ArticleView.class), eq(3L)))
+        .willReturn(articleViewItem);
+
     //  when
     NewsArticleViewDto result = newsArticleService.createView(articleId, userId);
 
@@ -396,6 +418,16 @@ class NewsArticleServiceTest {
 
     //DTO 변환이 수행되었는지 검증
     verify(newsArticleViewMapper).toDto(any(ArticleView.class), eq(3L));
+
+    // 기사 조회 성공 시 사용자 활동내역 반영을 위한 ArticleViewedEvent가 발행되었는지 검증한다.
+    ArgumentCaptor<ArticleViewedEvent> captor =
+        ArgumentCaptor.forClass(ArticleViewedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    // 발행된 이벤트에 조회한 사용자 id와 기사 조회 활동 정보가 올바르게 담겼는지 검증한다.
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().item()).isEqualTo(articleViewItem);
   }
 
   @Test
