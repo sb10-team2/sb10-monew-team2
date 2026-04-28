@@ -28,6 +28,13 @@ public class NewsArticleRestoreService {
 
   //기간(from ~ to) 동안의 뉴스 기사 복구
   public List<RestoreResultDto> restore(LocalDate from, LocalDate to) {
+
+    if (from == null || to == null) {
+      throw new IllegalArgumentException("from/to는 null일 수 없습니다.");
+    }
+    if (from.isAfter(to)){
+      throw new IllegalArgumentException("from은 to보다 이후일 수 없습니다.");
+    }
     log.debug("[뉴스기사 복구 시작] from={}, to={}", from, to);
     List<RestoreResultDto> results = new ArrayList<>();
 
