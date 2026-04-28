@@ -10,8 +10,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NewsArticleBackupService {
@@ -49,6 +51,16 @@ public class NewsArticleBackupService {
     }catch(Exception e){
       throw new RuntimeException("뉴스 기사 백업 실패. date=" + backupDate, e);
     }
+  }
+
+  public void backupIfMissing(LocalDate backupDate) {
+    String key = "backup/news-articles/%s/news-articles.json".formatted(backupDate);
+
+    if (s3BackupService.exists(key)) {
+      log.info("이미 백업 파일이 존재합니다. backupDate={}, key={}", backupDate, key);
+      return;
+    }
+    backupByPublishedAtDate(backupDate);
   }
 
 }
