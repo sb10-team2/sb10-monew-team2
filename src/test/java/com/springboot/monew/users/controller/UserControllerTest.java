@@ -149,7 +149,7 @@ public class UserControllerTest {
     // userService.login()이 호출되었는지 확인하고, 전달된 요청 객체를 가져와 검증
     verify(userService).login(captor.capture());
 
-    // // 컨트롤러가 요청 본문을 UserRegisterRequest로 올바르게 파싱해 서비스에 전달했는지 검증
+    // // 컨트롤러가 요청 본문을 UserLoginRequest로 올바르게 파싱해 서비스에 전달했는지 검증
     assertThat(captor.getValue().email()).isEqualTo(request.email());
     assertThat(captor.getValue().password()).isEqualTo(request.password());
   }
