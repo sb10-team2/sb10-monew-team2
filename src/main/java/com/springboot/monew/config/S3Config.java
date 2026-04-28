@@ -19,7 +19,7 @@ public class S3Config {
   public S3Client s3Client() {//S3Client: S3 API 호출용 클라이언트(S3에 요청 보내는 객체)
 
     // 키가 있는경우
-    Boolean hasAccessKey = props.getAccessKey().equals(props.getSecretKey());
+    Boolean hasAccessKey = props.getAccessKey().equals(props.getAccessKey());
     Boolean hasSecretKey = props.getSecretKey().equals(props.getSecretKey());
     if (hasAccessKey || hasSecretKey) {
       if(!(hasAccessKey && hasSecretKey)) {
