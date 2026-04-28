@@ -1,19 +1,19 @@
 spring:
   sql:
     init:
-      schema-locations: classpath:h2-schema.sql
+      schema-locations: classpath:schema.sql
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/monew_test
+    username: monew
+    password: monew123
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
         jdbc.batch_size: 100
         order_inserts: true
