@@ -22,13 +22,6 @@ public class S3Config {
   @Bean
   public S3Client s3Client() {//S3Client: S3 API 호출용 클라이언트(S3에 요청 보내는 객체)
 
-    log.info("==== S3 CONFIG DEBUG ====");
-    log.info("accessKey: {}", props.getAccessKey());
-    log.info("secretKey: {}", props.getSecretKey());
-    log.info("region: {}", props.getRegion());
-    log.info("bucket: {}", props.getBucket());
-    log.info("=========================");
-
     String region = props.getRegion();
 
     if (region == null || region.isBlank()) {
