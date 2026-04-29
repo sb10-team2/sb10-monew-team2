@@ -118,7 +118,7 @@ public class UserActivityUpdateService {
   }
 
   // 댓글 좋아요 수 변경 시 사용자 활동 문서의 댓글 좋아요 수를 갱신한다.
-  public void updateCommentLikeCount(UUID userId, UUID commentId, long likeCount) {
+  public void updateCommentLikeCount(UUID userId, UUID commentId, Long likeCount) {
     UserActivityDocument document = getDocument(userId);
     document.updateCommentLikeCount(commentId, likeCount);
     userActivityRepository.save(document);
