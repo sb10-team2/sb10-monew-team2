@@ -1,3 +1,7 @@
+test-data:
+  generate:
+    enabled: false
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/monew?reWriteBatchedInserts=true
