@@ -23,7 +23,7 @@ public interface UserApiDocs {
       summary = "회원가입",
       description = """
           `POST /api/users`
-
+          
           새로운 사용자를 등록합니다.""",
       operationId = "register"
   )
@@ -69,7 +69,7 @@ public interface UserApiDocs {
       summary = "로그인",
       description = """
           `POST /api/users/login`
-
+          
           사용자 로그인을 처리합니다.""",
       operationId = "login"
   )
@@ -111,7 +111,7 @@ public interface UserApiDocs {
       summary = "사용자 정보 수정",
       description = """
           `PATCH /api/users/{userId}`
-
+          
           사용자의 닉네임을 수정합니다. 본인의 계정만 수정할 수 있습니다.""",
       operationId = "update"
   )
@@ -164,7 +164,7 @@ public interface UserApiDocs {
       summary = "사용자 논리 삭제",
       description = """
           `DELETE /api/users/{userId}`
-
+          
           사용자를 논리적으로 삭제합니다.""",
       operationId = "delete"
   )
@@ -192,7 +192,7 @@ public interface UserApiDocs {
       summary = "사용자 물리 삭제",
       description = """
           `DELETE /api/users/{userId}/hard`
-
+          
           사용자를 물리적으로 삭제합니다. 데이터베이스에서 완전히 제거됩니다.""",
       operationId = "hardDelete_1"
   )

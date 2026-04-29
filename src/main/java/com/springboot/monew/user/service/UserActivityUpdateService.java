@@ -53,11 +53,12 @@ public class UserActivityUpdateService {
         userActivityRepository.findAllBySubscriptionsInterestId(interestId);
 
     documents.forEach(document ->
-      document.updateSubscriptionInterest(interestId, keywords)
+        document.updateSubscriptionInterest(interestId, keywords)
     );
 
     userActivityRepository.saveAll(documents);
-    log.info("사용자 활동 관심사 키워드 일괄 갱신 완료 - interestId={}, documentCount={}", interestId, documents.size());
+    log.info("사용자 활동 관심사 키워드 일괄 갱신 완료 - interestId={}, documentCount={}", interestId,
+        documents.size());
   }
 
 
@@ -122,7 +123,8 @@ public class UserActivityUpdateService {
     UserActivityDocument document = getDocument(userId);
     document.updateCommentLikeCount(commentId, likeCount);
     userActivityRepository.save(document);
-    log.info("사용자 활동 댓글 좋아요 수 갱신 완료 - userId={}, commentId={}, likeCount={}", userId, commentId, likeCount);
+    log.info("사용자 활동 댓글 좋아요 수 갱신 완료 - userId={}, commentId={}, likeCount={}", userId, commentId,
+        likeCount);
   }
 
   // 기사 조회 시 사용자 활동 문서에 기사 조회 내역을 추가한다.
