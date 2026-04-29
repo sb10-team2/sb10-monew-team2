@@ -64,7 +64,7 @@ jobs:
 
       # 5) ECS 서비스 업데이트를 위한 AWS CLI 재설정: AWS_REGION 을 northeast-2로 재설정해야되기 때문
       - name: Configure AWS Credentials (ECS 리전)
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_KEY }}
