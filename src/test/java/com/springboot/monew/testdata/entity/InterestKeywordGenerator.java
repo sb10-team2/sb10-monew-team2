@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.Setter;
 import org.instancio.Instancio;
@@ -32,7 +31,8 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
 
   public List<InterestKeyword> run(List<Interest> interests, List<Keyword> keywords) {
     AtomicInteger offset = new AtomicInteger(0);
-    return generate(interests.size(), relationMappingGenerator(interests, offset, interest -> createKeywordsFor(interest, keywords)));
+    return generate(interests.size(), relationMappingGenerator(interests, offset,
+        interest -> createKeywordsFor(interest, keywords)));
   }
 
   private Stream<InterestKeyword> createKeywordsFor(Interest interest, List<Keyword> keywords) {
@@ -60,8 +60,9 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
   @Override
   protected int batchSize() {
     if (super.batchSize() < keywordPerInterest) {
-      throw new IllegalArgumentException("keywordPerInterest=%s 는 1000을 넘길 수 없다".formatted(keywordPerInterest));
+      throw new IllegalArgumentException(
+          "keywordPerInterest=%s 는 1000을 넘길 수 없다".formatted(keywordPerInterest));
     }
-    return super.batchSize() / keywordPerInterest;
+    return Math.max(1, super.batchSize() / keywordPerInterest);
   }
 }

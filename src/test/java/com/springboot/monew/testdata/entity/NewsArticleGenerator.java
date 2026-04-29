@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
-import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,8 +50,7 @@ public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
 
   @Override
   protected String sql() {
-    return
-        "insert into news_articles (id, created_at, source, original_link, title, published_at, summary, view_count, is_deleted)"
-            + "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    return insertSql("news_articles", "id", "created_at", "source", "original_link", "title",
+        "published_at", "summary", "view_count", "is_deleted");
   }
 }

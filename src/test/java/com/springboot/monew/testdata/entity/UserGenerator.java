@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Model;
@@ -51,13 +50,11 @@ public class UserGenerator extends BaseGenerator<User> {
 
   @Override
   protected String sql() {
-    return "insert into users (id, email, nickname, password, deleted_at, created_at, updated_at) "
-        + "values (?, ?, ?, ?, ?, ?, ?)";
+    return insertSql("users", "id", "email", "nickname", "password", "deleted_at", "created_at",
+        "updated_at");
   }
 
   private String email(Faker fake) {
     return "%s_%s".formatted(UUID.randomUUID(), fake.internet().emailAddress());
   }
-
-
 }

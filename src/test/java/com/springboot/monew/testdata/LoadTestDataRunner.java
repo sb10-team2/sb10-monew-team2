@@ -3,8 +3,10 @@ package com.springboot.monew.testdata;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.entity.InterestKeyword;
 import com.springboot.monew.interest.entity.Keyword;
+import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.testdata.entity.ArticleInterestGenerator;
 import com.springboot.monew.testdata.entity.ArticleViewGenerator;
 import com.springboot.monew.testdata.entity.InterestGenerator;
 import com.springboot.monew.testdata.entity.InterestKeywordGenerator;
@@ -28,6 +30,11 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 public class LoadTestDataRunner {
 
+  private static final int NUMBER_OF_ARTICLES = 50_000;
+  private static final int NUMBER_OF_INTERESTS = 1000;
+  private static final int NUMBER_OF_USERS = 1000;
+  private static final int NUMBER_OF_KEYWORDS = 1000;
+
   @Autowired
   private UserGenerator userGenerator;
   @Autowired
@@ -40,40 +47,77 @@ public class LoadTestDataRunner {
   private InterestKeywordGenerator interestKeywordGenerator;
   @Autowired
   private ArticleViewGenerator articleViewGenerator;
+  @Autowired
+  private ArticleInterestGenerator articleInterestGenerator;
 
   @Test
   void userGenerator() {
-    List<User> users = userGenerator.run(1000);
+    users();
   }
 
   @Test
   void newsArticleGenerator() {
-    List<NewsArticle> articles = newsArticleGenerator.run(50_000);
+    articles();
   }
 
   @Test
   void interestGenerator() {
-    List<Interest> interests = interestGenerator.run(1000);
+    interests();
   }
 
   @Test
   void keywordGenerator() {
-    List<Keyword> keywords = keywordGenerator.run(1000);
+    keywords();
   }
 
   @Test
   void interestKeywordGenerator() {
-    List<Interest> interests = interestGenerator.run(1000);
-    List<Keyword> keywords = keywordGenerator.run(1000);
     interestKeywordGenerator.setKeywordPerInterest(3);
-    List<InterestKeyword> interestKeywords = interestKeywordGenerator.run(interests, keywords);
+    interestKeywords();
   }
 
   @Test
   void articleViewGenerator() {
-    List<User> users = userGenerator.run(1000);
-    List<NewsArticle> articles = newsArticleGenerator.run(50_000);
     articleViewGenerator.setArticlePerUser(10);
-    List<ArticleView> articleViews = articleViewGenerator.run(users, articles);
+    articleViews();
+  }
+
+  @Test
+  void articleInterestGenerator() {
+    articleInterests();
+  }
+
+  private List<ArticleInterest> articleInterests() {
+    List<Interest> interests = interests();
+    List<NewsArticle> articles = articles();
+    return articleInterestGenerator.run(interests, articles);
+  }
+
+  private List<NewsArticle> articles() {
+    return newsArticleGenerator.run(NUMBER_OF_ARTICLES);
+  }
+
+  private List<Interest> interests() {
+    return interestGenerator.run(NUMBER_OF_INTERESTS);
+  }
+
+  private List<User> users() {
+    return userGenerator.run(NUMBER_OF_USERS);
+  }
+
+  private List<Keyword> keywords() {
+    return keywordGenerator.run(NUMBER_OF_KEYWORDS);
+  }
+
+  private List<ArticleView> articleViews() {
+    List<User> users = users();
+    List<NewsArticle> articles = articles();
+    return articleViewGenerator.run(users, articles);
+  }
+
+  private List<InterestKeyword> interestKeywords() {
+    List<Interest> interests = interests();
+    List<Keyword> keywords = keywords();
+    return interestKeywordGenerator.run(interests, keywords);
   }
 }
