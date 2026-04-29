@@ -12,6 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
+import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -25,21 +26,16 @@ public class UserGenerator extends BaseGenerator<User> {
   }
 
   public List<User> run(int size) {
-    return generate(size, generator());
-  }
-
-  private Function<Integer, List<User>> generator() {
-    Faker fake = faker.get();
-    return chunkSize -> Instancio.ofList(User.class)
-        .size(chunkSize)
-        .supply(field(User::getEmail), () -> email(fake))
+    Model<User> model = Instancio.of(User.class)
+        .supply(field(User::getEmail), () -> email(faker.get()))
         .generate(field(User::getNickname),
             gen -> gen.text().pattern("user_#a#d#a#d#a#d#a#d#a#d#a#d#a#d#a"))
-        .supply(field(User::getPassword), () -> fake.credentials().password(6, 255))
+        .supply(field(User::getPassword), () -> faker.get().credentials().password(6, 255))
         .generate(field(User::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .ignore(field(User::getDeletedAt))
         .ignore(field(User::getUpdatedAt))
-        .create();
+        .toModel();
+    return generate(size, modelGenerator(model));
   }
 
   @Override

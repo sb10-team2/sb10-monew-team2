@@ -7,11 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
-import net.datafaker.Faker;
 import org.instancio.Instancio;
+import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -25,18 +23,13 @@ public class InterestGenerator extends BaseGenerator<Interest> {
   }
 
   public List<Interest> run(int size) {
-    return generate(size, generator());
-  }
-
-  private Function<Integer, List<Interest>> generator() {
-    Faker fake = faker.get();
-    return chunkSize -> Instancio.ofList(Interest.class)
-        .size(chunkSize)
-        .supply(field(Interest::getName), () -> fake.lorem().characters(4, 50))
+    Model<Interest> model = Instancio.of(Interest.class)
+        .supply(field(Interest::getName), () -> faker.get().lorem().characters(4, 50))
         .set(field(Interest::getSubscriberCount), 0L)
         .generate(field(Interest::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .ignore(field(Interest::getUpdatedAt))
-        .create();
+        .toModel();
+    return generate(size, modelGenerator(model));
   }
 
   @Override
@@ -50,7 +43,6 @@ public class InterestGenerator extends BaseGenerator<Interest> {
 
   @Override
   protected String sql() {
-    return "insert into interests (id, name, subscriber_count, created_at, updated_at)"
-        + "values (?, ?, ?, ?, ?)";
+    return insertSql("interests", "id", "name", "subscriber_count", "created_at", "updated_at");
   }
 }

@@ -12,6 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
+import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -25,16 +26,11 @@ public class KeywordGenerator extends BaseGenerator<Keyword> {
   }
 
   public List<Keyword> run(int size) {
-    return generate(size, generator());
-  }
-
-  private Function<Integer, List<Keyword>> generator() {
-    Faker fake = faker.get();
-    return chunkSize -> Instancio.ofList(Keyword.class)
-        .size(chunkSize)
-        .supply(field(Keyword::getName), () -> fake.lorem().characters(4, 100))
+    Model<Keyword> model = Instancio.of(Keyword.class)
+        .supply(field(Keyword::getName), () -> faker.get().lorem().characters(4, 100))
         .generate(field(Keyword::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
-        .create();
+        .toModel();
+    return generate(size, modelGenerator(model));
   }
 
   @Override
@@ -46,6 +42,6 @@ public class KeywordGenerator extends BaseGenerator<Keyword> {
 
   @Override
   protected String sql() {
-    return "insert into keywords (id, name, created_at) values (?, ?, ?)";
+    return insertSql("keywords", "id", "name", "created_at");
   }
 }

@@ -32,15 +32,7 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
 
   public List<InterestKeyword> run(List<Interest> interests, List<Keyword> keywords) {
     AtomicInteger offset = new AtomicInteger(0);
-    return generate(interests.size(), generator(interests, keywords, offset));
-  }
-
-  private Function<Integer, List<InterestKeyword>> generator(
-      List<Interest> interests, List<Keyword> keywords, AtomicInteger offset) {
-    return chunkSize -> Stream.of(offset.getAndAdd(chunkSize))
-        .flatMap(start -> interests.subList(start, Math.min(start + chunkSize, interests.size())).stream())
-        .flatMap(interest -> createKeywordsFor(interest, keywords))
-        .toList();
+    return generate(interests.size(), relationMappingGenerator(interests, offset, interest -> createKeywordsFor(interest, keywords)));
   }
 
   private Stream<InterestKeyword> createKeywordsFor(Interest interest, List<Keyword> keywords) {

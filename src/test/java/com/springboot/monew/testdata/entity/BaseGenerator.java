@@ -1,7 +1,6 @@
 package com.springboot.monew.testdata.entity;
 
 import com.springboot.monew.common.entity.BaseEntity;
-import com.springboot.monew.interest.entity.Keyword;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -13,11 +12,13 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.datafaker.Faker;
+import org.instancio.Instancio;
+import org.instancio.Model;
 import org.instancio.generator.specs.InstantGeneratorSpec;
 import org.instancio.generators.Generators;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -62,12 +63,25 @@ public abstract class BaseGenerator<T extends BaseEntity> {
     return gen.temporal().instant().range(weekAgo, now);
   }
 
-  protected Set<Integer> uniqueRandomNumbers(List<Keyword> keywords, int size) {
+  protected <E extends BaseEntity> Set<Integer> uniqueRandomNumbers(List<E> entities, int size) {
     Set<Integer> uniqueIndices = new HashSet<>();
     while (uniqueIndices.size() < size) {
-      uniqueIndices.add(ThreadLocalRandom.current().nextInt(keywords.size()));
+      uniqueIndices.add(ThreadLocalRandom.current().nextInt(entities.size()));
     }
     return uniqueIndices;
+  }
+
+  protected <P> Function<Integer, List<T>> relationMappingGenerator(
+      List<P> parents, AtomicInteger offset, Function<P, Stream<T>> mapper) {
+    return chunkSize -> Stream.of(offset.getAndAdd(chunkSize))
+        .flatMap(
+            start -> parents.subList(start, Math.min(start + chunkSize, parents.size())).stream())
+        .flatMap(mapper)
+        .toList();
+  }
+
+  protected Function<Integer, List<T>> modelGenerator(Model<T> model) {
+    return chunkSize -> Instancio.ofList(model).size(chunkSize).create();
   }
 
   protected abstract void setValues(PreparedStatement ps, T entity) throws SQLException;

@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
+import org.instancio.Model;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -24,21 +25,16 @@ public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
   }
 
   public List<NewsArticle> run(int size) {
-    return generate(size, generator());
-  }
-
-  private Function<Integer, List<NewsArticle>> generator() {
-    Faker fake = faker.get();
-    return chunkSize -> Instancio.ofList(NewsArticle.class)
-        .size(chunkSize)
-        .supply(field(NewsArticle::getOriginalLink), () -> fake.internet().url())
-        .supply(field(NewsArticle::getTitle), () -> fake.book().title())
-        .supply(field(NewsArticle::getSummary), () -> fake.lorem().characters(10, 1000))
+    Model<NewsArticle> model = Instancio.of(NewsArticle.class)
+        .supply(field(NewsArticle::getOriginalLink), () -> faker.get().internet().url())
+        .supply(field(NewsArticle::getTitle), () -> faker.get().book().title())
+        .supply(field(NewsArticle::getSummary), () -> faker.get().lorem().characters(10, 1000))
         .generate(field(NewsArticle::getPublishedAt), this::betweenWeekAndTwoWeeksAgo)
         .generate(field(NewsArticle::getCreatedAt), this::betweenNowAndWeekAgo)
         .set(field(NewsArticle::getViewCount), 0L)
         .set(field(NewsArticle::isDeleted), false)
-        .create();
+        .toModel();
+    return generate(size, modelGenerator(model));
   }
 
   @Override
