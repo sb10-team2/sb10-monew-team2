@@ -14,6 +14,7 @@ public interface NewsArticleMapper {
   @Mapping(target = "commentCount", source = "commentCount")
   @Mapping(target = "viewedByMe", source = "viewedByMe")
   @Mapping(target = "sourceUrl", source = "article.originalLink")
+  @Mapping(target = "publishDate", source = "article.publishedAt")
   NewsArticleDto toDto(NewsArticle article, Long commentCount, Boolean viewedByMe);
 
 

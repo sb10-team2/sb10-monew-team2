@@ -6,7 +6,7 @@ import com.springboot.monew.comment.entity.QCommentLike;
 import com.springboot.monew.interest.entity.QInterest;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.QNotification;
-import com.springboot.monew.users.entity.QUser;
+import com.springboot.monew.user.entity.QUser;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
