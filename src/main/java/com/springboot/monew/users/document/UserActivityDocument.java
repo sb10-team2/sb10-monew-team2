@@ -123,7 +123,7 @@ public class UserActivityDocument {
   }
 
   // 내 댓글이 좋아요/좋아요 취소를 받았을 때 comments 안의 likeCount를 갱신한다.
-  public void updateCommentLikeCount(UUID commentId, long likeCount) {
+  public void updateCommentLikeCount(UUID commentId, Long likeCount) {
     comments.replaceAll(comment -> {
       if (!comment.id().equals(commentId)) {
         return comment;
@@ -177,7 +177,7 @@ public class UserActivityDocument {
       UUID userId,
       String userNickname,
       String content,
-      long likeCount,
+      Long likeCount,
       Instant createdAt
   ) {
 
@@ -192,7 +192,7 @@ public class UserActivityDocument {
       UUID commentUserId,
       String commentUserNickname,
       String commentContent,
-      long commentLikeCount,
+      Long commentLikeCount,
       Instant commentCreatedAt
   ) {
 
@@ -208,8 +208,8 @@ public class UserActivityDocument {
       String articleTitle,
       Instant articlePublishedDate,
       String articleSummary,
-      long articleCommentCount,
-      long articleViewCount
+      Long articleCommentCount,
+      Long articleViewCount
   ) {
 
   }

@@ -30,7 +30,7 @@ public record CommentLikeActivityDto(
     String commentContent,
 
     @Schema(description = "좋아요 수")
-    long commentLikeCount,
+    Long commentLikeCount,
 
     @Schema(description = "작성된 날짜", format = "date-time")
     Instant commentCreatedAt

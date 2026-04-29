@@ -22,7 +22,7 @@ spring:
     open-in-view: false
   data:
     mongodb:
-      uri: mongodb://localhost:27017/monew-test
+      uri: mongodb://localhost:27017/monew-test?replicaSet=rs0
   batch:
     jdbc:
       initialize-schema: always
