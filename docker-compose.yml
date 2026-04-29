@@ -15,13 +15,7 @@ services:
     environment:
       #application.yml의 spring.profiles.active 값을 덮어쓴다.(dev or prod)
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-
-      #application-dev.yml의 MONGODB_URI 기본값은 localhost라서 컨테이너 환경에서는 덮어써야 함
-      #mongodb는 아래 MongoDB 서비스명
-      # replicaSet=rs0은 MongoDB 트랜잭션/replica set 사용을 위해 필요
       MONGODB_URI: ${MONGODB_URI}
-
-      #app 컨테이너 내부에서는 localhost가 아니라 db 서비스명으로 접근해야한다.
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
