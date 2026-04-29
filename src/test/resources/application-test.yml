@@ -53,7 +53,6 @@ naver:
 cloud:
   aws:
     s3:
-      enabled: false
       access-key: test
       secret-key: test
       region: ap-northeast-2
