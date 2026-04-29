@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
 public class UserActivityUpdateService {
 
   private final UserActivityRepository userActivityRepository;
@@ -141,7 +140,7 @@ public class UserActivityUpdateService {
         .orElseThrow(() -> {
           log.warn("사용자 활동 문서 조회 실패: 문서를 찾을 수 없음 - userId={}", userId);
           return new UserException(
-              UserErrorCode.USER_NOT_FOUND,
+              UserErrorCode.USER_ACTIVITY_NOT_FOUND,
               Map.of("userId", userId)
           );
         });
