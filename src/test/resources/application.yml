@@ -39,3 +39,11 @@ naver:
   api:
     key: "test-secret-key-for-build-pass"
     secret: "test-secret-key-for-build-pass"
+
+cloud:
+  aws:
+    s3:
+      access-key: test-dummy
+      secret-key: test-dummy
+      region: ap-northeast-2
+      bucket: test-dummy-bucket
