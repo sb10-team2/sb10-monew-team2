@@ -18,7 +18,7 @@ public class YonhapRssCollector implements ArticleCollector {
 
   @Override
   public ArticleSource getSource() {
-    return ArticleSource.YONHAP;
+    return ArticleSource.YEONHAP;
   }
 
   //네이버 API처럼 키워드 검색은 아니다.
@@ -29,7 +29,7 @@ public class YonhapRssCollector implements ArticleCollector {
         .stream()
         .filter(item -> item.link() != null && !item.link().isBlank())
         .map(item -> new CollectedArticle(
-            ArticleSource.YONHAP,
+            ArticleSource.YEONHAP,
             item.link(),
             item.title(),
             item.publishedAt(),
