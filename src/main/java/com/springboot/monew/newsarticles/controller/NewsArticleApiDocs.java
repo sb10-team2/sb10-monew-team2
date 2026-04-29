@@ -187,8 +187,8 @@ public interface NewsArticleApiDocs {
               - `NAVER` : 네이버
               - `HANKYUNG` : 한국경제
               - `CHOSUN` : 조선일보
-              - `YONHAP` : 연합뉴스""",
-          schema = @Schema(type = "array", allowableValues = {"NAVER", "HANKYUNG", "CHOSUN", "YONHAP"})
+              - `YEONHAP` : 연합뉴스""",
+          schema = @Schema(type = "array", allowableValues = {"NAVER", "HANKYUNG", "CHOSUN", "YEONHAP"})
       ),
       @Parameter(
           name = "publishDateFrom",
