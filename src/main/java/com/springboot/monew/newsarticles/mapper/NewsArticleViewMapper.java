@@ -2,7 +2,7 @@ package com.springboot.monew.newsarticles.mapper;
 
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.entity.ArticleView;
-import com.springboot.monew.users.document.UserActivityDocument.ArticleViewItem;
+import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

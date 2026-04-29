@@ -5,7 +5,7 @@ import com.springboot.monew.common.repository.BaseRepositoryTest;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;

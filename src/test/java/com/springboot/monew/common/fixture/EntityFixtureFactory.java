@@ -9,7 +9,7 @@ import com.springboot.monew.common.entity.BaseUpdatableEntity;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

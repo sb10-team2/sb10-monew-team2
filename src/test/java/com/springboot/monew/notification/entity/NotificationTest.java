@@ -6,7 +6,7 @@ import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.fixture.EntityFixtureFactory;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.exception.NotificationException;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
