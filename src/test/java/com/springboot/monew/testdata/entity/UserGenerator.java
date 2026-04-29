@@ -24,7 +24,7 @@ public class UserGenerator extends BaseGenerator<User> {
     super(template, executor);
   }
 
-  public List<UUID> run(int size) {
+  public List<User> run(int size) {
     return generate(size, generator());
   }
 

@@ -24,7 +24,7 @@ public class InterestGenerator extends BaseGenerator<Interest> {
     super(template, executor);
   }
 
-  public List<UUID> run(int size) {
+  public List<Interest> run(int size) {
     return generate(size, generator());
   }
 

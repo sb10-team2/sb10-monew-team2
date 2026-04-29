@@ -24,7 +24,7 @@ public class KeywordGenerator extends BaseGenerator<Keyword> {
     super(template, executor);
   }
 
-  public List<UUID> run(int size) {
+  public List<Keyword> run(int size) {
     return generate(size, generator());
   }
 

@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import net.datafaker.Faker;
@@ -24,7 +23,7 @@ public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
     super(template, executor);
   }
 
-  public List<UUID> run(int size) {
+  public List<NewsArticle> run(int size) {
     return generate(size, generator());
   }
 
