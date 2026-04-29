@@ -63,9 +63,9 @@ jobs:
       - name: Configure AWS Credentials (ECS 리전)
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
 
       # 6) 태스크 정의 템플릿 렌더링
       - name: Render task definition
@@ -74,7 +74,7 @@ jobs:
           sudo apt-get install -y gettext-base
 
           export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export AWS_REGION=${{ secrets.AWS_S3_REGION }}
           export REPO_URI=${{ vars.ECR_REPOSITORY_URI }}
           export IMAGE_TAG=${GITHUB_SHA::7}
 
