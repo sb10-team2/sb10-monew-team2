@@ -4,7 +4,7 @@ import static org.instancio.Select.field;
 
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;

@@ -4,7 +4,7 @@ import static org.instancio.Select.field;
 
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
