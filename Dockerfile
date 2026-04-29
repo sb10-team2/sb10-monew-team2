@@ -3,6 +3,10 @@
 #Gradle + JDK 17이 이미 설치된 이미지 사용
 FROM gradle:8.11.1-jdk17 AS builder
 
+#non-root 사용자로 Docker실행
+#사용자 id가 10001인 사용자 생성
+RUN useradd --create-home --uid 10001 appuser
+
 #빌드 작업 디렉토리
 #/build 폴더 안에서 gradlew, src 다 실행된다.
 WORKDIR /build
@@ -47,8 +51,12 @@ ENV JAVA_TOOL_OPTIONS=""
 # builder 단계에서 만든 jar를 runtime 이미지로 복사
 COPY --from=builder /build/build/libs/*.jar /app/app.jar
 
+# /app 폴더 소유권을 appuser에게 넘겨줌 -> non-root로 실행하기 위해
+RUN chown -R appuser:appuser /app
+
 #애플리케이션 포트
-EXPOSE 80
+USER appuser
+EXPOSE 8080
 
 # 컨테이너 시작 시 Spring Boot 실행
-ENTRYPOINT ["sh", "-lc", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar --server.port=80"]
+ENTRYPOINT ["sh", "-lc", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar --server.port=8080"]
