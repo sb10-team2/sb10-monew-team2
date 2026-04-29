@@ -5,6 +5,7 @@ import com.springboot.monew.users.entity.QUser;
 import com.springboot.monew.users.entity.User;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,8 @@ public class UserQDSLRepositoryImpl implements UserQDSLRepository {
 
   @Override
   public List<User> findUsersDeletedBefore(Instant cutoff) {
+    Objects.requireNonNull(cutoff, "cutoff는 null일 수 없습니다.");
+
     return queryFactory
         .selectFrom(qUser)
         .where(
