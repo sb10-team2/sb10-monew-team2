@@ -36,7 +36,7 @@ public class UserGenerator extends BaseGenerator<User> {
         .generate(field(User::getNickname),
             gen -> gen.text().pattern("user_#a#d#a#d#a#d#a#d#a#d#a#d#a#d#a"))
         .supply(field(User::getPassword), () -> fake.credentials().password(6, 255))
-        .supply(field(User::getCreatedAt), this::timestamp)
+        .generate(field(User::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .ignore(field(User::getDeletedAt))
         .ignore(field(User::getUpdatedAt))
         .create();

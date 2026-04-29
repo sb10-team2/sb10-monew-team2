@@ -2,7 +2,7 @@ package com.springboot.monew.testdata.entity;
 
 import static org.instancio.Select.field;
 
-import com.springboot.monew.interest.entity.Interest;
+import com.springboot.monew.interest.entity.Keyword;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -17,9 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class InterestGenerator extends BaseGenerator<Interest> {
+public class KeywordGenerator extends BaseGenerator<Keyword> {
 
-  public InterestGenerator(JdbcTemplate template,
+  public KeywordGenerator(JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
     super(template, executor);
   }
@@ -28,29 +28,24 @@ public class InterestGenerator extends BaseGenerator<Interest> {
     return generate(size, generator());
   }
 
-  private Function<Integer, List<Interest>> generator() {
+  private Function<Integer, List<Keyword>> generator() {
     Faker fake = faker.get();
-    return chunkSize -> Instancio.ofList(Interest.class)
+    return chunkSize -> Instancio.ofList(Keyword.class)
         .size(chunkSize)
-        .supply(field(Interest::getName), () -> fake.lorem().characters(4, 50))
-        .set(field(Interest::getSubscriberCount), 0L)
-        .generate(field(Interest::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
-        .ignore(field(Interest::getUpdatedAt))
+        .supply(field(Keyword::getName), () -> fake.lorem().characters(4, 100))
+        .generate(field(Keyword::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .create();
   }
 
   @Override
-  protected void setValues(PreparedStatement ps, Interest entity) throws SQLException {
+  protected void setValues(PreparedStatement ps, Keyword entity) throws SQLException {
     ps.setObject(1, entity.getId());
     ps.setObject(2, entity.getName());
-    ps.setObject(3, entity.getSubscriberCount());
-    ps.setObject(4, Timestamp.from(entity.getCreatedAt()));
-    ps.setObject(5, entity.getUpdatedAt());
+    ps.setObject(3, Timestamp.from(entity.getCreatedAt()));
   }
 
   @Override
   protected String sql() {
-    return "insert into interests (id, name, subscriber_count, created_at, updated_at)"
-        + "values (?, ?, ?, ?, ?)";
+    return "insert into keywords (id, name, created_at) values (?, ?, ?)";
   }
 }

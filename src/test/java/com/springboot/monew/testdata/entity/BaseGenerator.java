@@ -3,7 +3,6 @@ package com.springboot.monew.testdata.entity;
 import com.springboot.monew.common.entity.BaseEntity;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -15,6 +14,8 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.datafaker.Faker;
+import org.instancio.generator.specs.InstantGeneratorSpec;
+import org.instancio.generators.Generators;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
@@ -46,13 +47,21 @@ public abstract class BaseGenerator<T extends BaseEntity> {
     return futures.stream().flatMap(f -> f.join().stream()).toList();
   }
 
+  protected InstantGeneratorSpec betweenNowAndTwoWeeksAgo(Generators gen) {
+    return gen.temporal().instant().range(twoWeeksAgo, now);
+  }
+
+  protected InstantGeneratorSpec betweenWeekAndTwoWeeksAgo(Generators gen) {
+    return gen.temporal().instant().range(twoWeeksAgo, weekAgo);
+  }
+
+  protected InstantGeneratorSpec betweenNowAndWeekAgo(Generators gen) {
+    return gen.temporal().instant().range(weekAgo, now);
+  }
+
   protected abstract void setValues(PreparedStatement ps, T entity) throws SQLException;
 
   protected abstract String sql();
-
-  protected Instant timestamp() {
-    return Instant.now().minus(14, ChronoUnit.DAYS);
-  }
 
   private List<UUID> doAsync(int chunkSize, Function<Integer, List<T>> generator) {
     List<T> chunk = generator.apply(chunkSize);
