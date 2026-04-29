@@ -2,7 +2,7 @@ package com.springboot.monew.comment.entity;
 
 import com.springboot.monew.common.entity.BaseUpdatableEntity;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

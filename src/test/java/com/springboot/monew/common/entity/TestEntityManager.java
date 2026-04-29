@@ -7,7 +7,7 @@ import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.notification.entity.Notification;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;

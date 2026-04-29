@@ -2,7 +2,7 @@ package com.springboot.monew.interest.mapper;
 
 import com.springboot.monew.interest.dto.response.SubscriptionDto;
 import com.springboot.monew.interest.entity.Subscription;
-import com.springboot.monew.users.document.UserActivityDocument.SubscriptionItem;
+import com.springboot.monew.user.document.UserActivityDocument.SubscriptionItem;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

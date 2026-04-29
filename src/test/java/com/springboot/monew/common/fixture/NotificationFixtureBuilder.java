@@ -4,7 +4,7 @@ import static org.instancio.Select.field;
 
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.util.List;
 import org.instancio.Instancio;
 import org.instancio.InstancioApi;

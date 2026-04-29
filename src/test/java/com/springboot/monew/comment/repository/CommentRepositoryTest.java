@@ -5,7 +5,7 @@ import com.springboot.monew.comment.entity.CommentDirection;
 import com.springboot.monew.comment.entity.CommentOrderBy;
 import com.springboot.monew.common.repository.BaseRepositoryTest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;

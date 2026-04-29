@@ -2,7 +2,7 @@ package com.springboot.monew.comment.mapper;
 
 import com.springboot.monew.comment.dto.CommentDto;
 import com.springboot.monew.comment.entity.Comment;
-import com.springboot.monew.users.document.UserActivityDocument.CommentItem;
+import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
