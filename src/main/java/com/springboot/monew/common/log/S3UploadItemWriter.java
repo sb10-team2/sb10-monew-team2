@@ -35,7 +35,7 @@ public class S3UploadItemWriter implements ItemWriter<File> {
       if (logFile.delete()) {
         log.info("로컬 파일 삭제 완료: {}", logFile.getName());
       } else {
-        log.warn("로컬 파일 삭제 실패: {}", logFile.getName());
+        throw new IllegalStateException("로컬 파일 삭제 실패: " + logFile.getName());
       }
     }
   }
