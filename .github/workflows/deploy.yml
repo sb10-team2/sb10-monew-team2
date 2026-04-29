@@ -106,7 +106,14 @@ jobs:
             --task-definition "$NEW_TASK_DEF_ARN" \
             --force-new-deployment
 
-      # 9) 배포 상태 확인 (디플로이먼트 요약 출력)
+      # 9) 배포 안정화 대기
+      - name: Wait for ECS service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ vars.ECS_CLUSTER }} \
+            --services ${{ vars.ECS_SERVICE }}
+
+      # 10) 배포 상태 확인 (디플로이먼트 요약 출력)
       - name: ECS 배포 상태 확인
         run: |
           aws ecs describe-services \
