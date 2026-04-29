@@ -12,7 +12,11 @@ public class LogFileItemReader implements ItemReader<File> {
   private int index = 0;
 
   public LogFileItemReader(String targetDate) {
-    File[] files = new File(".logs/").listFiles(
+    this(targetDate, new File(".logs/"));
+  }
+
+  LogFileItemReader(String targetDate, File logDir) {
+    File[] files = logDir.listFiles(
         f -> f.getName().contains(targetDate) && f.getName().endsWith(".log")
     );
     if (files != null) {
