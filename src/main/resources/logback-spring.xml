@@ -69,31 +69,49 @@
         <totalSizeCap>2GB</totalSizeCap>
       </rollingPolicy>
     </appender>
-<!--    todo: 여기는 나중에 도입하시면 주석해제 하면 될 거 같습니다 -->
-<!--    &lt;!&ndash; 뉴스기사 전용 로그 (수집 + 배치) &ndash;&gt;-->
-<!--    <appender name="NEWS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-<!--      <file>${LOG_PATH}/monew-article.log</file>-->
-<!--      <encoder>-->
-<!--        <pattern>${LOG_PATTERN}</pattern>-->
-<!--      </encoder>-->
-<!--      <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
-<!--        <fileNamePattern>${LOG_PATH}/monew-article.%d{yyyy-MM-dd}.%i.log</fileNamePattern>-->
-<!--        <maxFileSize>50MB</maxFileSize>-->
-<!--        <maxHistory>30</maxHistory>-->
-<!--        <totalSizeCap>2GB</totalSizeCap>-->
-<!--      </rollingPolicy>-->
-<!--    </appender>-->
+    <!-- 배치 전용 로그 -->
+    <appender name="BATCH_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_PATH}/monew-batch.log</file>
+      <encoder>
+        <pattern>${LOG_PATTERN}</pattern>
+      </encoder>
+      <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_PATH}/monew-batch.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+        <maxFileSize>200MB</maxFileSize>
+        <maxHistory>30</maxHistory>
+        <totalSizeCap>1GB</totalSizeCap>
+      </rollingPolicy>
+    </appender>
 
-<!--    <root level="INFO">-->
-<!--      <appender-ref ref="FILE"/>-->
-<!--      <appender-ref ref="ERROR_FILE"/>-->
-<!--    </root>-->
+    <root level="INFO">
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="ERROR_FILE"/>
+    </root>
 
-<!--    &lt;!&ndash; 뉴스기사 수집 스케줄러 로그 분리 &ndash;&gt;-->
-<!--    <logger name="com.springboot.monew.newsarticles.scheduler" level="INFO" additivity="false">-->
-<!--      <appender-ref ref="NEWS_FILE"/>-->
-<!--      <appender-ref ref="ERROR_FILE"/>-->
-<!--    </logger>-->
+    <!-- 배치 패키지 로그 분리 -->
+    <logger name="com.springboot.monew.common.log" level="INFO" additivity="false">
+      <appender-ref ref="BATCH_FILE"/>
+      <appender-ref ref="ERROR_FILE"/>
+    </logger>
+
+    <!-- 뉴스기사 수집 배치 도입 시 활성화
+    <appender name="ARTICLE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_PATH}/monew-article.log</file>
+      <encoder>
+        <pattern>${LOG_PATTERN}</pattern>
+      </encoder>
+      <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_PATH}/monew-article.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+        <maxFileSize>200MB</maxFileSize>
+        <maxHistory>30</maxHistory>
+        <totalSizeCap>1GB</totalSizeCap>
+      </rollingPolicy>
+    </appender>
+    <logger name="com.springboot.monew.newsarticles" level="INFO" additivity="false">
+      <appender-ref ref="ARTICLE_FILE"/>
+      <appender-ref ref="ERROR_FILE"/>
+    </logger>
+    -->
 
   </springProfile>
 
