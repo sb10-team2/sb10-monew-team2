@@ -24,7 +24,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 빌드
-        run: ./gradlew clean test --stacktrace
+        run: ./gradlew clean build
 
       #AWS CLI 자격 정보 설정임요
       #Public ECR에 배포해야되므로 region은 us-east-1
