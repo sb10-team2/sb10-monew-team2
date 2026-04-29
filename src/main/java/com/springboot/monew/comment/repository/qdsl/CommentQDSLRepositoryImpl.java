@@ -7,7 +7,7 @@ import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentDirection;
 import com.springboot.monew.comment.entity.CommentOrderBy;
 import com.springboot.monew.comment.entity.QComment;
-import com.springboot.monew.users.entity.QUser;
+import com.springboot.monew.user.entity.QUser;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

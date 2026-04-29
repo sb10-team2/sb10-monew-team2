@@ -2,7 +2,7 @@ package com.springboot.monew.notification.event;
 
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.notification.entity.ResourceType;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -2,7 +2,7 @@ package com.springboot.monew.comment.repository;
 
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
-import com.springboot.monew.users.entity.User;
+import com.springboot.monew.user.entity.User;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
