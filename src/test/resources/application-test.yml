@@ -53,6 +53,7 @@ naver:
 cloud:
   aws:
     s3:
+      enabled: false  # 추가
       access-key: test
       secret-key: test
       region: ap-northeast-2
