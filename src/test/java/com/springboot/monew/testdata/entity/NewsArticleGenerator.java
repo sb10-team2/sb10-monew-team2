@@ -6,6 +6,8 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -35,6 +37,8 @@ public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
         .supply(field(NewsArticle::getOriginalLink), () -> fake.internet().url())
         .supply(field(NewsArticle::getTitle), () -> fake.book().title())
         .supply(field(NewsArticle::getSummary), () -> fake.lorem().characters(10, 1000))
+        .generate(field(NewsArticle::getPublishedAt), gen -> gen.temporal().instant().range(twoWeeksAgo, weekAgo))
+        .generate(field(NewsArticle::getCreatedAt), gen -> gen.temporal().instant().range(weekAgo, now))
         .set(field(NewsArticle::getViewCount), 0L)
         .set(field(NewsArticle::isDeleted), false)
         .create();

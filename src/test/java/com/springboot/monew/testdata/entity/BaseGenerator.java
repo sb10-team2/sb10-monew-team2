@@ -26,6 +26,9 @@ public abstract class BaseGenerator<T extends BaseEntity> {
   protected static final ThreadLocal<Faker> faker = ThreadLocal.withInitial(Faker::new);
   protected final JdbcTemplate template;
   protected final Executor executor;
+  protected final Instant now = Instant.now();
+  protected final Instant weekAgo = now.minus(7, ChronoUnit.DAYS);
+  protected final Instant twoWeeksAgo = weekAgo.minus(7, ChronoUnit.DAYS);
 
   protected void executeBatch(List<T> entities) {
     template.batchUpdate(sql(), entities, batchSize, this::setValues);
