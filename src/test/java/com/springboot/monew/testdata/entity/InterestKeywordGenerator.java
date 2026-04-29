@@ -36,7 +36,7 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
   }
 
   private Stream<InterestKeyword> createKeywordsFor(Interest interest, List<Keyword> keywords) {
-    return uniqueRandomNumbers(keywords, keywordPerInterest).stream()
+    return uniqueRandomNumbers(keywords.size(), keywordPerInterest).stream()
         .map(idx -> Instancio.of(InterestKeyword.class)
             .generate(field(InterestKeyword::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(InterestKeyword::getInterest), interest)

@@ -33,7 +33,7 @@ public class ArticleInterestGenerator extends BaseGenerator<ArticleInterest> {
   }
 
   private Stream<ArticleInterest> createArticlesFor(Interest interest, List<NewsArticle> articles) {
-    return uniqueRandomNumbers(articles,
+    return uniqueRandomNumbers(articles.size(),
         () -> ThreadLocalRandom.current().nextInt(1, 101))
         .stream()
         .map(idx -> Instancio.of(ArticleInterest.class)

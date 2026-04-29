@@ -15,6 +15,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
@@ -64,16 +66,19 @@ public abstract class BaseGenerator<T extends BaseEntity> {
     return gen.temporal().instant().range(weekAgo, now);
   }
 
-  protected <E extends BaseEntity> Set<Integer> uniqueRandomNumbers(List<E> entities, int size) {
+  protected Set<Integer> uniqueRandomNumbers(int number, int size) {
+    if (number <= size) {
+      return IntStream.range(0, number).boxed().collect(Collectors.toSet());
+    }
     Set<Integer> uniqueIndices = new HashSet<>();
     while (uniqueIndices.size() < size) {
-      uniqueIndices.add(ThreadLocalRandom.current().nextInt(entities.size()));
+      uniqueIndices.add(ThreadLocalRandom.current().nextInt(number));
     }
     return uniqueIndices;
   }
 
-  protected <E extends BaseEntity> Set<Integer> uniqueRandomNumbers(List<E> entities, Supplier<Integer> random) {
-    return uniqueRandomNumbers(entities, random.get());
+  protected Set<Integer> uniqueRandomNumbers(int number, Supplier<Integer> random) {
+    return uniqueRandomNumbers(number, random.get());
   }
 
   protected <P> Function<Integer, List<T>> relationMappingGenerator(

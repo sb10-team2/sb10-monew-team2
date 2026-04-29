@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.Setter;
 import org.instancio.Instancio;
@@ -37,7 +36,7 @@ public class ArticleViewGenerator extends BaseGenerator<ArticleView> {
   }
 
   private Stream<ArticleView> createArticlesFor(User user, List<NewsArticle> articles) {
-    return uniqueRandomNumbers(articles, articlePerUser).stream()
+    return uniqueRandomNumbers(articles.size(), articlePerUser).stream()
         .map(idx -> Instancio.of(ArticleView.class)
             .generate(field(ArticleView::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(ArticleView::getUser), user)
@@ -50,7 +49,7 @@ public class ArticleViewGenerator extends BaseGenerator<ArticleView> {
     ps.setObject(1, entity.getId());
     ps.setObject(2, entity.getNewsArticle().getId());
     ps.setObject(3, entity.getUser().getId());
-    ps.setObject(4, Timestamp.from( entity.getCreatedAt()));
+    ps.setObject(4, Timestamp.from(entity.getCreatedAt()));
   }
 
   @Override
