@@ -5,7 +5,7 @@ import java.util.UUID;
 public record CommentLikeCountUpdatedEvent(
     UUID userId,
     UUID commentId,
-    long likeCount
+    Long likeCount
 ) {
 
 }

@@ -30,5 +30,5 @@ public interface NewsArticleViewMapper {
   @Mapping(target = "articleSummary", source = "articleView.newsArticle.summary")
   @Mapping(target = "articleCommentCount", source = "commentCount")
   @Mapping(target = "articleViewCount", source = "articleView.newsArticle.viewCount")
-  ArticleViewItem toArticleViewItem(ArticleView articleView, long commentCount);
+  ArticleViewItem toArticleViewItem(ArticleView articleView, Long commentCount);
 }
