@@ -29,18 +29,17 @@ public class UserGenerator extends BaseGenerator<User> {
   }
 
   private Function<Integer, List<User>> generator() {
-    return chunkSize -> {
-      Faker fake = faker.get();
-      return Instancio.ofList(User.class)
-          .size(chunkSize)
-          .supply(field(User::getEmail), () -> fake.internet().emailAddress())
-//          .supply(field(User::getNickname), () -> fake.funnyName().name())
-          .supply(field(User::getPassword), () -> fake.credentials().password(6, 255))
-          .supply(field(User::getCreatedAt), this::timestamp)
-          .ignore(field(User::getDeletedAt))
-          .ignore(field(User::getUpdatedAt))
-          .create();
-    };
+    Faker fake = faker.get();
+    return chunkSize -> Instancio.ofList(User.class)
+        .size(chunkSize)
+        .supply(field(User::getEmail), () -> email(fake))
+        .generate(field(User::getNickname),
+            gen -> gen.text().pattern("user_#a#d#a#d#a#d#a#d#a#d#a#d#a#d#a"))
+        .supply(field(User::getPassword), () -> fake.credentials().password(6, 255))
+        .supply(field(User::getCreatedAt), this::timestamp)
+        .ignore(field(User::getDeletedAt))
+        .ignore(field(User::getUpdatedAt))
+        .create();
   }
 
   @Override
@@ -59,4 +58,10 @@ public class UserGenerator extends BaseGenerator<User> {
     return "insert into users (id, email, nickname, password, deleted_at, created_at, updated_at) "
         + "values (?, ?, ?, ?, ?, ?, ?)";
   }
+
+  private String email(Faker fake) {
+    return "%s_%s".formatted(UUID.randomUUID(), fake.internet().emailAddress());
+  }
+
+
 }
