@@ -372,7 +372,7 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @DisplayName("존재하지 않는 뉴스기사 조회수 증가는 영향을 주지 않는다.")
   void incrementViewCount_DoesNothing_WhenArticleDoesNotExist() {
     // given
-    // DB에 존재하지 않는 임의의 ID 생성
+    NewsArticle article = newsArticleRepository.save(createArticle("link", Instant.now()));
     UUID notExistArticleId = UUID.randomUUID();
 
     // when
@@ -383,8 +383,9 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     flushAndClear();
 
     // then
-    // 해당 ID로 조회 시 아무 데이터도 없어야 함
-    assertThat(newsArticleRepository.findById(notExistArticleId)).isEmpty();
+    assertThat(newsArticleRepository.findById(article.getId()))
+        .map(NewsArticle::getViewCount)
+        .contains(0L);
   }
 
   @Test
