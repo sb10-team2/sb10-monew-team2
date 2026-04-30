@@ -17,9 +17,6 @@ jobs:
   deploy:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    env:
-      NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
-      NAVER_API_SECRET: ${{ secrets.NAVER_API_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
