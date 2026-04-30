@@ -47,6 +47,11 @@ RUN useradd --create-home --uid 10001 appuser
 #실행 작업 디렉토리
 WORKDIR /app
 
+# 로그 디렉토리 생성 + appuser에게 권한 부여
+RUN mkdir -p /app/.logs \
+    && chown -R appuser:appuser /app
+
+
 # JVM 실행 옵션 (기본값: 빈 문자열)
 ENV JAVA_TOOL_OPTIONS=""
 
