@@ -30,6 +30,7 @@ public class S3BackupService {
           .bucket(props.getBucket())
           .key(key)
           .contentType("application/json")
+          .ifNoneMatch("*")  // 파일이 없을 때만 업로드 (원자적 put-if-absent)
           .build();
 
       //실제 업로드 수행
