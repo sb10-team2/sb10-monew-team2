@@ -37,6 +37,21 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         .build();
   }
 
+  private NewsArticle createArticle(
+      String originalLink,
+      Instant publishedAt,
+      String title,
+      String summary
+  ) {
+    return new NewsArticle(
+        ArticleSource.NAVER,
+        originalLink,
+        title,
+        publishedAt,
+        summary
+    );
+  }
+
   @Test
   @DisplayName("QueryDSL - 발행일 기준 내림차순 정렬 조회에 성공한다.")
   void findNewsArticles_ReturnsSortedByPublishedAtDesc_WhenOrderByPublishDateDesc() {
@@ -306,6 +321,37 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     // then
     // 전체 데이터 개수 반환 검증
     assertThat(count).isEqualTo(3L);
+  }
+  @Test
+  @DisplayName("QueryDSL - 필터 조건으로 뉴스기사 개수를 조회할 수 있다.")
+  void countNewsArticles_ReturnsFilteredCount_WhenKeywordFilterApplied() {
+    // given
+    newsArticleRepository.saveAll(List.of(
+        createArticle("a", Instant.now(), "축구 기사", "손흥민 경기 요약"),
+        createArticle("b", Instant.now(), "야구 기사", "류현진 경기 요약"),
+        createArticle("c", Instant.now(), "경제 기사", "증시 요약")
+    ));
+
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "손흥민", // keyword filter
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    long count = newsArticleRepository.countNewsArticles(request);
+
+    // then
+    assertThat(count).isEqualTo(1L);
   }
 
   @Test
