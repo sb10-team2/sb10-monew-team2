@@ -3,7 +3,7 @@ name: MoNew Deploy Workflow
 on:
   push:
     branches: ["fix/#310/CICD"]
-    types: [closed]
+#    types: [closed]
 
 #중복 배포 방지, 최신 배포만 유지
 #같은 그룹끼리는 동시에 1개만 실행
