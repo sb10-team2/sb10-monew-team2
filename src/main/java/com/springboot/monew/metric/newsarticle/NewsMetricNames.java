@@ -61,7 +61,7 @@ public final class NewsMetricNames {
   public static final String NEWS_BACKUP_SKIPPED_FILES = "monew.news.backup.skipped.files";
 
   // 뉴스 백업 작업에서 실패한 날짜 수 
-  public static final String NEWS_BACKUP_FAILED_FILES = "monew.news.backup.failed.files";
+  public static final String NEWS_BACKUP_FAILED_DATES = "monew.news.backup.failed.dates";
 
   // 새로 업로드한 백업 파일에 포함된 기사 수 
   public static final String NEWS_BACKUP_ARTICLES = "monew.news.backup.articles";

@@ -60,7 +60,7 @@ public class NewsBackupMetrics {
         uploadedCount);
     increment(NewsMetricNames.NEWS_BACKUP_SKIPPED_FILES, "Skipped existing backup file count",
         skippedCount);
-    increment(NewsMetricNames.NEWS_BACKUP_FAILED_FILES, "Failed backup date count", failedCount);
+    increment(NewsMetricNames.NEWS_BACKUP_FAILED_DATES, "Failed backup date count", failedCount);
     increment(NewsMetricNames.NEWS_BACKUP_ARTICLES, "Articles in uploaded backup files",
         articleCount);
     incrementBytes(NewsMetricNames.NEWS_BACKUP_PAYLOAD_BYTES, "Uploaded backup payload size",
