@@ -14,100 +14,132 @@ import com.springboot.monew.user.event.user.UserNicknameUpdatedEvent;
 import com.springboot.monew.user.event.user.UserRegisteredEvent;
 import com.springboot.monew.user.service.UserActivityUpdateService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
-
 public class UserActivityEventListener {
 
   private final UserActivityUpdateService userActivityUpdateService;
 
-  // 회원가입 이벤트를 수신하여 사용자 활동 문서를 생성한다.
+  // 회원가입 직후 사용자 활동 문서를 생성한다.
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(UserRegisteredEvent event) {
-    userActivityUpdateService.createUserActivity(
-        event.user().getId(),
-        event.user().getEmail(),
-        event.user().getNickname(),
-        event.user().getCreatedAt()
+    executeSafely("UserRegisteredEvent", () ->
+        userActivityUpdateService.createUserActivity(
+            event.user().getId(),
+            event.user().getEmail(),
+            event.user().getNickname(),
+            event.user().getCreatedAt()
+        )
     );
   }
 
-  // 닉네임 변경 이벤트를 수신하여 사용자 활동 문서의 닉네임을 갱신
+  // 닉네임 변경 후 사용자 활동 문서의 닉네임을 갱신한다.
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(UserNicknameUpdatedEvent event) {
-    userActivityUpdateService.updateUserNickname(event.userId(), event.nickname());
+    executeSafely("UserNicknameUpdatedEvent", () ->
+        userActivityUpdateService.updateUserNickname(event.userId(), event.nickname())
+    );
   }
 
-  // 관심사 수정 이벤트를 수신하여 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
+  // 관심사 키워드 수정 후 구독 중인 사용자들의 활동 문서 구독 정보를 갱신한다.
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(InterestUpdatedEvent event) {
-    userActivityUpdateService.updateSubscriptionInterest(
-        event.interestId(),
-        event.keywords()
+    executeSafely("InterestUpdatedEvent", () ->
+        userActivityUpdateService.updateSubscriptionInterest(
+            event.interestId(),
+            event.keywords()
+        )
     );
   }
 
-
-  // 관심사 구독 이벤트를 수신하여 사용자 활동 문서에 구독 내역을 추가
+  // 관심사 구독 후 사용자 활동 문서에 구독 내역을 추가한다.
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(InterestSubscribedEvent event) {
-    userActivityUpdateService.addSubscription(event.userId(), event.item());
-  }
-
-  // 관심사 구독 취소 이벤트를 수신하여 사용자 활동 문서에서 구독 내역을 제거
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(InterestUnsubscribedEvent event) {
-    userActivityUpdateService.removeSubscription(event.userId(), event.interestId());
-  }
-
-  // 댓글 작성 이벤트를 수신하여 사용자 활동 문서에 댓글 내역을 추가
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentCreatedEvent event) {
-    userActivityUpdateService.addComment(event.userId(), event.item());
-  }
-
-
-  // 댓글 수정 이벤트를 수신하여 사용자 활동 문서의 댓글 내역을 갱신
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentUpdatedEvent event) {
-    userActivityUpdateService.updateComment(event.userId(), event.item());
-  }
-
-  // 댓글 삭제 이벤트를 수신하여 사용자 활동 문서에서 댓글 내역을 제거
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentDeletedEvent event) {
-    userActivityUpdateService.removeComment(event.userId(), event.commentId());
-  }
-
-  // 댓글 좋아요 이벤트를 수신하여 사용자 활동 문서에 좋아요 내역을 추가
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentLikedEvent event) {
-    userActivityUpdateService.addCommentLike(event.userId(), event.item());
-  }
-
-  // 댓글 좋아요 취소 이벤트를 수신하여 사용자 활동 문서에서 좋아요 내역을 제거한다.
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentUnlikedEvent event) {
-    userActivityUpdateService.removeCommentLike(event.userId(), event.commentId());
-  }
-
-  // 댓글 좋아요 수 변경 이벤트를 수신하여 사용자 활동 문서의 댓글 좋아요 수를 갱신
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handle(CommentLikeCountUpdatedEvent event) {
-    userActivityUpdateService.updateCommentLikeCount(
-        event.userId(),
-        event.commentId(),
-        event.likeCount()
+    executeSafely("InterestSubscribedEvent", () ->
+        userActivityUpdateService.addSubscription(event.userId(), event.item())
     );
   }
 
-  // 기사 조회 이벤트를 수신하여 사용자 활동 문서에 기사 조회 내역을 추가
+  // 관심사 구독 취소 후 사용자 활동 문서에서 구독 내역을 제거한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(InterestUnsubscribedEvent event) {
+    executeSafely("InterestUnsubscribedEvent", () ->
+        userActivityUpdateService.removeSubscription(event.userId(), event.interestId())
+    );
+  }
+
+  // 댓글 작성 후 사용자 활동 문서에 댓글 내역을 추가한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentCreatedEvent event) {
+    executeSafely("CommentCreatedEvent", () ->
+        userActivityUpdateService.addComment(event.userId(), event.item())
+    );
+  }
+
+  // 댓글 수정 후 사용자 활동 문서의 댓글 내역을 갱신한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentUpdatedEvent event) {
+    executeSafely("CommentUpdatedEvent", () ->
+        userActivityUpdateService.updateComment(event.userId(), event.item())
+    );
+  }
+
+  // 댓글 삭제 후 사용자 활동 문서에서 댓글 내역을 제거한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentDeletedEvent event) {
+    executeSafely("CommentDeletedEvent", () ->
+        userActivityUpdateService.removeComment(event.userId(), event.commentId())
+    );
+  }
+
+  // 댓글 좋아요 후 사용자 활동 문서에 좋아요 내역을 추가한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentLikedEvent event) {
+    executeSafely("CommentLikedEvent", () ->
+        userActivityUpdateService.addCommentLike(event.userId(), event.item())
+    );
+  }
+
+  // 댓글 좋아요 취소 후 사용자 활동 문서에서 좋아요 내역을 제거한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentUnlikedEvent event) {
+    executeSafely("CommentUnlikedEvent", () ->
+        userActivityUpdateService.removeCommentLike(event.userId(), event.commentId())
+    );
+  }
+
+  // 댓글 좋아요 수 변경 후 사용자 활동 문서의 좋아요 수를 갱신한다.
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(CommentLikeCountUpdatedEvent event) {
+    executeSafely("CommentLikeCountUpdatedEvent", () ->
+        userActivityUpdateService.updateCommentLikeCount(
+            event.userId(),
+            event.commentId(),
+            event.likeCount()
+        )
+    );
+  }
+
+  // 기사 조회 후 사용자 활동 문서에 기사 조회 내역을 추가한다.
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ArticleViewedEvent event) {
-    userActivityUpdateService.addArticleView(event.userId(), event.item());
+    executeSafely("ArticleViewedEvent", () ->
+        userActivityUpdateService.addArticleView(event.userId(), event.item())
+    );
+  }
+
+  // 즉시 반영에 실패해도 예외를 삼키고 Outbox 스케줄러가 재처리할 수 있도록 로그만 남긴다.
+  private void executeSafely(String eventName, Runnable action) {
+    try {
+      action.run();
+    } catch (Exception e) {
+      log.error("사용자 활동 즉시 반영 실패 - event={}", eventName, e);
+    }
   }
 }
