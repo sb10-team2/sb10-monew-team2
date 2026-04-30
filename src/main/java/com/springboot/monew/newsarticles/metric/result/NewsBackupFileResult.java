@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.newsarticle.result;
+package com.springboot.monew.newsarticles.metric.result;
 
 // 날짜 하나에 대한 뉴스 기사 백업 파일 처리 결과 값 객체
 public record NewsBackupFileResult(

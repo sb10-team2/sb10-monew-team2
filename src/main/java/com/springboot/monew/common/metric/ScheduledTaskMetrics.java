@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;

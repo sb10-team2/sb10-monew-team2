@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 // Prometheus 메트릭에서 사용하는 공통 태그 이름과 태그 값 모음
 public final class MonewMetricTags {

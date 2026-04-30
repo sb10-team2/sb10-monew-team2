@@ -1,6 +1,6 @@
-package com.springboot.monew.metric.newsarticle.result;
+package com.springboot.monew.newsarticles.metric.result;
 
-import com.springboot.monew.metric.ScheduledTaskStatus;
+import com.springboot.monew.common.metric.ScheduledTaskStatus;
 import java.util.List;
 import java.util.Objects;
 

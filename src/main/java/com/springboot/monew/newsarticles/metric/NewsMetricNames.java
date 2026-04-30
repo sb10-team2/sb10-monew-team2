@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.newsarticle;
+package com.springboot.monew.newsarticles.metric;
 
 // 뉴스 기사 수집과 백업 스케줄러 도메인 메트릭 이름 모음
 public final class NewsMetricNames {

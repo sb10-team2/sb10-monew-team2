@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.user;
+package com.springboot.monew.user.metric;
 
 // 유저 정리 스케줄러 도메인 메트릭 이름 모음
 public final class UserMetricNames {

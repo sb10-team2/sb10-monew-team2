@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 import java.time.Duration;
 import java.util.Locale;

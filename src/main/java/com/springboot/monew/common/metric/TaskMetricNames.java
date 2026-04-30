@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 // 정기 작업 공통 메트릭 이름 모음
 public final class TaskMetricNames {

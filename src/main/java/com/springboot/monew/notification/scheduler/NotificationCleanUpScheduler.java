@@ -1,8 +1,8 @@
 package com.springboot.monew.notification.scheduler;
 
-import com.springboot.monew.metric.MonewTaskNames;
-import com.springboot.monew.metric.ScheduledTaskMetrics;
-import com.springboot.monew.metric.notification.NotificationMetrics;
+import com.springboot.monew.common.metric.MonewTaskNames;
+import com.springboot.monew.common.metric.ScheduledTaskMetrics;
+import com.springboot.monew.notification.metric.NotificationMetrics;
 import com.springboot.monew.notification.service.NotificationService;
 import java.time.Clock;
 import java.time.Duration;

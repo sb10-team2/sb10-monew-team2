@@ -1,9 +1,9 @@
-package com.springboot.monew.metric.newsarticle;
+package com.springboot.monew.newsarticles.metric;
 
-import com.springboot.monew.metric.MetricSupport;
-import com.springboot.monew.metric.MonewMetricTags;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleCollectResult;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleSourceCollectResult;
+import com.springboot.monew.common.metric.MetricSupport;
+import com.springboot.monew.common.metric.MonewMetricTags;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSourceCollectResult;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;

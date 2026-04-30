@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.newsarticle.result;
+package com.springboot.monew.newsarticles.metric.result;
 
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import java.time.Duration;

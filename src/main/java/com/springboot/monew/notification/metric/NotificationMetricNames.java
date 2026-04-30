@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.notification;
+package com.springboot.monew.notification.metric;
 
 // 알림 정리 스케줄러 도메인 메트릭 이름 모음
 public final class NotificationMetricNames {

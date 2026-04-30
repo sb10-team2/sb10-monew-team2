@@ -1,4 +1,4 @@
-package com.springboot.monew.metric.newsarticle.result;
+package com.springboot.monew.newsarticles.metric.result;
 
 // 뉴스 기사 저장 결과를 메트릭 집계에 재사용하기 위한 값 객체
 public record NewsArticleSaveResult(

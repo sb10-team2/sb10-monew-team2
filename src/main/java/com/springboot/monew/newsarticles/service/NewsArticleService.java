@@ -3,7 +3,7 @@ package com.springboot.monew.newsarticles.service;
 import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.repository.InterestRepository;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleSaveResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSaveResult;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;

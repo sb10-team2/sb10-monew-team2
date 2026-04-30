@@ -1,9 +1,9 @@
 package com.springboot.monew.newsarticles.scheduler;
 
-import com.springboot.monew.metric.MonewTaskNames;
-import com.springboot.monew.metric.ScheduledTaskMetrics;
-import com.springboot.monew.metric.newsarticle.NewsCollectMetrics;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleCollectResult;
+import com.springboot.monew.common.metric.MonewTaskNames;
+import com.springboot.monew.common.metric.ScheduledTaskMetrics;
+import com.springboot.monew.newsarticles.metric.NewsCollectMetrics;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import java.time.Duration;
 import java.time.Instant;

@@ -1,6 +1,6 @@
-package com.springboot.monew.metric.user;
+package com.springboot.monew.user.metric;
 
-import com.springboot.monew.metric.MetricSupport;
+import com.springboot.monew.common.metric.MetricSupport;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;

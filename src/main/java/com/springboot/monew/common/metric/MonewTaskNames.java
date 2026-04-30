@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 // 대시보드 태그 값으로 사용하는 정기 작업 이름 모음
 public final class MonewTaskNames {

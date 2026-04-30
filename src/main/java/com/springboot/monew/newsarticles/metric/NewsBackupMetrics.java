@@ -1,7 +1,7 @@
-package com.springboot.monew.metric.newsarticle;
+package com.springboot.monew.newsarticles.metric;
 
-import com.springboot.monew.metric.MetricSupport;
-import com.springboot.monew.metric.newsarticle.result.NewsBackupRunResult;
+import com.springboot.monew.common.metric.MetricSupport;
+import com.springboot.monew.newsarticles.metric.result.NewsBackupRunResult;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;

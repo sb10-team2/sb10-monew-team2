@@ -2,9 +2,9 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.interest.dto.response.InterestKeywordInfo;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleCollectResult;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleSaveResult;
-import com.springboot.monew.metric.newsarticle.result.NewsArticleSourceCollectResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSaveResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSourceCollectResult;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.service.collector.ArticleCollector;

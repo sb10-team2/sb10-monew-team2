@@ -1,4 +1,4 @@
-package com.springboot.monew.metric;
+package com.springboot.monew.common.metric;
 
 // 정기 작업 실행 결과 상태와 Prometheus 태그 값의 매핑
 public enum ScheduledTaskStatus {

@@ -1,10 +1,10 @@
 package com.springboot.monew.newsarticles.scheduler;
 
-import com.springboot.monew.metric.MonewTaskNames;
-import com.springboot.monew.metric.ScheduledTaskMetrics;
-import com.springboot.monew.metric.newsarticle.NewsBackupMetrics;
-import com.springboot.monew.metric.newsarticle.result.NewsBackupFileResult;
-import com.springboot.monew.metric.newsarticle.result.NewsBackupRunResult;
+import com.springboot.monew.common.metric.MonewTaskNames;
+import com.springboot.monew.common.metric.ScheduledTaskMetrics;
+import com.springboot.monew.newsarticles.metric.NewsBackupMetrics;
+import com.springboot.monew.newsarticles.metric.result.NewsBackupFileResult;
+import com.springboot.monew.newsarticles.metric.result.NewsBackupRunResult;
 import com.springboot.monew.newsarticles.s3.NewsArticleBackupService;
 import java.time.Duration;
 import java.time.Instant;

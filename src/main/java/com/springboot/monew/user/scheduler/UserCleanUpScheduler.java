@@ -1,8 +1,8 @@
 package com.springboot.monew.user.scheduler;
 
-import com.springboot.monew.metric.MonewTaskNames;
-import com.springboot.monew.metric.ScheduledTaskMetrics;
-import com.springboot.monew.metric.user.UserMetrics;
+import com.springboot.monew.common.metric.MonewTaskNames;
+import com.springboot.monew.common.metric.ScheduledTaskMetrics;
+import com.springboot.monew.user.metric.UserMetrics;
 import com.springboot.monew.user.service.UserService;
 import java.time.Clock;
 import java.time.Duration;

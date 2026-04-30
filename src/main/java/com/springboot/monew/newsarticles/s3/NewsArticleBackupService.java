@@ -1,7 +1,7 @@
 package com.springboot.monew.newsarticles.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.springboot.monew.metric.newsarticle.result.NewsBackupFileResult;
+import com.springboot.monew.newsarticles.metric.result.NewsBackupFileResult;
 import com.springboot.monew.newsarticles.dto.NewsArticleBackupDto;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import java.nio.charset.StandardCharsets;
