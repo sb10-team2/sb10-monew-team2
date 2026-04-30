@@ -35,7 +35,7 @@ public class UserActivityOutboxSingleProcessor {
   private final UserActivityUpdateService userActivityUpdateService;
 
   // Outbox 이벤트 한 건을 별도 트랜잭션으로 처리하고 결과 상태를 반영한다.
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void processSingleEvent(UUID outboxId) {
     UserActivityOutbox outbox = userActivityOutboxRepository.findById(outboxId)
         .orElseThrow(() -> new IllegalStateException("Outbox 이벤트를 찾을 수 없다. outboxId=" + outboxId));
