@@ -42,6 +42,8 @@ RUN ./gradlew --no-daemon clean bootJar -x test
 #JRE에서 jar만 실행한다.
 FROM eclipse-temurin:17-jre AS runtime
 
+RUN useradd --create-home --uid 10001 appuser
+
 #실행 작업 디렉토리
 WORKDIR /app
 
@@ -49,10 +51,8 @@ WORKDIR /app
 ENV JAVA_TOOL_OPTIONS=""
 
 # builder 단계에서 만든 jar를 runtime 이미지로 복사
-COPY --from=builder /build/build/libs/*.jar /app/app.jar
-
-# /app 폴더 소유권을 appuser에게 넘겨줌 -> non-root로 실행하기 위해
-RUN chown -R appuser:appuser /app
+#COPY할때 바로 소유자 지정
+COPY --from=builder --chown=appuser:appuser /build/build/libs/*.jar /app/app.jar
 
 #애플리케이션 포트
 USER appuser
