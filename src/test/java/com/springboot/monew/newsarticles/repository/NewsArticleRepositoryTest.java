@@ -1,6 +1,7 @@
 package com.springboot.monew.newsarticles.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.springboot.monew.common.repository.BaseRepositoryTest;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 public class NewsArticleRepositoryTest extends BaseRepositoryTest {
 
@@ -113,6 +115,161 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     // limit + 1 = 3개 조회되는지 확인
     // → hasNext 판단을 위한 핵심 로직 검증
     assertThat(result).hasSize(3);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 검색어가 제목에 포함된 뉴스기사만 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenKeywordMatchesTitle() {
+    // given
+    NewsArticle springArticle = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("spring-link")
+        .title("spring boot news")
+        .publishedAt(Instant.now())
+        .summary("test summary")
+        .build();
+
+    NewsArticle javaArticle = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("java-link")
+        .title("java news")
+        .publishedAt(Instant.now())
+        .summary("test summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(springArticle, javaArticle));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "spring",
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).sourceUrl()).isEqualTo("spring-link");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 출처 조건으로 뉴스기사를 필터링한다.")
+  void findNewsArticles_ReturnsArticles_WhenSourceFilterApplied() {
+    // given
+    NewsArticle naverArticle = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("naver-link")
+        .title("naver title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    NewsArticle yonhapArticle = NewsArticle.builder()
+        .source(ArticleSource.YEONHAP)
+        .originalLink("yonhap-link")
+        .title("yonhap title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(naverArticle, yonhapArticle));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        List.of(ArticleSource.NAVER),
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).source()).isEqualTo(ArticleSource.NAVER);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 조회수 기준 내림차순 정렬 조회에 성공한다.")
+  void findNewsArticles_ReturnsSortedByViewCountDesc_WhenOrderByViewCountDesc() {
+    // given
+    NewsArticle low = createArticle("low", Instant.now());
+    NewsArticle high = createArticle("high", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(low, high));
+    flushAndClear();
+
+    newsArticleRepository.incrementViewCount(high.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.viewCount,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("high", "low");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 잘못된 커서 형식이면 예외가 발생한다.")
+  void findNewsArticles_ThrowsException_WhenCursorFormatIsInvalid() {
+    // given
+    NewsArticle article = createArticle("link", Instant.now());
+    newsArticleRepository.save(article);
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        "invalid-cursor",
+        null,
+        10
+    );
+
+    // when & then
+    assertThatThrownBy(() -> newsArticleRepository.findNewsArticles(request, UUID.randomUUID()))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("잘못된 커서 형식");
   }
 
   @Test
