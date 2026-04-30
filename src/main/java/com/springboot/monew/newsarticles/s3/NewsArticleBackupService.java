@@ -47,7 +47,11 @@ public class NewsArticleBackupService {
 
       String json = objectMapper.writeValueAsString(backupDtos);
       String key = "backup/news-articles/%s/news-articles.json".formatted(backupDate);
-      s3BackupService.upload(key, json);
+      if (!s3BackupService.uploadIfAbsent(key, json)) {
+        log.info("Backup file already exists. backupDate={}, key={}", backupDate, key);
+        return NewsBackupFileResult.skippedByExistingFile();
+      }
+
       return NewsBackupFileResult.uploaded(backupDtos.size(),
           json.getBytes(StandardCharsets.UTF_8).length);
 

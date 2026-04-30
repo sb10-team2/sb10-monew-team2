@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
 @RequiredArgsConstructor
@@ -26,22 +27,47 @@ public class S3BackupService {
   */
   public void upload(String key, String json) {
     try {
-      PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-          .bucket(props.getBucket())
-          .key(key)
-          .contentType("application/json")
-          .ifNoneMatch("*")  // 파일이 없을 때만 업로드 (원자적 put-if-absent)
-          .build();
-
-      //실제 업로드 수행
-      s3Client.putObject(
-          putObjectRequest,
-          RequestBody.fromString(json, StandardCharsets.UTF_8)  //JSON 문자열을 바이트로 변환
-      );
+      putObject(key, json, null);
+    } catch (Exception e) {
+      throw new RuntimeException("S3 upload failed", e);
     }
-    catch (Exception e) {
+  }
+
+  /*
+  파일이 없을 때만 S3에 백업 JSON 업로드
+  key: S3에 저장될 경로
+  json: 업로드할 JSON 문자열
+  return true: 업로드 성공, false: 이미 파일이 존재함
+  */
+  public boolean uploadIfAbsent(String key, String json) {
+    try {
+      putObject(key, json, "*");
+      return true;
+    } catch (S3Exception e) {
+      if (e.statusCode() == 412) {
+        return false;
+      }
+      throw new RuntimeException("S3 업로드 실패", e);
+    } catch (Exception e) {
       throw new RuntimeException("S3 업로드 실패", e);
     }
+  }
+
+  //실제 업로드 수행
+  private void putObject(String key, String json, String ifNoneMatch) {
+    PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder()
+        .bucket(props.getBucket())
+        .key(key)
+        .contentType("application/json");
+
+    if (ifNoneMatch != null) {
+      requestBuilder.ifNoneMatch(ifNoneMatch);
+    }
+
+    s3Client.putObject(
+        requestBuilder.build(),
+        RequestBody.fromString(json, StandardCharsets.UTF_8)  //JSON 문자열을 바이트로 변환
+    );
   }
 
   //백업 JSON 다운로드
@@ -81,4 +107,3 @@ public class S3BackupService {
     }
   }
 }
-
