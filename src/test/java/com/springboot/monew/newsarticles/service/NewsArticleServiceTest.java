@@ -37,6 +37,7 @@ import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
@@ -50,6 +51,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -352,12 +354,17 @@ class NewsArticleServiceTest {
     //  given
     UUID articleId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
+    // 저장된 ArticleView의 id를 따로 고정해둔다.
+    UUID articleViewId = UUID.randomUUID();
     User user = mock(User.class);
     NewsArticle newsArticle = mock(NewsArticle.class);
 
     //저장된 조회이력 mock 생성
     //ArticleView savedArticleView;
     ArticleView savedArticleView = mock(ArticleView.class);
+
+    // saveAndFlush 이후 다시 조회해 사용할 ArticleView mock
+    ArticleView refreshedArticleView = mock(ArticleView.class);
 
     //반환될 DTO mock 생성
     NewsArticleViewDto responseDto = mock(NewsArticleViewDto.class);
@@ -392,14 +399,20 @@ class NewsArticleServiceTest {
     //조회이력 저장 성공
     given(articleViewRepository.saveAndFlush(any(ArticleView.class))).willReturn(savedArticleView);
 
+    // 저장된 조회이력의 id를 반환하도록 설정
+    given(savedArticleView.getId()).willReturn(articleViewId);
+
+    // getReferenceById()로 다시 조회한 ArticleView mock 반환
+    given(articleViewRepository.getReferenceById(articleViewId)).willReturn(refreshedArticleView);
+
     //뉴스기사 댓글 수
     given(commentRepository.countByArticleIdAndIsDeletedFalse(articleId)).willReturn(3L);
 
-    //DTO 변환결과 설정
-    given(newsArticleViewMapper.toDto(any(ArticleView.class), eq(3L))).willReturn(responseDto);
+    // DTO 변환은 refreshedArticleView 기준으로 stub
+    given(newsArticleViewMapper.toDto(eq(refreshedArticleView), eq(3L))).willReturn(responseDto);
 
-    // createView() 내부에서 Outbox 저장용 ArticleViewItem을 생성하므로 stub 처리한다.
-    given(newsArticleViewMapper.toArticleViewItem(any(ArticleView.class), eq(3L)))
+    // Outbox/Event용 ArticleViewItem도 refreshedArticleView 기준으로 stub
+    given(newsArticleViewMapper.toArticleViewItem(eq(refreshedArticleView), eq(3L)))
         .willReturn(articleViewItem);
 
     //  when
@@ -408,11 +421,11 @@ class NewsArticleServiceTest {
     //  then
     //반환 DTO 검증
     assertThat(result).isEqualTo(responseDto);
-
-    verify(userRepository).findById(userId);
-    verify(newsArticleRepository, times(2)).findById(articleId);
+    verify(newsArticleRepository).findById(articleId);
     verify(articleViewRepository).existsByNewsArticleIdAndUserId(articleId, userId);
     verify(articleViewRepository).saveAndFlush(any(ArticleView.class));
+    verify(savedArticleView).getId();
+    verify(articleViewRepository).getReferenceById(articleViewId);
     verify(commentRepository).countByArticleIdAndIsDeletedFalse(articleId);
 
     //조회수 증가가 수행되었는지 검증
@@ -420,7 +433,17 @@ class NewsArticleServiceTest {
 
     //DTO 변환이 수행되었는지 검증
     verify(newsArticleViewMapper).toDto(any(ArticleView.class), eq(3L));
-    verify(newsArticleViewMapper).toArticleViewItem(any(ArticleView.class), eq(3L));
+    verify(newsArticleViewMapper).toArticleViewItem(eq(refreshedArticleView), eq(3L));
+
+    // 기사 조회 성공 시 사용자 활동내역 반영을 위한 ArticleViewedEvent가 발행되었는지 검증한다.
+    ArgumentCaptor<ArticleViewedEvent> captor =
+        ArgumentCaptor.forClass(ArticleViewedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    // 발행된 이벤트에 조회한 사용자 id와 기사 조회 활동 정보가 올바르게 담겼는지 검증한다.
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().item()).isEqualTo(articleViewItem);
 
     // 기사 조회 사용자의 활동 문서 반영용 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveArticleViewed(userId, articleViewItem);

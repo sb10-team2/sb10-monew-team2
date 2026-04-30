@@ -21,6 +21,9 @@ import com.springboot.monew.common.exception.MonewException;
 import com.springboot.monew.notification.event.CommentLikeNotificationEvent;
 import com.springboot.monew.user.document.UserActivityDocument.CommentLikeItem;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.comment.CommentLikeCountUpdatedEvent;
+import com.springboot.monew.user.event.comment.CommentLikedEvent;
+import com.springboot.monew.user.event.comment.CommentUnlikedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.repository.UserRepository;
 import com.springboot.monew.user.service.UserActivityOutboxService;
@@ -117,6 +120,42 @@ class CommentLikeServiceTest {
     verify(commentLikeRepository).save(any(CommentLike.class));
     verify(commentLikeMapper).toCommentLikeDto(any(CommentLike.class));
     verify(commentLikeMapper).toCommentLikeItem(any(CommentLike.class));
+
+    // 좋아요 등록 시 총 3개의 이벤트가 발행되는지 검증하고, 전달된 이벤트 객체들을 모두 가져온다.
+    ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+    verify(eventPublisher, times(3)).publishEvent(captor.capture());
+
+    // 발행된 이벤트 목록에서 사용자 활동 내역 추가 이벤트를 찾는다.
+    CommentLikedEvent likedEvent = captor.getAllValues().stream()
+        .filter(CommentLikedEvent.class::isInstance)
+        .map(CommentLikedEvent.class::cast)
+        .findFirst()
+        .orElseThrow();
+
+    // 발행된 이벤트 목록에서 댓글 좋아요 수 갱신 이벤트를 찾는다.
+    CommentLikeCountUpdatedEvent likeCountUpdatedEvent = captor.getAllValues().stream()
+        .filter(CommentLikeCountUpdatedEvent.class::isInstance)
+        .map(CommentLikeCountUpdatedEvent.class::cast)
+        .findFirst()
+        .orElseThrow();
+
+    // 발행된 이벤트 목록에서 댓글 좋아요 알림 이벤트를 찾는다.
+    CommentLikeNotificationEvent notificationEvent = captor.getAllValues().stream()
+        .filter(CommentLikeNotificationEvent.class::isInstance)
+        .map(CommentLikeNotificationEvent.class::cast)
+        .findFirst()
+        .orElseThrow();
+
+    // 사용자 활동 내역에 추가할 좋아요 이벤트가 올바르게 발행되었는지 검증한다.
+    assertThat(likedEvent.userId()).isEqualTo(user.getId());
+    assertThat(likedEvent.item().commentId()).isEqualTo(refreshed.getId());
+    assertThat(likedEvent.item().articleId()).isEqualTo(refreshed.getArticle().getId());
+    assertThat(likedEvent.item().commentContent()).isEqualTo(refreshed.getContent());
+
+    // 댓글 작성자의 활동 내역에 반영할 좋아요 수 갱신 이벤트가 올바르게 발행되었는지 검증한다.
+    assertThat(likeCountUpdatedEvent.userId()).isEqualTo(refreshed.getUser().getId());
+    assertThat(likeCountUpdatedEvent.commentId()).isEqualTo(refreshed.getId());
+    assertThat(likeCountUpdatedEvent.likeCount()).isEqualTo(refreshed.getLikeCount());
     // 좋아요를 누른 사용자의 활동 문서 반영용 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveCommentLiked(user.getId(), commentLikeItem);
     // 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수 갱신용 Outbox 저장이 호출되었는지 검증한다.
@@ -125,12 +164,6 @@ class CommentLikeServiceTest {
         refreshed.getId(),
         refreshed.getLikeCount()
     );
-    // 댓글 좋아요 알림 이벤트는 기존처럼 발행되는지 검증한다.
-    ArgumentCaptor<CommentLikeNotificationEvent> captor =
-        ArgumentCaptor.forClass(CommentLikeNotificationEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    // 댓글 좋아요 알림 이벤트가 함께 발행되었는지 검증한다.
-    assertThat(captor.getValue()).isNotNull();
   }
 
   @Test
@@ -254,6 +287,32 @@ class CommentLikeServiceTest {
     // then
     verify(commentLikeRepository).delete(commentLike);
     verify(commentRepository).decrementLikeCount(comment.getId());
+    // 좋아요 취소 시 총 2개의 이벤트가 발행되는지 검증하고, 전달된 이벤트 객체들을 모두 가져온다.
+    ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+    verify(eventPublisher, times(2)).publishEvent(captor.capture());
+
+    // 발행된 이벤트 목록에서 사용자 활동 내역 제거 이벤트를 찾는다.
+    CommentUnlikedEvent unlikedEvent = captor.getAllValues().stream()
+        .filter(CommentUnlikedEvent.class::isInstance)
+        .map(CommentUnlikedEvent.class::cast)
+        .findFirst()
+        .orElseThrow();
+
+    // 발행된 이벤트 목록에서 댓글 좋아요 수 갱신 이벤트를 찾는다.
+    CommentLikeCountUpdatedEvent likeCountUpdatedEvent = captor.getAllValues().stream()
+        .filter(CommentLikeCountUpdatedEvent.class::isInstance)
+        .map(CommentLikeCountUpdatedEvent.class::cast)
+        .findFirst()
+        .orElseThrow();
+
+    // 사용자 활동 내역에서 제거할 좋아요 취소 이벤트가 올바르게 발행되었는지 검증한다.
+    assertThat(unlikedEvent.userId()).isEqualTo(user.getId());
+    assertThat(unlikedEvent.commentId()).isEqualTo(comment.getId());
+
+    // 댓글 작성자의 활동 내역에 반영할 좋아요 수 갱신 이벤트가 올바르게 발행되었는지 검증한다.
+    assertThat(likeCountUpdatedEvent.userId()).isEqualTo(refreshed.getUser().getId());
+    assertThat(likeCountUpdatedEvent.commentId()).isEqualTo(refreshed.getId());
+    assertThat(likeCountUpdatedEvent.likeCount()).isEqualTo(refreshed.getLikeCount());
     // 좋아요를 취소한 사용자의 활동 문서 반영용 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveCommentUnliked(user.getId(), comment.getId());
     // 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수 갱신용 Outbox 저장이 호출되었는지 검증한다.

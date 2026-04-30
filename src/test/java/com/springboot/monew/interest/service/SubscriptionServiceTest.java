@@ -19,7 +19,10 @@ import com.springboot.monew.interest.mapper.SubscriptionDtoMapper;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
+import com.springboot.monew.user.document.UserActivityDocument.SubscriptionItem;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.interest.InterestSubscribedEvent;
+import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
@@ -33,9 +36,11 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -60,6 +65,9 @@ class SubscriptionServiceTest {
   @Mock
   private UserActivityOutboxService userActivityOutboxService;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private SubscriptionService subscriptionService;
 
@@ -77,6 +85,16 @@ class SubscriptionServiceTest {
         interest,
         Instant.parse("2026-04-20T00:00:00Z")
     );
+
+    // 사용자 활동 이벤트 발행 시 InterestSubscribedEvent 안에 담길 SubscriptionItem을 미리 준비한다.
+    SubscriptionItem subscriptionItem = new SubscriptionItem(
+        subscription.getId(),
+        interestId,
+        interest.getName(),
+        List.of("주식", "채권"),
+        subscription.getCreatedAt()
+    );
+
     InterestKeyword firstLink = new InterestKeyword(interest, keyword(UUID.randomUUID(), "주식"));
     InterestKeyword secondLink = new InterestKeyword(interest, keyword(UUID.randomUUID(), "채권"));
     SubscriptionDto expected = new SubscriptionDto(
@@ -97,6 +115,8 @@ class SubscriptionServiceTest {
     given(interestRepository.findSubscriberCountById(interestId)).willReturn(2L);
     given(subscriptionDtoMapper.toSubscriptionDto(subscription, List.of("주식", "채권"), 2L))
         .willReturn(expected);
+    // subscribe() 내부에서 InterestSubscribedEvent 생성 시 toSubscriptionItem()을 호출하므로 null이 반환되지 않도록 stub 처리한다.
+    given(subscriptionDtoMapper.toSubscriptionItem(subscription, List.of("주식", "채권"))).willReturn(subscriptionItem);
 
     // when
     SubscriptionDto result = subscriptionService.subscribe(interestId, userId);
@@ -105,6 +125,18 @@ class SubscriptionServiceTest {
     assertThat(result).isEqualTo(expected);
     // 관심사 구독 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveInterestSubscribed(subscription, List.of("주식", "채권"));
+
+    // 발행된 InterestSubscribedEvent를 가져와 구독 정보가 올바르게 담겼는지 검증한다.
+    ArgumentCaptor<InterestSubscribedEvent> captor =
+        ArgumentCaptor.forClass(InterestSubscribedEvent.class);
+
+    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().item().interestId()).isEqualTo(interestId);
+    assertThat(captor.getValue().item().interestName()).isEqualTo(interest.getName());
+    assertThat(captor.getValue().item().interestKeywords()).containsExactly("주식", "채권");
   }
 
   @Test
@@ -389,6 +421,16 @@ class SubscriptionServiceTest {
     verify(interestRepository).decrementSubscriberCount(interestId);
     // 관심사 구독 취소 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveInterestUnsubscribed(userId, interestId);
+
+    // 발행된 InterestUnsubscribedEvent를 가져와 구독 취소 대상 정보가 올바르게 담겼는지 검증한다.
+    ArgumentCaptor<InterestUnsubscribedEvent> captor =
+        ArgumentCaptor.forClass(InterestUnsubscribedEvent.class);
+
+    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().interestId()).isEqualTo(interestId);
   }
 
   @Test

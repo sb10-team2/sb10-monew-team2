@@ -510,7 +510,7 @@ public class UserActivityUpdateServiceTest {
   }
 
   @Test
-  @DisplayName("활동 문서가 존재하지 않으면 USER_NOT_FOUND 예외가 발생한다")
+  @DisplayName("활동 문서가 존재하지 않으면 USER_ACTIVITY_NOT_FOUND 예외가 발생한다")
   void getDocument_ThrowsException_WhenDocumentNotFound() {
     // given
     UUID userId = UUID.randomUUID();
@@ -532,7 +532,7 @@ public class UserActivityUpdateServiceTest {
         .isInstanceOf(UserException.class)
         .satisfies(throwable -> {
           UserException exception = (UserException) throwable;
-          assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+          assertThat(exception.getErrorCode()).isEqualTo(UserErrorCode.USER_ACTIVITY_NOT_FOUND);
           assertThat(exception.getDetails()).isEqualTo(Map.of("userId", userId));
         });
 

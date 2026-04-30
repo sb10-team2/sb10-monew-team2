@@ -31,6 +31,9 @@ import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.comment.CommentCreatedEvent;
+import com.springboot.monew.user.event.comment.CommentDeletedEvent;
+import com.springboot.monew.user.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.repository.UserRepository;
 import com.springboot.monew.user.service.UserActivityOutboxService;
@@ -43,9 +46,11 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -56,6 +61,8 @@ class CommentServiceTest {
   @Mock UserRepository userRepository;
   @Mock CommentMapper commentMapper;
   @Mock UserActivityOutboxService userActivityOutboxService;
+  // CommentService에 추가된 이벤트 발행 의존성을 테스트에서 주입하기 위한 mock이다.
+  @Mock ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private CommentService commentService;
@@ -125,6 +132,16 @@ class CommentServiceTest {
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
     // 댓글 생성 후 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveCommentCreated(user.getId(), commentItem);
+    // 발행된 CommentCreatedEvent를 가져와 댓글 생성 정보가 올바르게 담겼는지 검증
+    ArgumentCaptor<CommentCreatedEvent> captor =
+        ArgumentCaptor.forClass(CommentCreatedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().articleId()).isEqualTo(article.getId());
+    assertThat(captor.getValue().item().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().content()).isEqualTo(request.content());
   }
 
   @Test
@@ -246,6 +263,17 @@ class CommentServiceTest {
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
     // 댓글 수정 후 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveCommentUpdated(user.getId(), commentItem);
+
+    // 발행된 CommentUpdatedEvent를 가져와 수정된 댓글 정보가 올바르게 담겼는지 검증
+    ArgumentCaptor<CommentUpdatedEvent> captor =
+        ArgumentCaptor.forClass(CommentUpdatedEvent.class);
+
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().id()).isEqualTo(commentId);
+    assertThat(captor.getValue().item().userId()).isEqualTo(user.getId());
+    assertThat(captor.getValue().item().content()).isEqualTo(request.content());
   }
 
   @Test
@@ -422,6 +450,16 @@ class CommentServiceTest {
     verify(commentRepository).delete(comment);
     // 댓글 삭제 후 Outbox 저장이 호출되었는지 검증한다.
     verify(userActivityOutboxService).saveCommentDeleted(userId, commentId);
+
+    // 발행된 CommentDeletedEvent를 가져와 삭제 대상 정보가 올바르게 담겼는지 검증한다.
+    ArgumentCaptor<CommentDeletedEvent> captor =
+        ArgumentCaptor.forClass(CommentDeletedEvent.class);
+
+    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
+    verify(eventPublisher).publishEvent(captor.capture());
+
+    assertThat(captor.getValue().userId()).isEqualTo(userId);
+    assertThat(captor.getValue().commentId()).isEqualTo(commentId);
   }
 
   @Test
