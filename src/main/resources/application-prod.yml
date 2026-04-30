@@ -1,19 +1,18 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+#    hikari:
+#      maximum-pool-size: 10
+#      minimum-idle: 5
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: validate    #DB랑 엔티티 구조 비교만하고 틀리면 에러
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
   data:
     mongodb:
       uri: ${MONGODB_URI}
@@ -24,7 +23,7 @@ spring:
       enabled: false
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: 80
 
 logging:
   level:

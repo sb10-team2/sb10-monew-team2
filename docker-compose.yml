@@ -1,41 +1,34 @@
+version: "3.9"
+
 services:
-  mongodb:
-    image: mongo:7
-    container_name: monew-mongo
+  app:
+    build:
+      #현재 프로젝트의 Dockerfile 기반으로 Spring Boot 이미지 빌드
+      context: .
+      dockerfile: Dockerfile
+    container_name: monew-app
+
+    #호스트포트:컨테이너 포트
+    #Dockerfile에서 --server.port=80으로 실행중이면 컨테이너 내부 포트는 80
     ports:
-      - "27017:27017"
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
-    volumes:
-      - mongo-data:/data/db
-    healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 5s
+      - "${APP_PORT}:8080"
+    environment:
+      #application.yml의 spring.profiles.active 값을 덮어쓴다.(dev or prod)
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
 
-  mongo-init:
-    image: mongo:7
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    restart: "no"
-    entrypoint:
-      - bash
-      - -c
-      - |
-        mongosh --host mongodb:27017 --eval "
-          try {
-            rs.status();
-            print('Replica set already initialized.');
-          } catch (e) {
-            rs.initiate({
-              _id: 'rs0',
-              members: [{ _id: 0, host: 'localhost:27017' }]
-            });
-            print('Replica set initialized.');
-          }
-        "
+      #MongoDB, RDS 사용 -> 외부DB URI를 환경변수로 주입한다.
+      MONGODB_URI: ${MONGODB_URI}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
 
-volumes:
-  mongo-data:
+      NAVER_API_KEY: ${NAVER_API_KEY}
+      NAVER_API_SECRET: ${NAVER_API_SECRET}
+      AWS_S3_ACCESS_KEY: ${AWS_S3_ACCESS_KEY}
+      AWS_S3_SECRET_KEY: ${AWS_S3_SECRET_KEY}
+      AWS_S3_REGION: ${AWS_S3_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_S3_PRESIGNED_URL_EXPIRATION: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
+
+    # app이 비정상 종료되면 자동 재시작
+    restart: unless-stopped

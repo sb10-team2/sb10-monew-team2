@@ -51,3 +51,4 @@ logs/
 application-local.yml
 
 .env
+monew.env
