@@ -10,41 +10,37 @@ import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.notification.entity.Notification;
-import com.springboot.monew.testdata.entity.ArticleInterestGenerator;
-import com.springboot.monew.testdata.entity.ArticleViewGenerator;
-import com.springboot.monew.testdata.entity.CommentGenerator;
-import com.springboot.monew.testdata.entity.CommentLikeGenerator;
-import com.springboot.monew.testdata.entity.InterestGenerator;
-import com.springboot.monew.testdata.entity.InterestKeywordGenerator;
-import com.springboot.monew.testdata.entity.KeywordGenerator;
-import com.springboot.monew.testdata.entity.NewsArticleGenerator;
-import com.springboot.monew.testdata.entity.NotificationGenerator;
-import com.springboot.monew.testdata.entity.SubscriptionGenerator;
-import com.springboot.monew.testdata.entity.UserGenerator;
+import com.springboot.monew.testdata.generator.ArticleInterestGenerator;
+import com.springboot.monew.testdata.generator.ArticleViewGenerator;
+import com.springboot.monew.testdata.generator.CommentGenerator;
+import com.springboot.monew.testdata.generator.CommentLikeGenerator;
+import com.springboot.monew.testdata.generator.InterestGenerator;
+import com.springboot.monew.testdata.generator.InterestKeywordGenerator;
+import com.springboot.monew.testdata.generator.KeywordGenerator;
+import com.springboot.monew.testdata.generator.NewsArticleGenerator;
+import com.springboot.monew.testdata.generator.NotificationGenerator;
+import com.springboot.monew.testdata.generator.SubscriptionGenerator;
+import com.springboot.monew.testdata.generator.UserGenerator;
 import com.springboot.monew.user.entity.User;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 /**
- * 부하 테스트를 위한 데이터 생성 클래스
- * application-test-data.yml
- * test-data.generate.enabled=true로 바꿔야 데이터 생성된다
- * true 일 때 build 시 실행되므로 데이터 생성을 원치 않으면
- * 반드시 false로 해야 한다
- * push 하기 전 enabled 를 확인해야 한다
+ * 부하 테스트를 위한 데이터 생성 클래스 application-test-data.yml test-data.generate.enabled=true로 바꿔야 데이터 생성된다
+ * true 일 때 build 시 실행되므로 데이터 생성을 원치 않으면 반드시 false로 해야 한다 push 하기 전 enabled 를 확인해야 한다
  */
+@Tag("test-data-generator")
 @Import({TestDataConfig.class})
 @ActiveProfiles("test-data")
 @SpringBootTest
-@EnabledIf(expression = "${test-data.generate.enabled:false}", loadContext = true)
-public class LoadTestDataRunner {
+public class LoadTestDataRunnerTest {
 
   private static final int NUMBER_OF_ARTICLES = 50_000;
   private static final int NUMBER_OF_INTERESTS = 1000;

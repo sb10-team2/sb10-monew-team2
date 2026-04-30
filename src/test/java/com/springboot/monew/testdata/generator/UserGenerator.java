@@ -1,4 +1,4 @@
-package com.springboot.monew.testdata.entity;
+package com.springboot.monew.testdata.generator;
 
 import static org.instancio.Select.field;
 

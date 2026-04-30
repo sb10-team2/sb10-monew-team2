@@ -1,4 +1,4 @@
-package com.springboot.monew.testdata.entity;
+package com.springboot.monew.testdata.generator;
 
 import com.springboot.monew.common.entity.BaseEntity;
 import java.sql.PreparedStatement;

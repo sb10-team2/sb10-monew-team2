@@ -68,7 +68,9 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags "test-data-generator"
+    }
     finalizedBy jacocoTestReport
 }
 
