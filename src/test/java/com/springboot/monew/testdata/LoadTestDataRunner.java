@@ -34,7 +34,11 @@ import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 /**
  * 부하 테스트를 위한 데이터 생성 클래스
- *
+ * application-test-data.yml
+ * test-data.generate.enabled=true로 바꿔야 데이터 생성된다
+ * true 일 때 build 시 실행되므로 데이터 생성을 원치 않으면
+ * 반드시 false로 해야 한다
+ * push 하기 전 enabled 를 확인해야 한다
  */
 @Import({TestDataConfig.class})
 @ActiveProfiles("test-data")
@@ -72,7 +76,6 @@ public class LoadTestDataRunner {
   @Autowired
   private JdbcTemplate template;
 
-  // 💡 핵심 2: 한 번 생성된 리스트를 담아둘 '캐시' 변수 선언
   private List<User> cachedUsers;
   private List<NewsArticle> cachedArticles;
   private List<Interest> cachedInterests;
