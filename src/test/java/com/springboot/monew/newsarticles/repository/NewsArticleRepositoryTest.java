@@ -940,4 +940,92 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     assertThat(result.get(0).getOriginalLink()).isEqualTo("today");
   }
 
+  @Test
+  @DisplayName("원본 링크 목록으로 여러 개의 뉴스기사를 조회한다.")
+  void findAllByOriginalLinkIn_ReturnsMatchedArticles() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    NewsArticle b = createArticle("link-b", Instant.now());
+    NewsArticle c = createArticle("link-c", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(a, b, c));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "link-c"));
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticle::getOriginalLink)
+        .containsExactlyInAnyOrder("link-a", "link-c");
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록 중 일부만 존재할 경우 존재하는 것만 조회한다.")
+  void findAllByOriginalLinkIn_ReturnsPartialMatchedArticles() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    NewsArticle b = createArticle("link-b", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(a, b));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "not-exist"));
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticle::getOriginalLink)
+        .containsExactly("link-a");
+  }
+
+  @Test
+  @DisplayName("원본 링크가 모두 존재하지 않으면 빈 리스트를 반환한다.")
+  void findAllByOriginalLinkIn_ReturnsEmpty_WhenNoMatch() {
+    // given
+    newsArticleRepository.save(createArticle("link-a", Instant.now()));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("x", "y"));
+
+    // then
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록이 비어있으면 빈 결과를 반환한다.")
+  void findAllByOriginalLinkIn_ReturnsEmpty_WhenInputEmpty() {
+    // given
+    newsArticleRepository.save(createArticle("link-a", Instant.now()));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of());
+
+    // then
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록에 중복이 있어도 중복 없이 조회된다.")
+  void findAllByOriginalLinkIn_IgnoresDuplicateInput() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    newsArticleRepository.save(a);
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "link-a"));
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getOriginalLink()).isEqualTo("link-a");
+  }
+
 }
