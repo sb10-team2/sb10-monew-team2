@@ -73,6 +73,105 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
+  @DisplayName("QueryDSL - 댓글 수 기준 오름차순 정렬 조건으로 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenOrderByCommentCountAsc() {
+    // given
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.ASC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 댓글 수 기준 내림차순 정렬 조건으로 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenOrderByCommentCountDesc() {
+    // given
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 댓글 수 커서 조건으로 다음 페이지를 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenCommentCountCursorExists() {
+    // given
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+    flushAndClear();
+
+    NewsArticle savedSecond = newsArticleRepository.findById(second.getId()).orElseThrow();
+
+    String cursor = "1|" + savedSecond.getCreatedAt();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+
+
+  @Test
   @DisplayName("QueryDSL - 발행일 기준 오름차순 정렬 조회에 성공한다.")
   void findNewsArticles_ReturnsSortedByPublishedAtAsc_WhenOrderByPublishDateAsc() {
     // given
@@ -395,6 +494,49 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
+  @DisplayName("QueryDSL - 조회수 커서 조건으로 다음 페이지를 조회한다.")
+  void findNewsArticles_ReturnsNextPage_WhenViewCountCursorExists() {
+    // given
+    NewsArticle low = createArticle("low", Instant.now());
+    NewsArticle high = createArticle("high", Instant.now().minusSeconds(10));
+    NewsArticle zero = createArticle("zero", Instant.now().minusSeconds(20));
+
+    newsArticleRepository.saveAll(List.of(low, high, zero));
+    flushAndClear();
+
+    newsArticleRepository.incrementViewCount(low.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    flushAndClear();
+
+    NewsArticle savedLow = newsArticleRepository.findById(low.getId()).orElseThrow();
+
+    String cursor = "1|" + savedLow.getCreatedAt();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.viewCount,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("zero");
+  }
+
+  @Test
   @DisplayName("QueryDSL - 잘못된 커서 형식이면 예외가 발생한다.")
   void findNewsArticles_ThrowsException_WhenCursorFormatIsInvalid() {
     // given
@@ -575,6 +717,34 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
+  @DisplayName("QueryDSL - 빈 cursor value이면 예외가 발생한다.")
+  void findNewsArticles_ThrowsException_WhenCursorValueIsBlank() {
+    // given
+    newsArticleRepository.save(createArticle("link", Instant.now()));
+    flushAndClear();
+
+    String cursor = "|" + Instant.now();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when & then
+    assertThatThrownBy(() -> newsArticleRepository.findNewsArticles(request, UUID.randomUUID()))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   @DisplayName("QueryDSL - 뉴스기사 전체 개수를 조회할 수 있다.")
   void countNewsArticles_ReturnsTotalCount_WhenArticlesExist() {
 
@@ -608,6 +778,92 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     // then
     // 전체 데이터 개수 반환 검증
     assertThat(count).isEqualTo(3L);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - count 조회 시 검색어 조건을 적용한다.")
+  void countNewsArticles_ReturnsCount_WhenKeywordFilterApplied() {
+    // given
+    NewsArticle spring = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("spring")
+        .title("spring news")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    NewsArticle java = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("java")
+        .title("java news")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(spring, java));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "spring",
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    long count = newsArticleRepository.countNewsArticles(request);
+
+    // then
+    assertThat(count).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - count 조회 시 출처 조건을 적용한다.")
+  void countNewsArticles_ReturnsCount_WhenSourceFilterApplied() {
+    // given
+    NewsArticle naver = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("naver")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    NewsArticle yonhap = NewsArticle.builder()
+        .source(ArticleSource.YEONHAP)
+        .originalLink("yonhap")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(naver, yonhap));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        List.of(ArticleSource.NAVER),
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    long count = newsArticleRepository.countNewsArticles(request);
+
+    // then
+    assertThat(count).isEqualTo(1L);
   }
 
   @Test
