@@ -1,0 +1,39 @@
+{
+  "family": "monew-task",
+  "networkMode": "bridge",
+  "requiresCompatibilities": ["EC2"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::842693856616:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "monew-app",
+      "image": "${REPO_URI}:${IMAGE_TAG}",
+      "cpu": 256,
+      "memory": 384,
+      "memoryReservation": 256,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environmentFiles": [
+        {
+          "value": "arn:aws:s3:::monew-backup-storage-842693856616-ap-northeast-2-an/monew.env",
+          "type": "s3"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/monew-task",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
