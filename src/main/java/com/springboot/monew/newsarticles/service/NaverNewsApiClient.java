@@ -59,9 +59,7 @@ public class NaverNewsApiClient {
 
     } catch (RestClientException ex) {
       log.warn("Naver API 호출 실패. query={}", query, ex);
-      return List.of();
+      throw new RuntimeException("Naver API 호출 실패. query=" + query, ex);
     }
   }
-
-
 }
