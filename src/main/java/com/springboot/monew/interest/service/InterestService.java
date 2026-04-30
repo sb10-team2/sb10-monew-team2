@@ -18,6 +18,7 @@ import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.interest.util.StringSimilarityUtil;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
@@ -32,6 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,7 @@ public class InterestService {
   private final UserRepository userRepository;
   private final InterestDtoMapper interestDtoMapper;
   private final UserActivityOutboxService userActivityOutboxService;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
   public CursorPageResponseInterestDto list(InterestPageRequest request, UUID userId) {
@@ -191,6 +194,11 @@ public class InterestService {
 
     // 관심사 키워드 수정 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
     userActivityOutboxService.saveInterestUpdated(interest.getId(), keywordNames);
+
+    // 관심사 키워드 수정 후, 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 최신 키워드로 갱신하기 위해 이벤트를 발행한다.
+    eventPublisher.publishEvent(
+        new InterestUpdatedEvent(interest.getId(), keywordNames)
+    );
 
     log.info("관심사 수정 완료 - interestId: {}, keywordNames: {}", interest.getId(), keywordNames);
     return interestDtoMapper.toInterestDto(interest, keywordNames, false);

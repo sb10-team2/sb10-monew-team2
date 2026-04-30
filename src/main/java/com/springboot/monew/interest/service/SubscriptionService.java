@@ -12,6 +12,8 @@ import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.event.interest.InterestSubscribedEvent;
+import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
@@ -21,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +39,7 @@ public class SubscriptionService {
   private final UserRepository userRepository;
   private final SubscriptionDtoMapper subscriptionDtoMapper;
   private final UserActivityOutboxService userActivityOutboxService;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public SubscriptionDto subscribe(UUID interestId, UUID userId) {
@@ -71,6 +75,14 @@ public class SubscriptionService {
     // 관심사 구독 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
     userActivityOutboxService.saveInterestSubscribed(subscription, keywords);
 
+    // 구독한 사용자의 활동 문서에 관심사 구독 활동을 추가한다.
+    eventPublisher.publishEvent(
+        new InterestSubscribedEvent(
+            userId,
+            subscriptionDtoMapper.toSubscriptionItem(subscription, keywords)
+        )
+    );
+
     log.info("관심사 구독 완료 - interestId: {}, userId: {}", interestId, userId);
     return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords, subscriberCount);
   }
@@ -87,6 +99,11 @@ public class SubscriptionService {
 
     // 관심사 구독 취소 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
     userActivityOutboxService.saveInterestUnsubscribed(userId, interestId);
+
+    // 구독 취소한 사용자의 활동 문서에서 관심사 구독 활동을 제거한다.
+    eventPublisher.publishEvent(
+        new InterestUnsubscribedEvent(userId, interestId)
+    );
 
     log.info("관심사 구독 취소 완료 - interestId: {}, userId: {}", interestId, userId);
   }
