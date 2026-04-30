@@ -9,6 +9,7 @@ import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserActivityRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,16 +26,16 @@ public class UserActivityUpdateService {
   private final UserActivityRepository userActivityRepository;
 
   // 회원가입 성공 시 사용자 활동 내역 문서를 새로 생성한다.
-  public void createUserActivity(User user) {
+  public void createUserActivity(UUID userId, String email, String nickname, Instant createdAt) {
     UserActivityDocument document = new UserActivityDocument(
-        user.getId(),
-        user.getEmail(),
-        user.getNickname(),
-        user.getCreatedAt()
+        userId,
+        email,
+        nickname,
+        createdAt
     );
 
     userActivityRepository.save(document);
-    log.info("사용자 활동 문서 생성 완료 - userId={}", user.getId());
+    log.info("사용자 활동 문서 생성 완료 - userId={}", userId);
   }
 
   // 사용자 닉네임이 변경되면 활동 내역 문서의 사용자 기본 정보도 갱신한다.
