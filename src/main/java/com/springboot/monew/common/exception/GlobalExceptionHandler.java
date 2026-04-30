@@ -1,5 +1,6 @@
 package com.springboot.monew.common.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 @Slf4j
 @RestControllerAdvice
@@ -83,9 +85,30 @@ public class GlobalExceptionHandler {
         .body(ErrorResponse.from(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex));
   }
 
+  // 클라이언트가 응답 완료 전에 연결을 끊은 경우
+  // 브라우저 새로고침, 요청 취소, Prometheus scrape 중단 등으로 발생할 수 있으므로 서버 오류로 기록하지 않는다.
+  @ExceptionHandler(AsyncRequestNotUsableException.class)
+  public ResponseEntity<Void> handleAsyncRequestNotUsable(
+      AsyncRequestNotUsableException ex,
+      HttpServletRequest request
+  ) {
+    log.debug("[AsyncRequestNotUsableException] client aborted request. uri={}",
+        request.getRequestURI());
+    return ResponseEntity.noContent().build();
+  }
+
   // 위에서 처리되지 않은 모든 예외 처리 (예상치 못한 서버 오류)
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+  public ResponseEntity<ErrorResponse> handleException(Exception ex, HttpServletRequest request) {
+    String uri = request.getRequestURI();
+
+    // actuator/prometheus는 application/openmetrics-text 응답을 사용한다.
+    // 여기서 ErrorResponse(JSON)를 반환하면 Content-Type 충돌이 발생하므로 공통 예외 응답을 적용하지 않는다.
+    if (uri.startsWith("/actuator")) {
+      log.debug("[Exception] actuator request failed. uri={}", uri, ex);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
     log.error("[Exception] 예상치 못한 오류 발생 ", ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(ErrorResponse.from(HttpStatus.INTERNAL_SERVER_ERROR, ex));
