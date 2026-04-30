@@ -2,7 +2,10 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.newsarticles.dto.NaverNewsItem;
 import com.springboot.monew.newsarticles.dto.response.NaverNewsResponse;
+import com.springboot.monew.newsarticles.exception.ArticleException;
+import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,7 +37,6 @@ public class NaverNewsApiClient {
     this.restClient = restClient;
   }
 
-
   //외부 API 호출의 예외가 배치 전체를 중단시킬 수 있다.
   public List<NaverNewsItem> searchNews(String query) {
 
@@ -59,7 +61,7 @@ public class NaverNewsApiClient {
 
     } catch (RestClientException ex) {
       log.warn("Naver API 호출 실패. query={}", query, ex);
-      throw new RuntimeException("Naver API 호출 실패. query=" + query, ex);
+      throw new ArticleException(NewsArticleErrorCode.NAVER_API_REQUEST_FAILED, Map.of("query", query, "ex", ex));
     }
   }
 }
