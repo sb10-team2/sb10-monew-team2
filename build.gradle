@@ -52,6 +52,7 @@ dependencies {
     testImplementation platform('org.instancio:instancio-bom:6.0.0-RC2')
     testImplementation('org.instancio:instancio-core')
     testImplementation('org.instancio:instancio-junit')
+    testImplementation 'net.datafaker:datafaker:2.5.4'
 
     //aws
     implementation 'software.amazon.awssdk:s3:2.31.7'
@@ -67,7 +68,9 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags "test-data-generator"
+    }
     finalizedBy jacocoTestReport
 }
 
