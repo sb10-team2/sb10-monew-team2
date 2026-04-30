@@ -104,10 +104,11 @@ public class GlobalExceptionHandler {
 
     // actuator/prometheus는 application/openmetrics-text 응답을 사용한다.
     // 여기서 ErrorResponse(JSON)를 반환하면 Content-Type 충돌이 발생하므로 공통 예외 응답을 적용하지 않는다.
-    if (uri.startsWith("/actuator")) {
-      log.debug("[Exception] actuator request failed. uri={}", uri, ex);
+    if (uri.startsWith("/actuator/prometheus")) {
+      log.warn("[Exception] actuator prometheus scrape failed. uri={}", uri, ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+
 
     log.error("[Exception] 예상치 못한 오류 발생 ", ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
