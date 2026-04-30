@@ -42,9 +42,12 @@ public class UserActivityUpdateServiceTest {
     // given
     UUID userId = UUID.randomUUID();
     User user = new User("test@example.com", "tester", "password");
+    String email = "test@example.com";
+    String nickname = "tester";
+    Instant createdAt = Instant.parse("2026-04-30T00:00:00Z");
 
     // when
-    userActivityUpdateService.createUserActivity(user);
+    userActivityUpdateService.createUserActivity(userId, email, nickname, createdAt);
 
     // then
     // 저장된 UserActivityDocument를 가져와 회원가입한 사용자의 기본 정보로 생성되었는지 검증한다.
@@ -53,10 +56,10 @@ public class UserActivityUpdateServiceTest {
 
     verify(userActivityRepository).save(captor.capture());
 
-    assertThat(captor.getValue().getId()).isEqualTo(user.getId());
-    assertThat(captor.getValue().getEmail()).isEqualTo(user.getEmail());
-    assertThat(captor.getValue().getNickname()).isEqualTo(user.getNickname());
-    assertThat(captor.getValue().getCreatedAt()).isEqualTo(user.getCreatedAt());
+    assertThat(captor.getValue().getId()).isEqualTo(userId);
+    assertThat(captor.getValue().getEmail()).isEqualTo(email);
+    assertThat(captor.getValue().getNickname()).isEqualTo(nickname);
+    assertThat(captor.getValue().getCreatedAt()).isEqualTo(createdAt);
   }
 
   @Test

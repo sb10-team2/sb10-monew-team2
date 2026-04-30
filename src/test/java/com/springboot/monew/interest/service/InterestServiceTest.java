@@ -28,10 +28,10 @@ import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.user.entity.User;
-import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +41,9 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -71,7 +69,7 @@ class InterestServiceTest {
   private InterestDtoMapper interestDtoMapper;
 
   @Mock
-  private ApplicationEventPublisher eventPublisher;
+  private UserActivityOutboxService userActivityOutboxService;
 
   @InjectMocks
   private InterestService interestService;
@@ -573,16 +571,8 @@ class InterestServiceTest {
     assertThat(result).isEqualTo(expected);
     verify(interestKeywordRepository).deleteAll(List.of(oldLink));
     verify(interestKeywordRepository).save(any(InterestKeyword.class));
-
-    // 발행된 InterestUpdatedEvent를 가져와 수정된 관심사 ID와 키워드 목록이 올바르게 담겼는지 검증한다.
-    ArgumentCaptor<InterestUpdatedEvent> captor =
-        ArgumentCaptor.forClass(InterestUpdatedEvent.class);
-
-    // eventPublisher.publishEvent()가 호출되었는지 확인하고 전달된 이벤트 객체를 가져온다.
-    verify(eventPublisher).publishEvent(captor.capture());
-
-    assertThat(captor.getValue().interestId()).isEqualTo(interestId);
-    assertThat(captor.getValue().keywords()).containsExactly("채권");
+    // 관심사 키워드 수정 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveInterestUpdated(interestId, List.of("채권"));
   }
 
   @Test

@@ -14,8 +14,6 @@ import com.springboot.monew.user.dto.request.UserRegisterRequest;
 import com.springboot.monew.user.dto.request.UserUpdateRequest;
 import com.springboot.monew.user.dto.response.UserDto;
 import com.springboot.monew.user.entity.User;
-import com.springboot.monew.user.event.user.UserNicknameUpdatedEvent;
-import com.springboot.monew.user.event.user.UserRegisteredEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.mapper.UserMapper;
@@ -31,13 +29,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
   @Mock
-  private ApplicationEventPublisher applicationEventPublisher;
+  private UserActivityOutboxService userActivityOutboxService;
 
   @Mock
   private UserRepository userRepository;
@@ -138,7 +135,7 @@ public class UserServiceTest {
     verify(userRepository).existsByNickname(request.nickname());
     verify(userRepository).save(any(User.class));
     verify(userMapper).toDto(savedUser);
-    verify(applicationEventPublisher).publishEvent(any(UserRegisteredEvent.class));
+    verify(userActivityOutboxService).saveUserRegistered(savedUser);
   }
 
   @Test
@@ -258,7 +255,7 @@ public class UserServiceTest {
     verify(userRepository).findById(userId);
     verify(userRepository).existsByNickname(request.nickname());
     verify(userMapper).toDto(user);
-    verify(applicationEventPublisher).publishEvent(any(UserNicknameUpdatedEvent.class));
+    verify(userActivityOutboxService).saveUserNicknameUpdated(user);
   }
 
   @Test
@@ -358,7 +355,7 @@ public class UserServiceTest {
     verify(userRepository).findById(userId);
     verify(userRepository, never()).existsByNickname(anyString());
     verify(userMapper).toDto(user);
-    verify(applicationEventPublisher).publishEvent(any(UserNicknameUpdatedEvent.class));
+    verify(userActivityOutboxService).saveUserNicknameUpdated(user);
   }
 
   @Test
