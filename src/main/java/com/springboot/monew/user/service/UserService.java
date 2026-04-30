@@ -5,8 +5,6 @@ import com.springboot.monew.user.dto.request.UserRegisterRequest;
 import com.springboot.monew.user.dto.request.UserUpdateRequest;
 import com.springboot.monew.user.dto.response.UserDto;
 import com.springboot.monew.user.entity.User;
-import com.springboot.monew.user.event.user.UserNicknameUpdatedEvent;
-import com.springboot.monew.user.event.user.UserRegisteredEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.mapper.UserMapper;
@@ -17,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +26,7 @@ public class UserService {
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final UserActivityOutboxService userActivityOutboxService;
 
   // 사용자 회원가입
   @Transactional
@@ -44,8 +41,8 @@ public class UserService {
     );
 
     User savedUser = userRepository.save(user);
-    // 회원가입 후 사용자 활동 문서 생성을 위해 이벤트 발행
-    applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser));
+    // 회원가입 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveUserRegistered(savedUser);
     log.info("회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
     return userMapper.toDto(savedUser);
   }
@@ -112,9 +109,8 @@ public class UserService {
 
     user.updateNickname(request.nickname());
     // 닉네임 수정 후 사용자 활동 문서 갱신을 위해 이벤트 발행
-    applicationEventPublisher.publishEvent(
-        new UserNicknameUpdatedEvent(user.getId(), user.getNickname())
-    );
+    // 닉네임 수정 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveUserNicknameUpdated(user);
     log.info("닉네임 수정 완료 - userId={}", user.getId());
     return userMapper.toDto(user);
   }

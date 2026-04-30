@@ -12,17 +12,15 @@ import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.SubscriptionRepository;
 import com.springboot.monew.user.entity.User;
-import com.springboot.monew.user.event.interest.InterestSubscribedEvent;
-import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +35,7 @@ public class SubscriptionService {
   private final InterestKeywordRepository interestKeywordRepository;
   private final UserRepository userRepository;
   private final SubscriptionDtoMapper subscriptionDtoMapper;
-  private final ApplicationEventPublisher eventPublisher;
+  private final UserActivityOutboxService userActivityOutboxService;
 
   @Transactional
   public SubscriptionDto subscribe(UUID interestId, UUID userId) {
@@ -70,13 +68,8 @@ public class SubscriptionService {
     // 증가가 반영된 최신 구독자 수 조회
     long subscriberCount = getSubscriberCount(interestId);
 
-    // 구독한 사용자의 활동 문서에 관심사 구독 활동을 추가한다.
-    eventPublisher.publishEvent(
-        new InterestSubscribedEvent(
-            userId,
-            subscriptionDtoMapper.toSubscriptionItem(subscription, keywords)
-        )
-    );
+    // 관심사 구독 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveInterestSubscribed(subscription, keywords);
 
     log.info("관심사 구독 완료 - interestId: {}, userId: {}", interestId, userId);
     return subscriptionDtoMapper.toSubscriptionDto(subscription, keywords, subscriberCount);
@@ -92,10 +85,8 @@ public class SubscriptionService {
     // 관심사의 구독자 수를 DB에서 원자적으로 1 감소
     decrementSubscriberCount(interestId);
 
-    // 구독 취소한 사용자의 활동 문서에서 관심사 구독 활동을 제거한다.
-    eventPublisher.publishEvent(
-        new InterestUnsubscribedEvent(userId, interestId)
-    );
+    // 관심사 구독 취소 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveInterestUnsubscribed(userId, interestId);
 
     log.info("관심사 구독 취소 완료 - interestId: {}, userId: {}", interestId, userId);
   }

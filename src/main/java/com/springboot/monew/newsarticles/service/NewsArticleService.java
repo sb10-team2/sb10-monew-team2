@@ -22,10 +22,10 @@ import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.user.entity.User;
-import com.springboot.monew.user.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,7 @@ public class NewsArticleService {
   private final NewsArticleMapper newsArticleMapper;
   private final NewsArticleViewMapper newsArticleViewMapper;
   private final CommentRepository commentRepository;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -232,12 +233,10 @@ public class NewsArticleService {
     NewsArticle refreshedArticle = getNewsArticle(articleId);
     ArticleView refreshedArticleView = new ArticleView(refreshedArticle, user);
 
-    // 기사를 조회한 사용자의 활동 문서에 기사 조회 활동을 추가한다.
-    eventPublisher.publishEvent(
-        new ArticleViewedEvent(
-            userId,
-            newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount)
-        )
+    // 기사 조회 사용자의 활동 문서에 기사 조회 활동을 반영하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveArticleViewed(
+        userId,
+        newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount)
     );
 
     return newsArticleViewMapper.toDto(refreshedArticleView, commentCount);
