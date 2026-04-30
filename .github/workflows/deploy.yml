@@ -1,8 +1,8 @@
 name: MoNew Deploy Workflow
 
 on:
-  pull_request:
-    branches: ["dev"]
+  push:
+    branches: ["fix/#310/CICD"]
     types: [closed]
 
 #중복 배포 방지, 최신 배포만 유지
@@ -15,7 +15,7 @@ concurrency:
 #PR이 닫히고 dev에 merge됐을때 배포
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+#    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
