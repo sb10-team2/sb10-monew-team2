@@ -13,6 +13,13 @@ import com.springboot.monew.user.document.UserActivityDocument.SubscriptionItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
+import com.springboot.monew.user.outbox.payload.comment.CommentDeletedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentLikeCountUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentUnlikedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUnsubscribedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserNicknameUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserRegisteredPayload;
 import com.springboot.monew.user.repository.UserActivityRepository;
 import java.time.Instant;
 import java.util.List;
@@ -41,13 +48,17 @@ public class UserActivityUpdateServiceTest {
   void createdUserActivity_SavesNewDocument() {
     // given
     UUID userId = UUID.randomUUID();
-    User user = new User("test@example.com", "tester", "password");
-    String email = "test@example.com";
-    String nickname = "tester";
     Instant createdAt = Instant.parse("2026-04-30T00:00:00Z");
 
+    UserRegisteredPayload payload = new UserRegisteredPayload(
+        userId,
+        "test@example.com",
+        "tester",
+        createdAt
+    );
+
     // when
-    userActivityUpdateService.createUserActivity(userId, email, nickname, createdAt);
+    userActivityUpdateService.createUserActivity(payload);
 
     // then
     // 저장된 UserActivityDocument를 가져와 회원가입한 사용자의 기본 정보로 생성되었는지 검증한다.
@@ -56,10 +67,10 @@ public class UserActivityUpdateServiceTest {
 
     verify(userActivityRepository).save(captor.capture());
 
-    assertThat(captor.getValue().getId()).isEqualTo(userId);
-    assertThat(captor.getValue().getEmail()).isEqualTo(email);
-    assertThat(captor.getValue().getNickname()).isEqualTo(nickname);
-    assertThat(captor.getValue().getCreatedAt()).isEqualTo(createdAt);
+    assertThat(captor.getValue().getId()).isEqualTo(payload.userId());
+    assertThat(captor.getValue().getEmail()).isEqualTo(payload.email());
+    assertThat(captor.getValue().getNickname()).isEqualTo(payload.nickname());
+    assertThat(captor.getValue().getCreatedAt()).isEqualTo(payload.createdAt());
   }
 
   @Test
@@ -73,11 +84,13 @@ public class UserActivityUpdateServiceTest {
         "oldNickname",
         Instant.now()
     );
+    UserNicknameUpdatedPayload payload =
+        new UserNicknameUpdatedPayload(userId, "newNickname");
 
     given(userActivityRepository.findById(userId)).willReturn(Optional.of(document));
 
     // when
-    userActivityUpdateService.updateUserNickname(userId, "newNickname");
+    userActivityUpdateService.updateUserNickname(payload);
 
     // then
     // 활동 문서의 닉네임이 새 값으로 실제 변경되었는지 검증한다.
@@ -91,6 +104,9 @@ public class UserActivityUpdateServiceTest {
     // given
     UUID interestId = UUID.randomUUID();
     UUID anotherInterestId = UUID.randomUUID();
+
+    InterestUpdatedPayload payload =
+        new InterestUpdatedPayload(interestId, List.of("주식", "채권"));
 
     UserActivityDocument document1 = new UserActivityDocument(
         UUID.randomUUID(),
@@ -146,7 +162,7 @@ public class UserActivityUpdateServiceTest {
         .willReturn(List.of(document1, document2));
 
     // when
-    userActivityUpdateService.updateSubscriptionInterest(interestId, List.of("주식", "채권"));
+    userActivityUpdateService.updateSubscriptionInterest(payload);
 
     // then
     // 두 활동 문서 모두에서 수정 대상 관심사의 키워드가 최신 값으로 갱신되었는지 검증한다.
@@ -221,6 +237,9 @@ public class UserActivityUpdateServiceTest {
         Instant.now()
     );
 
+    InterestUnsubscribedPayload payload =
+        new InterestUnsubscribedPayload(userId, interestId);
+
     // 제거 대상 구독 내역을 미리 활동 문서에 추가해 둔다.
     SubscriptionItem item = new SubscriptionItem(
         UUID.randomUUID(),
@@ -234,7 +253,7 @@ public class UserActivityUpdateServiceTest {
     given(userActivityRepository.findById(userId)).willReturn(Optional.of(document));
 
     // when
-    userActivityUpdateService.removeSubscription(userId, interestId);
+    userActivityUpdateService.removeSubscription(payload);
 
     // then
     // 해당 관심사 구독 내역이 활동 문서에서 실제로 제거되었는지 검증한다.
@@ -319,6 +338,8 @@ public class UserActivityUpdateServiceTest {
         Instant.now()
     );
 
+    CommentDeletedPayload payload = CommentDeletedPayload.of(userId, commentId);
+
     // 제거 대상 댓글 내역을 미리 활동 문서에 추가해 둔다.
     CommentItem item = new CommentItem(
         commentId,
@@ -335,7 +356,7 @@ public class UserActivityUpdateServiceTest {
     given(userActivityRepository.findById(userId)).willReturn(Optional.of(document));
 
     // when
-    userActivityUpdateService.removeComment(userId, commentId);
+    userActivityUpdateService.removeComment(payload);
 
     // then
     // 해당 댓글 내역이 활동 문서에서 실제로 제거되었는지 검증한다.
@@ -385,6 +406,8 @@ public class UserActivityUpdateServiceTest {
     UUID targetCommentId = UUID.randomUUID();
     UUID otherCommentId = UUID.randomUUID();
 
+    CommentUnlikedPayload payload = CommentUnlikedPayload.of(userId, targetCommentId);
+
     UserActivityDocument document = new UserActivityDocument(
         userId,
         "test@example.com",
@@ -426,7 +449,7 @@ public class UserActivityUpdateServiceTest {
     given(userActivityRepository.findById(userId)).willReturn(Optional.of(document));
 
     // when
-    userActivityUpdateService.removeCommentLike(userId, targetCommentId);
+    userActivityUpdateService.removeCommentLike(payload);
 
     // then
     // 좋아요 내역이 commentLike id가 아니라 commentId 기준으로 실제 제거되었는지 검증한다.
@@ -449,6 +472,8 @@ public class UserActivityUpdateServiceTest {
         Instant.now()
     );
 
+    CommentLikeCountUpdatedPayload payload = CommentLikeCountUpdatedPayload.of(userId, commentId, 5L);
+
     // 좋아요 수 변경 대상 댓글을 미리 활동 문서에 추가해 둔다.
     CommentItem item = new CommentItem(
         commentId,
@@ -465,7 +490,7 @@ public class UserActivityUpdateServiceTest {
     given(userActivityRepository.findById(userId)).willReturn(Optional.of(document));
 
     // when
-    userActivityUpdateService.updateCommentLikeCount(userId, commentId, 5L);
+    userActivityUpdateService.updateCommentLikeCount(payload);
 
     // then
     // 해당 댓글의 좋아요 수가 새 값으로 실제 갱신되었는지 검증한다.

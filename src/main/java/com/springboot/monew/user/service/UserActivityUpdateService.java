@@ -5,11 +5,16 @@ import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
 import com.springboot.monew.user.document.UserActivityDocument.CommentLikeItem;
 import com.springboot.monew.user.document.UserActivityDocument.SubscriptionItem;
-import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
+import com.springboot.monew.user.outbox.payload.comment.CommentDeletedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentLikeCountUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentUnlikedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUnsubscribedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserNicknameUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserRegisteredPayload;
 import com.springboot.monew.user.repository.UserActivityRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,42 +31,42 @@ public class UserActivityUpdateService {
   private final UserActivityRepository userActivityRepository;
 
   // 회원가입 성공 시 사용자 활동 내역 문서를 새로 생성한다.
-  public void createUserActivity(UUID userId, String email, String nickname, Instant createdAt) {
-    if (userActivityRepository.existsById(userId)) {
-      log.info("사용자 활동 문서가 이미 존재하여 생성 생략 - userId={}", userId);
+  public void createUserActivity(UserRegisteredPayload payload) {
+    if (userActivityRepository.existsById(payload.userId())) {
+      log.info("사용자 활동 문서가 이미 존재하여 생성 생략 - userId={}", payload.userId());
       return;
     }
     UserActivityDocument document = new UserActivityDocument(
-        userId,
-        email,
-        nickname,
-        createdAt
+        payload.userId(),
+        payload.email(),
+        payload.nickname(),
+        payload.createdAt()
     );
 
     userActivityRepository.save(document);
-    log.info("사용자 활동 문서 생성 완료 - userId={}", userId);
+    log.info("사용자 활동 문서 생성 완료 - userId={}", payload.userId());
   }
 
   // 사용자 닉네임이 변경되면 활동 내역 문서의 사용자 기본 정보도 갱신한다.
-  public void updateUserNickname(UUID userId, String nickname) {
-    UserActivityDocument document = getDocument(userId);
-    document.updateNickname(nickname);
+  public void updateUserNickname(UserNicknameUpdatedPayload payload) {
+    UserActivityDocument document = getDocument(payload.userId());
+    document.updateNickname(payload.nickname());
     userActivityRepository.save(document);
-    log.info("사용자 활동 닉네임 갱신 완료 - userId={}", userId);
+    log.info("사용자 활동 닉네임 갱신 완료 - userId={}", payload.userId());
   }
 
   // 관심사 키워드가 변경되면 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 갱신한다.
   @Transactional("mongoTransactionManager")
-  public void updateSubscriptionInterest(UUID interestId, List<String> keywords) {
+  public void updateSubscriptionInterest(InterestUpdatedPayload payload) {
     List<UserActivityDocument> documents =
-        userActivityRepository.findAllBySubscriptionsInterestId(interestId);
+        userActivityRepository.findAllBySubscriptionsInterestId(payload.interestId());
 
     documents.forEach(document ->
-        document.updateSubscriptionInterest(interestId, keywords)
+        document.updateSubscriptionInterest(payload.interestId(), payload.keywords())
     );
 
     userActivityRepository.saveAll(documents);
-    log.info("사용자 활동 관심사 키워드 일괄 갱신 완료 - interestId={}, documentCount={}", interestId,
+    log.info("사용자 활동 관심사 키워드 일괄 갱신 완료 - interestId={}, documentCount={}", payload.interestId(),
         documents.size());
   }
 
@@ -75,11 +80,11 @@ public class UserActivityUpdateService {
   }
 
   // 관심사 구독 취소 시 사용자 활동 문서에서 구독 내역을 제거한다.
-  public void removeSubscription(UUID userId, UUID interestId) {
-    UserActivityDocument document = getDocument(userId);
-    document.removeSubscription(interestId);
+  public void removeSubscription(InterestUnsubscribedPayload payload) {
+    UserActivityDocument document = getDocument(payload.userId());
+    document.removeSubscription(payload.interestId());
     userActivityRepository.save(document);
-    log.info("사용자 활동 구독 제거 완료 - userId={}, interestId={}", userId, interestId);
+    log.info("사용자 활동 구독 제거 완료 - userId={}, interestId={}", payload.userId(), payload.interestId());
   }
 
   // 댓글 작성 시 사용자 활동 문서에 댓글 내역을 추가한다.
@@ -99,11 +104,11 @@ public class UserActivityUpdateService {
   }
 
   // 댓글 삭제 시 사용자 활동 문서에서 댓글 내역을 제거한다.
-  public void removeComment(UUID userId, UUID commentId) {
-    UserActivityDocument document = getDocument(userId);
-    document.removeComment(commentId);
+  public void removeComment(CommentDeletedPayload payload) {
+    UserActivityDocument document = getDocument(payload.userId());
+    document.removeComment(payload.commentId());
     userActivityRepository.save(document);
-    log.info("사용자 활동 댓글 제거 완료 - userId={}, commentId={}", userId, commentId);
+    log.info("사용자 활동 댓글 제거 완료 - userId={}, commentId={}", payload.userId(), payload.commentId());
   }
 
   // 댓글 좋아요 시 사용자 활동 문서에 좋아요 내역을 추가한다.
@@ -115,20 +120,20 @@ public class UserActivityUpdateService {
   }
 
   // 댓글 좋아요 취소 시 사용자 활동 문서에서 좋아요 내역을 제거한다.
-  public void removeCommentLike(UUID userId, UUID commentId) {
-    UserActivityDocument document = getDocument(userId);
-    document.removeCommentLike(commentId);
+  public void removeCommentLike(CommentUnlikedPayload payload) {
+    UserActivityDocument document = getDocument(payload.userId());
+    document.removeCommentLike(payload.commentId());
     userActivityRepository.save(document);
-    log.info("사용자 활동 댓글 좋아요 제거 완료 - userId={}, commentId={}", userId, commentId);
+    log.info("사용자 활동 댓글 좋아요 제거 완료 - userId={}, commentId={}", payload.userId(), payload.commentId());
   }
 
   // 댓글 좋아요 수 변경 시 사용자 활동 문서의 댓글 좋아요 수를 갱신한다.
-  public void updateCommentLikeCount(UUID userId, UUID commentId, Long likeCount) {
-    UserActivityDocument document = getDocument(userId);
-    document.updateCommentLikeCount(commentId, likeCount);
+  public void updateCommentLikeCount(CommentLikeCountUpdatedPayload payload) {
+    UserActivityDocument document = getDocument(payload.userId());
+    document.updateCommentLikeCount(payload.commentId(), payload.likeCount());
     userActivityRepository.save(document);
-    log.info("사용자 활동 댓글 좋아요 수 갱신 완료 - userId={}, commentId={}, likeCount={}", userId, commentId,
-        likeCount);
+    log.info("사용자 활동 댓글 좋아요 수 갱신 완료 - userId={}, commentId={}, likeCount={}", payload.userId(), payload.commentId(),
+        payload.likeCount());
   }
 
   // 기사 조회 시 사용자 활동 문서에 기사 조회 내역을 추가한다.

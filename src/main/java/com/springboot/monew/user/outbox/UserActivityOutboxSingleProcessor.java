@@ -77,21 +77,13 @@ public class UserActivityOutboxSingleProcessor {
       case USER_REGISTERED -> {
         UserRegisteredPayload payload =
             payloadSerializer.fromJson(payloadJson, UserRegisteredPayload.class);
-        userActivityUpdateService.createUserActivity(
-            payload.userId(),
-            payload.email(),
-            payload.nickname(),
-            payload.createdAt()
-        );
+        userActivityUpdateService.createUserActivity(payload);
       }
 
       case USER_NICKNAME_UPDATED -> {
         UserNicknameUpdatedPayload payload =
             payloadSerializer.fromJson(payloadJson, UserNicknameUpdatedPayload.class);
-        userActivityUpdateService.updateUserNickname(
-            payload.userId(),
-            payload.nickname()
-        );
+        userActivityUpdateService.updateUserNickname(payload);
       }
 
       case INTEREST_SUBSCRIBED -> {
@@ -112,19 +104,13 @@ public class UserActivityOutboxSingleProcessor {
       case INTEREST_UNSUBSCRIBED -> {
         InterestUnsubscribedPayload payload =
             payloadSerializer.fromJson(payloadJson, InterestUnsubscribedPayload.class);
-        userActivityUpdateService.removeSubscription(
-            payload.userId(),
-            payload.interestId()
-        );
+        userActivityUpdateService.removeSubscription(payload);
       }
 
       case INTEREST_UPDATED -> {
         InterestUpdatedPayload payload =
             payloadSerializer.fromJson(payloadJson, InterestUpdatedPayload.class);
-        userActivityUpdateService.updateSubscriptionInterest(
-            payload.interestId(),
-            payload.keywords()
-        );
+        userActivityUpdateService.updateSubscriptionInterest(payload);
       }
 
       case COMMENT_CREATED -> {
@@ -166,10 +152,7 @@ public class UserActivityOutboxSingleProcessor {
       case COMMENT_DELETED -> {
         CommentDeletedPayload payload =
             payloadSerializer.fromJson(payloadJson, CommentDeletedPayload.class);
-        userActivityUpdateService.removeComment(
-            payload.userId(),
-            payload.commentId()
-        );
+        userActivityUpdateService.removeComment(payload);
       }
 
       case COMMENT_LIKED -> {
@@ -195,20 +178,13 @@ public class UserActivityOutboxSingleProcessor {
       case COMMENT_UNLIKED -> {
         CommentUnlikedPayload payload =
             payloadSerializer.fromJson(payloadJson, CommentUnlikedPayload.class);
-        userActivityUpdateService.removeCommentLike(
-            payload.userId(),
-            payload.commentId()
-        );
+        userActivityUpdateService.removeCommentLike(payload);
       }
 
       case COMMENT_LIKE_COUNT_UPDATED -> {
         CommentLikeCountUpdatedPayload payload =
             payloadSerializer.fromJson(payloadJson, CommentLikeCountUpdatedPayload.class);
-        userActivityUpdateService.updateCommentLikeCount(
-            payload.userId(),
-            payload.commentId(),
-            payload.likeCount()
-        );
+        userActivityUpdateService.updateCommentLikeCount(payload);
       }
 
       case ARTICLE_VIEWED -> {

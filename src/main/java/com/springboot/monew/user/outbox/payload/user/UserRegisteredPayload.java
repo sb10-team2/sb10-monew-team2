@@ -18,4 +18,6 @@ public record UserRegisteredPayload(
         user.getCreatedAt()
     );
   }
+
+
 }

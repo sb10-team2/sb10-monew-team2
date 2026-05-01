@@ -12,6 +12,13 @@ import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.event.user.UserNicknameUpdatedEvent;
 import com.springboot.monew.user.event.user.UserRegisteredEvent;
+import com.springboot.monew.user.outbox.payload.comment.CommentDeletedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentLikeCountUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentUnlikedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUnsubscribedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserNicknameUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserRegisteredPayload;
 import com.springboot.monew.user.service.UserActivityUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +38,7 @@ public class UserActivityEventListener {
   public void handle(UserRegisteredEvent event) {
     executeSafely("UserRegisteredEvent", () ->
         userActivityUpdateService.createUserActivity(
-            event.user().getId(),
-            event.user().getEmail(),
-            event.user().getNickname(),
-            event.user().getCreatedAt()
+            UserRegisteredPayload.of(event.user())
         )
     );
   }
@@ -43,7 +47,9 @@ public class UserActivityEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(UserNicknameUpdatedEvent event) {
     executeSafely("UserNicknameUpdatedEvent", () ->
-        userActivityUpdateService.updateUserNickname(event.userId(), event.nickname())
+        userActivityUpdateService.updateUserNickname(
+            UserNicknameUpdatedPayload.of(event)
+        )
     );
   }
 
@@ -52,8 +58,7 @@ public class UserActivityEventListener {
   public void handle(InterestUpdatedEvent event) {
     executeSafely("InterestUpdatedEvent", () ->
         userActivityUpdateService.updateSubscriptionInterest(
-            event.interestId(),
-            event.keywords()
+            InterestUpdatedPayload.of(event)
         )
     );
   }
@@ -70,7 +75,9 @@ public class UserActivityEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(InterestUnsubscribedEvent event) {
     executeSafely("InterestUnsubscribedEvent", () ->
-        userActivityUpdateService.removeSubscription(event.userId(), event.interestId())
+        userActivityUpdateService.removeSubscription(
+            InterestUnsubscribedPayload.of(event)
+        )
     );
   }
 
@@ -94,7 +101,9 @@ public class UserActivityEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(CommentDeletedEvent event) {
     executeSafely("CommentDeletedEvent", () ->
-        userActivityUpdateService.removeComment(event.userId(), event.commentId())
+        userActivityUpdateService.removeComment(
+            CommentDeletedPayload.of(event)
+        )
     );
   }
 
@@ -110,7 +119,9 @@ public class UserActivityEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(CommentUnlikedEvent event) {
     executeSafely("CommentUnlikedEvent", () ->
-        userActivityUpdateService.removeCommentLike(event.userId(), event.commentId())
+        userActivityUpdateService.removeCommentLike(
+            CommentUnlikedPayload.of(event)
+        )
     );
   }
 
@@ -119,9 +130,7 @@ public class UserActivityEventListener {
   public void handle(CommentLikeCountUpdatedEvent event) {
     executeSafely("CommentLikeCountUpdatedEvent", () ->
         userActivityUpdateService.updateCommentLikeCount(
-            event.userId(),
-            event.commentId(),
-            event.likeCount()
+            CommentLikeCountUpdatedPayload.of(event)
         )
     );
   }
