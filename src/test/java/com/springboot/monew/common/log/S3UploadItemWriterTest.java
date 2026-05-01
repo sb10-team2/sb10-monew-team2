@@ -17,6 +17,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
@@ -87,6 +89,7 @@ class S3UploadItemWriterTest {
 
   @Test
   @DisplayName("로컬 파일 삭제 실패 시 IllegalStateException을 던진다")
+  @DisabledOnOs(OS.WINDOWS)
   void write_ThrowsIllegalStateException_WhenFileDeletionFails() throws Exception {
     // given
     // Unix 계열에서 파일 삭제는 파일 자체가 아닌 부모 디렉토리의 쓰기 권한이 필요함

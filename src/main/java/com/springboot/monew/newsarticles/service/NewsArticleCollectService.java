@@ -2,9 +2,14 @@ package com.springboot.monew.newsarticles.service;
 
 import com.springboot.monew.interest.dto.response.InterestKeywordInfo;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSaveResult;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleSourceCollectResult;
 import com.springboot.monew.newsarticles.dto.CollectedArticleWithInterest;
 import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.service.collector.ArticleCollector;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +36,7 @@ public class NewsArticleCollectService {
   //단 하나의 외부 API만 느린 응답이 있어도 DB 트랜잭션이 길게 유지되어 DB연결을 불필요하게 점유한다.
   //따라서 newsArticleService.saveAll안에서 트랜잭션 적용하는게 맞다.
   //@Transactional
-  public void collectAll() {
+  public NewsArticleCollectResult collectAll() {
 
     //(관심사 id, 키워드) 리스트
     List<InterestKeywordInfo> infos = interestKeywordRepository.findAllInterestKeywordInfos();
@@ -52,7 +57,11 @@ public class NewsArticleCollectService {
 
     log.info("키워드 리스트={}", keywords);
 
+    List<NewsArticleSourceCollectResult> sourceResults = new ArrayList<>();
+
     for (ArticleCollector collector : collectors) {
+      Instant startedAt = Instant.now();
+
       try {
         List<CollectedArticle> collectedArticles = collector.collect(keywords);
 
@@ -66,12 +75,19 @@ public class NewsArticleCollectService {
             .filter(item -> !item.interestIds().isEmpty())
             .toList();
 
-        newsArticleService.saveAll(matchedArticles);
+        NewsArticleSaveResult saveResult = newsArticleService.saveAll(matchedArticles);
+        sourceResults.add(NewsArticleSourceCollectResult.success(collector.getSource(),
+            collectedArticles.size(), matchedArticles.size(), saveResult,
+            Duration.between(startedAt, Instant.now())));
       } catch (Exception e) {
+        sourceResults.add(NewsArticleSourceCollectResult.failure(collector.getSource(),
+            Duration.between(startedAt, Instant.now())));
         log.error("기사 수집 실패 source={}", collector.getSource(), e);
       }
 
     }
+
+    return new NewsArticleCollectResult(keywords.size(), sourceResults);
   }
 
   private Set<UUID> findMatchedInterestIds(
@@ -90,5 +106,3 @@ public class NewsArticleCollectService {
         .collect(Collectors.toSet());
   }
 }
-
-
