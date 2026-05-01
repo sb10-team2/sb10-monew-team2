@@ -298,7 +298,3 @@ ALTER TABLE user_activity_outbox
 -- 미처리 이벤트를 발생 시각 순으로 빠르게 조회하기 위한 인덱스
 CREATE INDEX "IDX_USER_ACTIVITY_OUTBOX_STATUS_OCCURRED_AT"
     ON user_activity_outbox ("status", "occurred_at");
-
--- 특정 집계 대상의 이벤트를 빠르게 조회하거나 재처리하기 위한 인덱스
-CREATE INDEX "IDX_USER_ACTIVITY_OUTBOX_AGGREGATE"
-    ON user_activity_outbox ("aggregate_type", "aggregate_id");
