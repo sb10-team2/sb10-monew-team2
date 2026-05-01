@@ -4,13 +4,15 @@ import com.springboot.monew.user.outbox.enums.UserActivityOutboxStatus;
 import com.springboot.monew.user.repository.UserActivityOutboxRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class UserActivityOutboxProcessor {
+
   // 동일 이벤트를 무한 재시도하지 않도록 최대 재시도 횟수를 제한한다.
   private static final int MAX_RETRY_COUNT = 3;
   private static final int BATCH_SIZE = 100;
@@ -26,15 +28,15 @@ public class UserActivityOutboxProcessor {
         );
 
     for (UserActivityOutbox outbox : outboxes) {
-      userActivityOutboxSingleProcessor.processSingleEvent(outbox.getId());
+      try {
+        userActivityOutboxSingleProcessor.processSingleEvent(outbox.getId());
+      } catch (Exception e) {
+        log.error("사용자 활동 Outbox 개별 처리 호출 실패 - outboxId={}", outbox.getId(), e);
+      }
     }
 
-    for (UserActivityOutbox outbox : outboxes) {
-      userActivityOutboxSingleProcessor.processSingleEvent(outbox.getId());
-    }
   }
 
-  @Transactional
   public void retryFailedEvents() {
     List<UserActivityOutbox> failedOutboxes =
         userActivityOutboxRepository
@@ -45,7 +47,11 @@ public class UserActivityOutboxProcessor {
             );
 
     for (UserActivityOutbox outbox : failedOutboxes) {
-      outbox.resetToPending();
+      try {
+        userActivityOutboxSingleProcessor.resetSingleFailedEvent(outbox.getId());
+      } catch (Exception e) {
+        log.error("사용자 활동 Outbox 재시도 복원 실패 - outboxId={}", outbox.getId(), e);
+      }
     }
   }
 

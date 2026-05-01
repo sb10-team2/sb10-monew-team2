@@ -59,6 +59,16 @@ public class UserActivityOutboxSingleProcessor {
     }
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void resetSingleFailedEvent(UUID outboxId) {
+    UserActivityOutbox outbox = userActivityOutboxRepository.findById(outboxId)
+        .orElseThrow(() -> new IllegalStateException(
+            "Outbox 이벤트를 찾을 수 없다. outboxId=" + outboxId
+        ));
+
+    outbox.resetToPending();
+  }
+
   // eventType에 따라 payload를 역직렬화하고 사용자 활동 문서 갱신 로직을 호출한다.
   private void handle(UserActivityOutbox outbox) {
     String payloadJson = outbox.getPayload();
