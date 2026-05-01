@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +59,7 @@ public class UserActivityOutboxService {
   }
 
   // 회원가입 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveUserRegistered(User user) {
     save(
         UserActivityEventType.USER_REGISTERED,
@@ -72,6 +75,7 @@ public class UserActivityOutboxService {
   }
 
   // 닉네임 수정 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveUserNicknameUpdated(User user) {
     save(
         UserActivityEventType.USER_NICKNAME_UPDATED,
@@ -85,6 +89,7 @@ public class UserActivityOutboxService {
   }
 
   // 관심사 구독 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveInterestSubscribed(Subscription subscription, List<String> keywords) {
     Interest interest = subscription.getInterest();
     save(
@@ -103,6 +108,7 @@ public class UserActivityOutboxService {
   }
 
   // 관심사 구독 취소 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveInterestUnsubscribed(UUID userId, UUID interestId) {
     save(
         UserActivityEventType.INTEREST_UNSUBSCRIBED,
@@ -116,6 +122,7 @@ public class UserActivityOutboxService {
   }
 
   // 관심사 키워드 수정 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveInterestUpdated(UUID interestId, List<String> keywords) {
     save(
         UserActivityEventType.INTEREST_UPDATED,
@@ -129,6 +136,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 생성 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentCreated(UUID userId, CommentItem item) {
     save(
         UserActivityEventType.COMMENT_CREATED,
@@ -149,6 +157,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 수정 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentUpdated(UUID userId, CommentItem item) {
     save(
         UserActivityEventType.COMMENT_UPDATED,
@@ -169,6 +178,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 삭제 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentDeleted(UUID userId, UUID commentId) {
     save(
         UserActivityEventType.COMMENT_DELETED,
@@ -182,6 +192,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 좋아요 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentLiked(UUID userId, CommentLikeItem item) {
     save(
         UserActivityEventType.COMMENT_LIKED,
@@ -204,6 +215,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 좋아요 취소 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentUnliked(UUID userId, UUID commentId) {
     save(
         UserActivityEventType.COMMENT_UNLIKED,
@@ -217,6 +229,7 @@ public class UserActivityOutboxService {
   }
 
   // 댓글 좋아요 수 변경 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveCommentLikeCountUpdated(UUID userId, UUID commentId, long likeCount) {
     save(
         UserActivityEventType.COMMENT_LIKE_COUNT_UPDATED,
@@ -231,6 +244,7 @@ public class UserActivityOutboxService {
   }
 
   // 기사 조회 이벤트를 Outbox에 저장한다.
+  @Transactional(propagation = Propagation.MANDATORY)
   public void saveArticleViewed(UUID userId, ArticleViewItem item) {
     save(
         UserActivityEventType.ARTICLE_VIEWED,
