@@ -6,21 +6,20 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.junit.jupiter.Container;
 
 // 모든 통합 테스트의 공통 설정
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@Testcontainers // @Container 어노테이션을 인식하고 컨테이너 생명주기를 관리
 public abstract class BaseIntegrationsTest {
 
-  // 클래스 단위 공유
-  // Spring은 컨텍스트 캐싱을 해서, 컨테이너를 재사용하기도 한다네요
-  @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+  // @Testcontainers + @Container 대신 static 블록으로 수동 기동
+  // → 컨테이너가 JVM당 딱 한 번만 시작되어 Spring 컨텍스트 캐싱과 충돌하지 않음
+  static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+  static final MongoDBContainer mongo = new MongoDBContainer("mongo:8.0");
 
-  @Container
-  static MongoDBContainer mongo = new MongoDBContainer("mongo:8.0");
+  static {
+    postgres.start();
+    mongo.start();
+  }
 
   // 컨테이너가 기동된 후 실제 할당된 URL/포트를 Spring 컨텍스트에 동적으로 주입
   @DynamicPropertySource
