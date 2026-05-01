@@ -65,12 +65,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.USER_REGISTERED,
         UserActivityAggregateType.USER,
         user.getId(),
-        new UserRegisteredPayload(
-            user.getId(),
-            user.getEmail(),
-            user.getNickname(),
-            user.getCreatedAt()
-        )
+        UserRegisteredPayload.of(user)
     );
   }
 
@@ -81,29 +76,18 @@ public class UserActivityOutboxService {
         UserActivityEventType.USER_NICKNAME_UPDATED,
         UserActivityAggregateType.USER,
         user.getId(),
-        new UserNicknameUpdatedPayload(
-            user.getId(),
-            user.getNickname()
-        )
+        UserNicknameUpdatedPayload.of(user)
     );
   }
 
   // 관심사 구독 이벤트를 Outbox에 저장한다.
   @Transactional(propagation = Propagation.MANDATORY)
   public void saveInterestSubscribed(Subscription subscription, List<String> keywords) {
-    Interest interest = subscription.getInterest();
     save(
         UserActivityEventType.INTEREST_SUBSCRIBED,
         UserActivityAggregateType.SUBSCRIPTION,
         subscription.getId(),
-        new InterestSubscribedPayload(
-            subscription.getUser().getId(),
-            subscription.getId(),
-            interest.getId(),
-            interest.getName(),
-            keywords,
-            subscription.getCreatedAt()
-        )
+        InterestSubscribedPayload.of(subscription, keywords)
     );
   }
 
@@ -114,10 +98,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.INTEREST_UNSUBSCRIBED,
         UserActivityAggregateType.INTEREST,
         interestId,
-        new InterestUnsubscribedPayload(
-            userId,
-            interestId
-        )
+        InterestUnsubscribedPayload.of(userId, interestId)
     );
   }
 
@@ -128,10 +109,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.INTEREST_UPDATED,
         UserActivityAggregateType.INTEREST,
         interestId,
-        new InterestUpdatedPayload(
-            interestId,
-            keywords
-        )
+        InterestUpdatedPayload.of(interestId, keywords)
     );
   }
 
@@ -142,17 +120,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_CREATED,
         UserActivityAggregateType.COMMENT,
         item.id(),
-        new CommentActivityPayload(
-            userId,
-            item.id(),
-            item.articleId(),
-            item.articleTitle(),
-            item.userId(),
-            item.userNickname(),
-            item.content(),
-            item.likeCount(),
-            item.createdAt()
-        )
+        CommentActivityPayload.of(userId, item)
     );
   }
 
@@ -163,17 +131,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_UPDATED,
         UserActivityAggregateType.COMMENT,
         item.id(),
-        new CommentActivityPayload(
-            userId,
-            item.id(),
-            item.articleId(),
-            item.articleTitle(),
-            item.userId(),
-            item.userNickname(),
-            item.content(),
-            item.likeCount(),
-            item.createdAt()
-        )
+        CommentActivityPayload.of(userId, item)
     );
   }
 
@@ -184,10 +142,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_DELETED,
         UserActivityAggregateType.COMMENT,
         commentId,
-        new CommentDeletedPayload(
-            userId,
-            commentId
-        )
+        CommentDeletedPayload.of(userId, commentId)
     );
   }
 
@@ -198,19 +153,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_LIKED,
         UserActivityAggregateType.COMMENT_LIKE,
         item.id(),
-        new CommentLikeActivityPayload(
-            userId,
-            item.id(),
-            item.createdAt(),
-            item.commentId(),
-            item.articleId(),
-            item.articleTitle(),
-            item.commentUserId(),
-            item.commentUserNickname(),
-            item.commentContent(),
-            item.commentLikeCount(),
-            item.commentCreatedAt()
-        )
+        CommentLikeActivityPayload.of(userId, item)
     );
   }
 
@@ -221,10 +164,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_UNLIKED,
         UserActivityAggregateType.COMMENT,
         commentId,
-        new CommentUnlikedPayload(
-            userId,
-            commentId
-        )
+        CommentUnlikedPayload.of(userId, commentId)
     );
   }
 
@@ -235,11 +175,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.COMMENT_LIKE_COUNT_UPDATED,
         UserActivityAggregateType.COMMENT,
         commentId,
-        new CommentLikeCountUpdatedPayload(
-            userId,
-            commentId,
-            likeCount
-        )
+        CommentLikeCountUpdatedPayload.of(userId, commentId, likeCount)
     );
   }
 
@@ -250,19 +186,7 @@ public class UserActivityOutboxService {
         UserActivityEventType.ARTICLE_VIEWED,
         UserActivityAggregateType.ARTICLE_VIEW,
         item.id(),
-        new ArticleViewedPayload(
-            userId,
-            item.id(),
-            item.createdAt(),
-            item.articleId(),
-            item.source(),
-            item.sourceUrl(),
-            item.articleTitle(),
-            item.articlePublishedDate(),
-            item.articleSummary(),
-            item.articleCommentCount(),
-            item.articleViewCount()
-        )
+        ArticleViewedPayload.of(userId, item)
     );
   }
 }

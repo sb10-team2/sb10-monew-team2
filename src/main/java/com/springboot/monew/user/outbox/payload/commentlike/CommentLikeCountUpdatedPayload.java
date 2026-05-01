@@ -7,5 +7,7 @@ public record CommentLikeCountUpdatedPayload(
     UUID commentId,
     Long likeCount
 ) {
-
+  public static CommentLikeCountUpdatedPayload of(UUID userId, UUID commentId, long likeCount) {
+    return new CommentLikeCountUpdatedPayload(userId, commentId, likeCount);
+  }
 }

@@ -7,5 +7,7 @@ public record InterestUpdatedPayload(
     UUID interestId,
     List<String> keywords
 ) {
-
+  public static InterestUpdatedPayload of(UUID interestId, List<String> keywords) {
+    return new InterestUpdatedPayload(interestId, keywords);
+  }
 }

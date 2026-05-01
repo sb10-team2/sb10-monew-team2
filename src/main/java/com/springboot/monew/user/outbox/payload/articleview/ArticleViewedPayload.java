@@ -1,6 +1,7 @@
 package com.springboot.monew.user.outbox.payload.articleview;
 
 import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -18,4 +19,19 @@ public record ArticleViewedPayload(
     Long articleViewCount
 ) {
 
+  public static ArticleViewedPayload of(UUID userId, ArticleViewItem item) {
+    return new ArticleViewedPayload(
+        userId,
+        item.id(),
+        item.createdAt(),
+        item.articleId(),
+        item.source(),
+        item.sourceUrl(),
+        item.articleTitle(),
+        item.articlePublishedDate(),
+        item.articleSummary(),
+        item.articleCommentCount(),
+        item.articleViewCount()
+    );
+  }
 }

@@ -6,5 +6,7 @@ public record CommentDeletedPayload(
     UUID userId,
     UUID commentId
 ) {
-
+  public static CommentDeletedPayload of(UUID userId, UUID commentId) {
+    return new CommentDeletedPayload(userId, commentId);
+  }
 }
