@@ -9,4 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserActivityOutboxRepository extends JpaRepository<UserActivityOutbox, UUID> {
   // 미처리 Outbox 이벤트를 발생 시각 순으로 조회한다.
   List<UserActivityOutbox> findAllByStatusOrderByOccurredAtAsc(UserActivityOutboxStatus status);
+
+  // 재시도 한도를 넘지 않은 FAILED 이벤트만 재처리 대상으로 조회한다.
+  List<UserActivityOutbox> findAllByStatusAndRetryCountLessThanOrderByOccurredAtAsc(
+      UserActivityOutboxStatus status,
+      int retryCount
+  );
 }

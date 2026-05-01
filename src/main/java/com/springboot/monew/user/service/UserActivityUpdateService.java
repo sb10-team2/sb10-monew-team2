@@ -27,6 +27,10 @@ public class UserActivityUpdateService {
 
   // 회원가입 성공 시 사용자 활동 내역 문서를 새로 생성한다.
   public void createUserActivity(UUID userId, String email, String nickname, Instant createdAt) {
+    if (userActivityRepository.existsById(userId)) {
+      log.info("사용자 활동 문서가 이미 존재하여 생성 생략 - userId={}", userId);
+      return;
+    }
     UserActivityDocument document = new UserActivityDocument(
         userId,
         email,

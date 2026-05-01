@@ -17,7 +17,14 @@ public class UserActivityOutboxScheduler {
   // 이전 실행이 끝난 뒤 30초 후 다시 실행, 애플리케이션 시작 10초 뒤 첫 실행.
   @Scheduled(fixedDelay = 30000, initialDelay = 10000)
   public void processPendingUserActivityOutboxEvents() {
-    log.debug("사용자 활동 Outbox 스케줄러 실행");
+    log.debug("사용자 활동 Outbox PENDING 처리 스케줄러 실행");
     userActivityOutboxProcessor.processPendingEvents();
+  }
+
+  // 처리 실패한 이벤트 중 재시도 가능한 건을 다시 PENDING 으로 복원한다.
+  @Scheduled(fixedDelay = 30000, initialDelay = 15000)
+  public void retryFailedUserActivityOutboxEvents() {
+    log.debug("사용자 활동 Outbox FAILED 재시도 스케줄러 실행");
+    userActivityOutboxProcessor.retryFailedEvents();
   }
 }
