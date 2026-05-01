@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.interest.entity.Keyword;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,17 +18,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class KeywordGenerator extends BaseGenerator<Keyword> {
 
-  public KeywordGenerator(JdbcTemplate template,
+  public KeywordGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
-  public List<Keyword> run(int size) {
+  public List<Keyword> run() {
     Model<Keyword> model = Instancio.of(Keyword.class)
         .supply(field(Keyword::getName), () -> faker.get().lorem().characters(4, 100))
         .generate(field(Keyword::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .toModel();
-    return generate(size, modelGenerator(model));
+    return generate(properties.keyword(), modelGenerator(model));
   }
 
   @Override

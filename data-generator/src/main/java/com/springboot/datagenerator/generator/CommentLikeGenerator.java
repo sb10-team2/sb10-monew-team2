@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.user.entity.User;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import lombok.Setter;
 import org.instancio.Instancio;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommentLikeGenerator extends BaseGenerator<CommentLike> {
 
-  @Setter
-  private int commentLikePerUser = 50;
-
-  public CommentLikeGenerator(JdbcTemplate template,
+  public CommentLikeGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<CommentLike> run(List<User> users, List<Comment> comments) {
@@ -36,7 +34,7 @@ public class CommentLikeGenerator extends BaseGenerator<CommentLike> {
   }
 
   private Stream<CommentLike> createCommentLikesFor(User user, List<Comment> comments) {
-    return uniqueRandomNumbers(comments.size(), commentLikePerUser).stream()
+    return uniqueRandomNumbers(comments.size(), properties.commentLikePerUser()).stream()
         .map(idx -> Instancio.of(CommentLike.class)
             .generate(field(CommentLike::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(CommentLike::getUser), user)
@@ -59,10 +57,10 @@ public class CommentLikeGenerator extends BaseGenerator<CommentLike> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < commentLikePerUser) {
+    if (super.batchSize() < properties.commentLikePerUser()) {
       throw new IllegalArgumentException(
-          "commentLikePerUser=%s 는 1000을 넘길 수 없다".formatted(commentLikePerUser));
+          "commentLikePerUser=%s 는 1000을 넘길 수 없다".formatted(properties.commentLikePerUser()));
     }
-    return Math.max(1, super.batchSize() / commentLikePerUser);
+    return Math.max(1, super.batchSize() / properties.commentLikePerUser());
   }
 }

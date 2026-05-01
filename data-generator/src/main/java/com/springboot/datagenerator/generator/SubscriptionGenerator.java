@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.entity.Subscription;
 import com.springboot.monew.user.entity.User;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import lombok.Setter;
 import org.instancio.Instancio;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionGenerator extends BaseGenerator<Subscription> {
 
-  @Setter
-  private int interestPerUser = 3;
-
-  public SubscriptionGenerator(JdbcTemplate template,
+  public SubscriptionGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<Subscription> run(List<User> users, List<Interest> interests) {
@@ -36,7 +34,7 @@ public class SubscriptionGenerator extends BaseGenerator<Subscription> {
   }
 
   private Stream<Subscription> createInterestsFor(User user, List<Interest> interests) {
-    return uniqueRandomNumbers(interests.size(), interestPerUser).stream()
+    return uniqueRandomNumbers(interests.size(), properties.interestPerUser()).stream()
         .map(idx -> Instancio.of(Subscription.class)
             .generate(field(Subscription::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(Subscription::getUser), user)
@@ -59,10 +57,10 @@ public class SubscriptionGenerator extends BaseGenerator<Subscription> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < interestPerUser) {
+    if (super.batchSize() < properties.interestPerUser()) {
       throw new IllegalArgumentException(
-          "interestPerUser=%s 는 1000을 넘길 수 없다".formatted(interestPerUser));
+          "interestPerUser=%s 는 1000을 넘길 수 없다".formatted(properties.interestPerUser()));
     }
-    return Math.max(1, super.batchSize() / interestPerUser);
+    return Math.max(1, super.batchSize() / properties.interestPerUser());
   }
 }

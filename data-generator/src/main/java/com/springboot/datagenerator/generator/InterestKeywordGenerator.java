@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.interest.entity.InterestKeyword;
 import com.springboot.monew.interest.entity.Keyword;
@@ -21,12 +22,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
 
-  @Setter
-  private int keywordPerInterest = 3;
-
-  public InterestKeywordGenerator(JdbcTemplate template,
+  public InterestKeywordGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<InterestKeyword> run(List<Interest> interests, List<Keyword> keywords) {
@@ -36,7 +35,7 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
   }
 
   private Stream<InterestKeyword> createKeywordsFor(Interest interest, List<Keyword> keywords) {
-    return uniqueRandomNumbers(keywords.size(), keywordPerInterest).stream()
+    return uniqueRandomNumbers(keywords.size(), properties.keywordPerInterest()).stream()
         .map(idx -> Instancio.of(InterestKeyword.class)
             .generate(field(InterestKeyword::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(InterestKeyword::getInterest), interest)
@@ -59,10 +58,10 @@ public class InterestKeywordGenerator extends BaseGenerator<InterestKeyword> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < keywordPerInterest) {
+    if (super.batchSize() < properties.keywordPerInterest()) {
       throw new IllegalArgumentException(
-          "keywordPerInterest=%s 는 1000을 넘길 수 없다".formatted(keywordPerInterest));
+          "keywordPerInterest=%s 는 1000을 넘길 수 없다".formatted(properties.keywordPerInterest()));
     }
-    return Math.max(1, super.batchSize() / keywordPerInterest);
+    return Math.max(1, super.batchSize() / properties.keywordPerInterest());
   }
 }

@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,12 +18,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
 
-  public NewsArticleGenerator(JdbcTemplate template,
+  public NewsArticleGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
-  public List<NewsArticle> run(int size) {
+  public List<NewsArticle> run() {
     Model<NewsArticle> model = Instancio.of(NewsArticle.class)
         .supply(field(NewsArticle::getOriginalLink), () -> faker.get().internet().url())
         .supply(field(NewsArticle::getTitle), () -> faker.get().book().title())
@@ -32,7 +34,7 @@ public class NewsArticleGenerator extends BaseGenerator<NewsArticle> {
         .set(field(NewsArticle::getViewCount), 0L)
         .set(field(NewsArticle::isDeleted), false)
         .toModel();
-    return generate(size, modelGenerator(model));
+    return generate(properties.article(), modelGenerator(model));
   }
 
   @Override

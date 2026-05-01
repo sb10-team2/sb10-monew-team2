@@ -1,5 +1,6 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.common.entity.BaseEntity;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Model;
@@ -29,7 +31,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @RequiredArgsConstructor
 public abstract class BaseGenerator<T extends BaseEntity> {
 
-  private static final int DB_BATCH_SIZE = 1000;
+  protected final GeneratorProperties properties;
 
   protected static final ThreadLocal<Faker> faker = ThreadLocal.withInitial(Faker::new);
   protected final JdbcTemplate template;
@@ -39,7 +41,7 @@ public abstract class BaseGenerator<T extends BaseEntity> {
   protected final Instant twoWeeksAgo = weekAgo.minus(7, ChronoUnit.DAYS);
 
   protected void executeBatch(List<T> entities) {
-    template.batchUpdate(sql(), entities, DB_BATCH_SIZE, this::setValues);
+    template.batchUpdate(sql(), entities, properties.dbBatchSize(), this::setValues);
   }
 
   protected List<T> generate(int size, Function<Integer, List<T>> generator) {
@@ -99,7 +101,7 @@ public abstract class BaseGenerator<T extends BaseEntity> {
   protected abstract String sql();
 
   protected int batchSize() {
-    return DB_BATCH_SIZE;
+    return properties.dbBatchSize();
   }
 
   protected String insertSql(String table, String... fields) {

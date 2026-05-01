@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.newsarticles.entity.ArticleView;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.user.entity.User;
@@ -21,12 +22,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ArticleViewGenerator extends BaseGenerator<ArticleView> {
 
-  @Setter
-  private int articlePerUser = 10;
-
   public ArticleViewGenerator(JdbcTemplate template,
-      @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+      @Qualifier("jdbcWorker") Executor executor,
+      GeneratorProperties properties) {
+    super(properties, template, executor);
   }
 
   public List<ArticleView> run(List<User> users, List<NewsArticle> articles) {
@@ -36,7 +35,7 @@ public class ArticleViewGenerator extends BaseGenerator<ArticleView> {
   }
 
   private Stream<ArticleView> createArticlesFor(User user, List<NewsArticle> articles) {
-    return uniqueRandomNumbers(articles.size(), articlePerUser).stream()
+    return uniqueRandomNumbers(articles.size(), properties.articlePerUser()).stream()
         .map(idx -> Instancio.of(ArticleView.class)
             .generate(field(ArticleView::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(ArticleView::getUser), user)
@@ -59,10 +58,10 @@ public class ArticleViewGenerator extends BaseGenerator<ArticleView> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < articlePerUser) {
+    if (super.batchSize() < properties.articlePerUser()) {
       throw new IllegalArgumentException(
-          "articlePerUser=%s 는 1000을 넘길 수 없다".formatted(articlePerUser));
+          "articlePerUser=%s 는 1000을 넘길 수 없다".formatted(properties.articlePerUser()));
     }
-    return Math.max(1, super.batchSize() / articlePerUser);
+    return Math.max(1, super.batchSize() / properties.articlePerUser());
   }
 }

@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.newsarticles.entity.ArticleInterest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
@@ -21,9 +22,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ArticleInterestGenerator extends BaseGenerator<ArticleInterest> {
 
-  public ArticleInterestGenerator(JdbcTemplate template,
+  public ArticleInterestGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<ArticleInterest> run(List<Interest> interests, List<NewsArticle> articles) {
@@ -34,7 +36,7 @@ public class ArticleInterestGenerator extends BaseGenerator<ArticleInterest> {
 
   private Stream<ArticleInterest> createArticlesFor(Interest interest, List<NewsArticle> articles) {
     return uniqueRandomNumbers(articles.size(),
-        () -> ThreadLocalRandom.current().nextInt(1, 101))
+        () -> ThreadLocalRandom.current().nextInt(1, properties.interestPerArticle() + 1))
         .stream()
         .map(idx -> Instancio.of(ArticleInterest.class)
             .generate(field(ArticleInterest::getCreatedAt), this::betweenNowAndTwoWeeksAgo)

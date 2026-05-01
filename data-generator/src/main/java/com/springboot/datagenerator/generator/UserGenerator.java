@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.user.entity.User;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,12 +20,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserGenerator extends BaseGenerator<User> {
 
-  public UserGenerator(JdbcTemplate template,
+  public UserGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
-  public List<User> run(int size) {
+  public List<User> run() {
     Model<User> model = Instancio.of(User.class)
         .supply(field(User::getEmail), () -> email(faker.get()))
         .generate(field(User::getNickname),
@@ -34,7 +36,7 @@ public class UserGenerator extends BaseGenerator<User> {
         .ignore(field(User::getDeletedAt))
         .ignore(field(User::getUpdatedAt))
         .toModel();
-    return generate(size, modelGenerator(model));
+    return generate(properties.user(), modelGenerator(model));
   }
 
   @Override

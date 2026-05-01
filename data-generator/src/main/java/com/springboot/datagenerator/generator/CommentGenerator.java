@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.user.entity.User;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import lombok.Setter;
 import org.instancio.Instancio;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommentGenerator extends BaseGenerator<Comment> {
 
-  @Setter
-  private int commentPerUser = 50;
-
-  public CommentGenerator(JdbcTemplate template,
+  public CommentGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<Comment> run(List<User> users, List<NewsArticle> articles) {
@@ -36,7 +34,7 @@ public class CommentGenerator extends BaseGenerator<Comment> {
   }
 
   private Stream<Comment> createCommentsFor(User user, List<NewsArticle> articles) {
-    return uniqueRandomNumbers(articles.size(), commentPerUser).stream()
+    return uniqueRandomNumbers(articles.size(), properties.commentPerUser()).stream()
         .map(idx -> Instancio.of(Comment.class)
             .generate(field(Comment::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .supply(field(Comment::getContent), () -> faker.get().lorem().characters(5, 200))
@@ -68,10 +66,10 @@ public class CommentGenerator extends BaseGenerator<Comment> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < commentPerUser) {
+    if (super.batchSize() < properties.commentPerUser()) {
       throw new IllegalArgumentException(
-          "commentPerUser=%s 는 1000을 넘길 수 없다".formatted(commentPerUser));
+          "commentPerUser=%s 는 1000을 넘길 수 없다".formatted(properties.commentPerUser()));
     }
-    return Math.max(1, super.batchSize() / commentPerUser);
+    return Math.max(1, super.batchSize() / properties.commentPerUser());
   }
 }

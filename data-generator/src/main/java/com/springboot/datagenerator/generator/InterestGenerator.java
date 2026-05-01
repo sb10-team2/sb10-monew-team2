@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.interest.entity.Interest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,19 +18,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class InterestGenerator extends BaseGenerator<Interest> {
 
-  public InterestGenerator(JdbcTemplate template,
+  public InterestGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
-  public List<Interest> run(int size) {
+  public List<Interest> run() {
     Model<Interest> model = Instancio.of(Interest.class)
         .supply(field(Interest::getName), () -> faker.get().lorem().characters(4, 50))
         .set(field(Interest::getSubscriberCount), 0L)
         .generate(field(Interest::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
         .ignore(field(Interest::getUpdatedAt))
         .toModel();
-    return generate(size, modelGenerator(model));
+    return generate(properties.interest(), modelGenerator(model));
   }
 
   @Override

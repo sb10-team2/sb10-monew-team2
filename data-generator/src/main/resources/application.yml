@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/monew?reWriteBatchedInserts=true
+    username: monew
+    password: monew123
+    driver-class-name: org.postgresql.Driver
+  main:
+    web-application-type: none
+
+generator:
+  article: 50000
+  interest: 1000
+  user: 1000
+  keyword: 1000
+  interest-per-user: 3
+  notification-per-user: 50
+  comment-like-per-user: 50
+  comment-per-user: 50
+  db-batch-size: 1000
+  article-per-user: 10
+  interest-per-article: 100
+  keyword-per-interest: 3

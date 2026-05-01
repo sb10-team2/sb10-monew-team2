@@ -1,7 +1,8 @@
-package com.springboot.monew.testdata.generator;
+package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.interest.entity.Interest;
 import com.springboot.monew.notification.entity.Notification;
@@ -16,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import lombok.Setter;
 import org.instancio.Instancio;
 import org.instancio.TargetSelector;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,12 +26,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationGenerator extends BaseGenerator<Notification> {
 
-  @Setter
-  private int notificationPerUser = 50;
-
-  public NotificationGenerator(JdbcTemplate template,
+  public NotificationGenerator(GeneratorProperties properties,
+      JdbcTemplate template,
       @Qualifier("jdbcWorker") Executor executor) {
-    super(template, executor);
+    super(properties, template, executor);
   }
 
   public List<Notification> run(List<User> users, List<CommentLike> commentLikes,
@@ -42,7 +40,7 @@ public class NotificationGenerator extends BaseGenerator<Notification> {
     AtomicInteger offset = new AtomicInteger(0);
     AtomicInteger clPtr = new AtomicInteger(0);
     AtomicInteger intPtr = new AtomicInteger(0);
-    int count = notificationPerUser / 2;
+    int count = properties.notificationPerUser() / 2;
 
     return generate(users.size(), relationMappingGenerator(users, offset,
         user -> createMixedNotifications(user, shuffledCls, clPtr, shuffledInts, intPtr, count)
@@ -80,7 +78,7 @@ public class NotificationGenerator extends BaseGenerator<Notification> {
       ResourceType type,
       TargetSelector setField,
       TargetSelector ignoreField) {
-    return uniqueRandomNumbers(targets.size(), notificationPerUser / 2).stream()
+    return uniqueRandomNumbers(targets.size(), properties.notificationPerUser() / 2).stream()
         .map(idx -> Instancio.of(Notification.class)
             .generate(field(Notification::getCreatedAt), this::betweenNowAndTwoWeeksAgo)
             .set(field(Notification::getUser), user)
@@ -114,10 +112,10 @@ public class NotificationGenerator extends BaseGenerator<Notification> {
 
   @Override
   protected int batchSize() {
-    if (super.batchSize() < notificationPerUser) {
+    if (super.batchSize() < properties.notificationPerUser()) {
       throw new IllegalArgumentException(
-          "notificationPerUser=%s 는 1000을 넘길 수 없다".formatted(notificationPerUser));
+          "notificationPerUser=%s 는 1000을 넘길 수 없다".formatted(properties.notificationPerUser()));
     }
-    return Math.max(1, super.batchSize() / notificationPerUser);
+    return Math.max(1, super.batchSize() / properties.notificationPerUser());
   }
 }
