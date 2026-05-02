@@ -26,6 +26,7 @@ import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,9 @@ class SubscriptionServiceTest {
   private SubscriptionDtoMapper subscriptionDtoMapper;
 
   @Mock
+  private UserActivityOutboxService userActivityOutboxService;
+
+  @Mock
   private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
@@ -81,6 +85,16 @@ class SubscriptionServiceTest {
         interest,
         Instant.parse("2026-04-20T00:00:00Z")
     );
+
+    // 사용자 활동 이벤트 발행 시 InterestSubscribedEvent 안에 담길 SubscriptionItem을 미리 준비한다.
+    SubscriptionItem subscriptionItem = new SubscriptionItem(
+        subscription.getId(),
+        interestId,
+        interest.getName(),
+        List.of("주식", "채권"),
+        subscription.getCreatedAt()
+    );
+
     InterestKeyword firstLink = new InterestKeyword(interest, keyword(UUID.randomUUID(), "주식"));
     InterestKeyword secondLink = new InterestKeyword(interest, keyword(UUID.randomUUID(), "채권"));
     SubscriptionDto expected = new SubscriptionDto(
@@ -89,15 +103,6 @@ class SubscriptionServiceTest {
         "금융",
         List.of("주식", "채권"),
         2L,
-        subscription.getCreatedAt()
-    );
-
-    // 사용자 활동 이벤트 발행 시 InterestSubscribedEvent 안에 담길 SubscriptionItem을 미리 준비한다.
-    SubscriptionItem subscriptionItem = new SubscriptionItem(
-        subscription.getId(),
-        interestId,
-        interest.getName(),
-        List.of("주식", "채권"),
         subscription.getCreatedAt()
     );
 
@@ -118,6 +123,8 @@ class SubscriptionServiceTest {
 
     // then
     assertThat(result).isEqualTo(expected);
+    // 관심사 구독 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveInterestSubscribed(subscription, List.of("주식", "채권"));
 
     // 발행된 InterestSubscribedEvent를 가져와 구독 정보가 올바르게 담겼는지 검증한다.
     ArgumentCaptor<InterestSubscribedEvent> captor =
@@ -412,6 +419,8 @@ class SubscriptionServiceTest {
     // then
     verify(subscriptionRepository).deleteByUserIdAndInterestId(userId, interestId);
     verify(interestRepository).decrementSubscriberCount(interestId);
+    // 관심사 구독 취소 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveInterestUnsubscribed(userId, interestId);
 
     // 발행된 InterestUnsubscribedEvent를 가져와 구독 취소 대상 정보가 올바르게 담겼는지 검증한다.
     ArgumentCaptor<InterestUnsubscribedEvent> captor =

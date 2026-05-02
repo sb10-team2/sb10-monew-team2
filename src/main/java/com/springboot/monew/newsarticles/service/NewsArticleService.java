@@ -22,11 +22,13 @@ import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
 import com.springboot.monew.notification.event.InterestNotificationEvent;
+import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.event.articleView.ArticleViewedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,7 @@ public class NewsArticleService {
   private final NewsArticleMapper newsArticleMapper;
   private final NewsArticleViewMapper newsArticleViewMapper;
   private final CommentRepository commentRepository;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -238,20 +241,20 @@ public class NewsArticleService {
     // ToDo: DB 레벨 원자적 증가/낙관적 락/ 비관적 락 고려 -> DB레벨 원자적 증가 선택
     newsArticleRepository.incrementViewCount(articleId);
 
-    // bulk update는 영속성 컨텍스트의 newsArticle 상태를 갱신하지 않으므로, 증가된 viewCount를 반영하기 위해 재조회한다.
-    NewsArticle refreshedArticle = getNewsArticle(articleId);
-    ArticleView refreshedArticleView = new ArticleView(refreshedArticle, user);
+    // 증가된 viewCount와 저장된 articleView id를 모두 반영하기 위해 조회이력을 다시 읽는다.
+    ArticleView refreshedArticleView = articleViewRepository.getReferenceById(savedArticleView.getId());
+    ArticleViewItem articleViewItem =
+        newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount);
+
+    // 기사 조회 사용자의 활동 문서에 기사 조회 활동을 반영하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveArticleViewed(userId, articleViewItem);
 
     // 기사를 조회한 사용자의 활동 문서에 기사 조회 활동을 추가한다.
     eventPublisher.publishEvent(
-        new ArticleViewedEvent(
-            userId,
-            newsArticleViewMapper.toArticleViewItem(refreshedArticleView, commentCount)
-        )
+        new ArticleViewedEvent(userId, articleViewItem)
     );
 
     return newsArticleViewMapper.toDto(refreshedArticleView, commentCount);
-
   }
 
   @Transactional(readOnly = true)

@@ -28,6 +28,6 @@ public record CommentActivityDto(
 
     @Schema(description = "작성된 날짜", format = "date-time")
     Instant createdAt
-    ) {
+) {
 
 }

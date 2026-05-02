@@ -11,6 +11,7 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.exception.ArticleException;
 import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.event.comment.CommentCreatedEvent;
 import com.springboot.monew.user.event.comment.CommentDeletedEvent;
@@ -18,6 +19,7 @@ import com.springboot.monew.user.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class CommentService {
   private final NewsArticleRepository articleRepository;
   private final UserRepository userRepository;
   private final CommentMapper commentMapper;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher eventPublisher;
 
   // 댓글 등록
@@ -52,6 +55,10 @@ public class CommentService {
 
     Comment comment = new Comment(user, article, request.content());
     commentRepository.save(comment);
+    CommentItem item = commentMapper.toCommentItem(comment);
+    // 댓글 생성 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentCreated(user.getId(), item);
+
     eventPublisher.publishEvent(
         new CommentCreatedEvent(user.getId(), commentMapper.toCommentItem(comment))
     );
@@ -76,6 +83,10 @@ public class CommentService {
 
     comment.updateContent(request.content());
     boolean likeByMe = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+    CommentItem item = commentMapper.toCommentItem(comment);
+    // 댓글 수정 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentUpdated(userId, item);
+
     eventPublisher.publishEvent(
         new CommentUpdatedEvent(userId, commentMapper.toCommentItem(comment))
     );
@@ -109,6 +120,8 @@ public class CommentService {
     // 삭제 되기 전에 사용자 활동내역에서 지울 userId만 먼저 추출(
     UUID userId = comment.getUser().getId();
     commentRepository.delete(comment);
+    // 댓글 삭제 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentDeleted(userId, commentId);
     // 프로토타입에서는 논리삭제하면 사용자 활동내역엔 남아있음. 따라서 물리삭제 시에만 이벤트 발행되도록 설정
     eventPublisher.publishEvent(
         new CommentDeletedEvent(userId, comment.getId())

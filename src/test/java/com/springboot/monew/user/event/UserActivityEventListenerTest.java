@@ -20,6 +20,13 @@ import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.event.user.UserNicknameUpdatedEvent;
 import com.springboot.monew.user.event.user.UserRegisteredEvent;
+import com.springboot.monew.user.outbox.payload.comment.CommentDeletedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentLikeCountUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.commentlike.CommentUnlikedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUnsubscribedPayload;
+import com.springboot.monew.user.outbox.payload.interest.InterestUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserNicknameUpdatedPayload;
+import com.springboot.monew.user.outbox.payload.user.UserRegisteredPayload;
 import com.springboot.monew.user.service.UserActivityUpdateService;
 import java.time.Instant;
 import java.util.List;
@@ -52,7 +59,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).createUserActivity(user);
+    verify(userActivityUpdateService).createUserActivity(UserRegisteredPayload.of(user));
   }
 
   @Test
@@ -67,7 +74,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).updateUserNickname(userId, nickname);
+    verify(userActivityUpdateService).updateUserNickname(UserNicknameUpdatedPayload.of(event));
   }
 
   @Test
@@ -82,7 +89,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).updateSubscriptionInterest(interestId, keywords);
+    verify(userActivityUpdateService).updateSubscriptionInterest(InterestUpdatedPayload.of(event));
   }
 
   @Test
@@ -118,7 +125,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).removeSubscription(userId, interestId);
+    verify(userActivityUpdateService).removeSubscription(InterestUnsubscribedPayload.of(event));
   }
 
   @Test
@@ -181,7 +188,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).removeComment(userId, commentId);
+    verify(userActivityUpdateService).removeComment(CommentDeletedPayload.of(event));
   }
 
   @Test
@@ -222,7 +229,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).removeCommentLike(userId, commentId);
+    verify(userActivityUpdateService).removeCommentLike(CommentUnlikedPayload.of(event));
   }
 
   @Test
@@ -238,7 +245,7 @@ public class UserActivityEventListenerTest {
     userActivityEventListener.handle(event);
 
     // then
-    verify(userActivityUpdateService).updateCommentLikeCount(userId, commentId, likeCount);
+    verify(userActivityUpdateService).updateCommentLikeCount(CommentLikeCountUpdatedPayload.of(event));
   }
 
   @Test

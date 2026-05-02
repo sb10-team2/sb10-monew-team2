@@ -32,6 +32,7 @@ import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,9 @@ class InterestServiceTest {
 
   @Mock
   private InterestDtoMapper interestDtoMapper;
+
+  @Mock
+  private UserActivityOutboxService userActivityOutboxService;
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
@@ -573,7 +577,6 @@ class InterestServiceTest {
     assertThat(result).isEqualTo(expected);
     verify(interestKeywordRepository).deleteAll(List.of(oldLink));
     verify(interestKeywordRepository).save(any(InterestKeyword.class));
-
     // 발행된 InterestUpdatedEvent를 가져와 수정된 관심사 ID와 키워드 목록이 올바르게 담겼는지 검증한다.
     ArgumentCaptor<InterestUpdatedEvent> captor =
         ArgumentCaptor.forClass(InterestUpdatedEvent.class);
@@ -583,6 +586,8 @@ class InterestServiceTest {
 
     assertThat(captor.getValue().interestId()).isEqualTo(interestId);
     assertThat(captor.getValue().keywords()).containsExactly("채권");
+    // 관심사 키워드 수정 후 사용자 활동 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveInterestUpdated(interestId, List.of("채권"));
   }
 
   @Test

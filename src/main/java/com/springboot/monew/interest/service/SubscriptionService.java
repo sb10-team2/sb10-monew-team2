@@ -17,6 +17,7 @@ import com.springboot.monew.user.event.interest.InterestUnsubscribedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,6 +38,7 @@ public class SubscriptionService {
   private final InterestKeywordRepository interestKeywordRepository;
   private final UserRepository userRepository;
   private final SubscriptionDtoMapper subscriptionDtoMapper;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -70,6 +72,9 @@ public class SubscriptionService {
     // 증가가 반영된 최신 구독자 수 조회
     long subscriberCount = getSubscriberCount(interestId);
 
+    // 관심사 구독 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveInterestSubscribed(subscription, keywords);
+
     // 구독한 사용자의 활동 문서에 관심사 구독 활동을 추가한다.
     eventPublisher.publishEvent(
         new InterestSubscribedEvent(
@@ -91,6 +96,9 @@ public class SubscriptionService {
     deleteSubscription(interestId, userId);
     // 관심사의 구독자 수를 DB에서 원자적으로 1 감소
     decrementSubscriberCount(interestId);
+
+    // 관심사 구독 취소 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveInterestUnsubscribed(userId, interestId);
 
     // 구독 취소한 사용자의 활동 문서에서 관심사 구독 활동을 제거한다.
     eventPublisher.publishEvent(

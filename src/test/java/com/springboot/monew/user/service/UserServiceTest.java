@@ -35,9 +35,11 @@ import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
-
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
+
+  @Mock
+  private UserActivityOutboxService userActivityOutboxService;
 
   @Mock
   private UserRepository userRepository;
@@ -139,6 +141,7 @@ public class UserServiceTest {
     verify(userRepository).save(any(User.class));
     verify(userMapper).toDto(savedUser);
     verify(applicationEventPublisher).publishEvent(any(UserRegisteredEvent.class));
+    verify(userActivityOutboxService).saveUserRegistered(savedUser);
   }
 
   @Test
@@ -259,6 +262,7 @@ public class UserServiceTest {
     verify(userRepository).existsByNickname(request.nickname());
     verify(userMapper).toDto(user);
     verify(applicationEventPublisher).publishEvent(any(UserNicknameUpdatedEvent.class));
+    verify(userActivityOutboxService).saveUserNicknameUpdated(user);
   }
 
   @Test
@@ -359,6 +363,7 @@ public class UserServiceTest {
     verify(userRepository, never()).existsByNickname(anyString());
     verify(userMapper).toDto(user);
     verify(applicationEventPublisher).publishEvent(any(UserNicknameUpdatedEvent.class));
+    verify(userActivityOutboxService).saveUserNicknameUpdated(user);
   }
 
   @Test

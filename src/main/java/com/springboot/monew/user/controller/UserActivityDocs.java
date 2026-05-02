@@ -18,7 +18,7 @@ public interface UserActivityDocs {
       summary = "사용자 활동 내역 조회",
       description = """
           `GET /api/user-activities/{userId}`
-
+          
           사용자 ID로 활동 내역(구독, 댓글, 좋아요, 기사 조회 이력)을 조회합니다.""",
       operationId = "getUserActivity"
   )

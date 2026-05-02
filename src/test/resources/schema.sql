@@ -107,6 +107,23 @@ CREATE TABLE news_articles
     is_deleted    BOOLEAN                  NOT NULL
 );
 
+-- 사용자 활동 이벤트 아웃박스 테이블
+CREATE TABLE user_activity_outbox
+(
+    "id"             UUID PRIMARY KEY,
+    "event_type"     VARCHAR(50)           NOT NULL,
+    "aggregate_type" VARCHAR(30)           NOT NULL,
+    "aggregate_id"   UUID                  NOT NULL,
+    "payload"        TEXT                  NOT NULL,
+    "status"         VARCHAR(20)           NOT NULL,
+    "retry_count"    INTEGER DEFAULT 0     NOT NULL,
+    "occurred_at"    TIMESTAMP WITH TIME ZONE          NOT NULL,
+    "processed_at"   TIMESTAMP WITH TIME ZONE           NULL,
+    "last_error"     TEXT                  NULL,
+    "created_at"     TIMESTAMP WITH TIME ZONE           NOT NULL,
+    "updated_at"     TIMESTAMP WITH TIME ZONE           NULL
+);
+
 -- =========================
 -- news_articles 제약조건
 -- =========================
@@ -212,3 +229,24 @@ ALTER TABLE interest_keywords
     ADD CONSTRAINT FK_INTEREST_KEYWORDS_KEYWORD_ID FOREIGN KEY (keyword_id) REFERENCES keywords (id) ON DELETE CASCADE;
 ALTER TABLE interest_keywords
     ADD CONSTRAINT UK_INTEREST_KEYWORDS_INTEREST_ID_KEYWORD_ID UNIQUE (interest_id, keyword_id);
+
+-- =========================
+-- user_activity_outbox 제약조건
+-- =========================
+-- 재시도 횟수는 음수가 될 수 없다.
+ALTER TABLE user_activity_outbox
+    ADD CONSTRAINT "CK_USER_ACTIVITY_OUTBOX_RETRY_COUNT"
+        CHECK ("retry_count" >= 0);
+
+-- 처리 상태는 미처리, 처리 완료, 처리 실패 상태만 허용한다.
+ALTER TABLE user_activity_outbox
+    ADD CONSTRAINT "CK_USER_ACTIVITY_OUTBOX_STATUS"
+        CHECK ("status" IN ('PENDING', 'PROCESSED', 'FAILED'));
+
+-- 미처리 이벤트를 발생 시각 순으로 빠르게 조회하기 위한 인덱스
+CREATE INDEX "IDX_USER_ACTIVITY_OUTBOX_STATUS_OCCURRED_AT"
+    ON user_activity_outbox ("status", "occurred_at");
+
+-- 특정 집계 대상의 이벤트를 빠르게 조회하거나 재처리하기 위한 인덱스
+CREATE INDEX "IDX_USER_ACTIVITY_OUTBOX_AGGREGATE"
+    ON user_activity_outbox ("aggregate_type", "aggregate_id");
