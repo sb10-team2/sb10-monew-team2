@@ -201,10 +201,8 @@ public class InterestIntegrationTest extends BaseIntegrationsTest {
     List<String> contentNames = body.content().stream()
         .map(InterestDto::name)
         .toList();
-    assertThat(contentNames)
-        .doesNotHaveDuplicates()
-        .allMatch(List.of("경제", "문화", "여행")::contains);
-    assertThat(body.nextCursor()).isEqualTo(body.content().get(1).name());
+    assertThat(contentNames).containsExactly("경제", "문화");
+    assertThat(body.nextCursor()).isEqualTo("문화");
     assertThat(body.nextAfter()).isNotNull();
     assertThat(body.size()).isEqualTo(2);
     assertThat(body.totalElements()).isEqualTo(3L);
@@ -391,10 +389,15 @@ public class InterestIntegrationTest extends BaseIntegrationsTest {
   }
 
   @Test
-  @DisplayName("관심사를 삭제하면 관심사와 더 이상 사용되지 않는 키워드가 삭제된다")
-  void delete_DeletesInterestAndOrphanKeywords_WhenInterestExists() {
+  @DisplayName("관심사를 삭제하면 관심사, 구독 정보, 더 이상 사용되지 않는 키워드가 삭제된다")
+  void delete_DeletesInterestSubscriptionsAndOrphanKeywords_WhenInterestExists() {
     // given
+    User user = saveUser("delete-subscription@example.com", "delete-subscriber");
     Interest interest = saveInterestWithKeywords("여행", List.of("호텔", "항공권"));
+    subscribeInterest(user, interest);
+
+    assertThat(subscriptionRepository.existsByUserIdAndInterestId(user.getId(), interest.getId()))
+        .isTrue();
 
     // when
     ResponseEntity<Void> response = restTemplate.exchange(
@@ -407,6 +410,8 @@ public class InterestIntegrationTest extends BaseIntegrationsTest {
     // then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     assertThat(interestRepository.findById(interest.getId())).isEmpty();
+    assertThat(subscriptionRepository.existsByUserIdAndInterestId(user.getId(), interest.getId()))
+        .isFalse();
     assertThat(interestKeywordRepository.count()).isZero();
     assertThat(keywordRepository.findByName("호텔")).isEmpty();
     assertThat(keywordRepository.findByName("항공권")).isEmpty();
