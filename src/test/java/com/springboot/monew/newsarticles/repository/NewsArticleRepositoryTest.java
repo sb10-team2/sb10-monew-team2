@@ -3,6 +3,8 @@ package com.springboot.monew.newsarticles.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.springboot.monew.comment.entity.Comment;
+import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.common.repository.BaseRepositoryTest;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
@@ -10,6 +12,8 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.enums.NewsArticleDirection;
 import com.springboot.monew.newsarticles.enums.NewsArticleOrderBy;
+import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -25,6 +29,12 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @Autowired
   private NewsArticleRepository newsArticleRepository;
 
+  @Autowired
+  private CommentRepository commentRepository;
+
+  @Autowired
+  private UserRepository userRepository;
+
   //테스트용 NewsArticle 생성 메서드
   //반복되는 객체 생성 줄이기 위해 사용
   private NewsArticle createArticle(String originalLink, Instant publishedAt) {
@@ -35,6 +45,24 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         .publishedAt(publishedAt)
         .summary("test summary")
         .build();
+  }
+
+  private Comment createComment(NewsArticle article, User user) {
+    return new Comment(
+        user,
+        article,
+        "test comment"
+    );
+  }
+
+  private User createUser() {
+    String uniqueValue = UUID.randomUUID().toString();
+
+    return new User(
+        uniqueValue + "@test.com",
+        "user-" + uniqueValue.substring(0, 8),
+        "password123!"
+    );
   }
 
   @Test
@@ -76,12 +104,24 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @DisplayName("QueryDSL - 댓글 수 기준 오름차순 정렬 조건으로 조회한다.")
   void findNewsArticles_ReturnsArticles_WhenOrderByCommentCountAsc() {
     // given
+    // 서로다른 댓글 수를 가지도록 기사 2개 생성
     NewsArticle first = createArticle("first", Instant.now());
     NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
 
     newsArticleRepository.saveAll(List.of(first, second));
+
+    //댓글 저장을 위한 user객체
+    User user = userRepository.save(createUser());
+
+    // first: 댓글 2개
+    commentRepository.save(createComment(first, user));
+    commentRepository.save(createComment(first, user));
+
+    // second: 댓글 1개
+    commentRepository.save(createComment(second, user));
     flushAndClear();
 
+    //정렬기준: 댓글수, 오름차순
     NewsArticlePageRequest request = new NewsArticlePageRequest(
         null,
         null,
@@ -101,6 +141,9 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
 
     // then
     assertThat(result).hasSize(2);
+    //second(1개) -> first(2개) 순
+    assertThat(result.get(0).id()).isEqualTo(second.getId());
+    assertThat(result.get(1).id()).isEqualTo(first.getId());
   }
 
   @Test
@@ -111,8 +154,19 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
 
     newsArticleRepository.saveAll(List.of(first, second));
+
+    //댓글 수 저장을 위한 User객체
+    User user = userRepository.save(createUser());
+
+    // first: 댓글 2개
+    commentRepository.save(createComment(first, user));
+    commentRepository.save(createComment(first, user));
+
+    // second: 댓글 1개
+    commentRepository.save(createComment(second, user));
     flushAndClear();
 
+    //정렬기준 댓글수, 내림차순
     NewsArticlePageRequest request = new NewsArticlePageRequest(
         null,
         null,
@@ -132,6 +186,8 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
 
     // then
     assertThat(result).hasSize(2);
+    assertThat(result.get(0).id()).isEqualTo(first.getId());
+    assertThat(result.get(1).id()).isEqualTo(second.getId());
   }
 
   @Test
