@@ -3,12 +3,14 @@ package com.springboot.monew.newsarticles.controller;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
 import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
@@ -43,15 +45,14 @@ class NewsArticleControllerTest {
   void collectNews_ReturnsOk_WhenRequestIsValid() throws Exception {
 
     // given
-    // collectAll()은 반환값이 없으므로 아무 동작도 하지 않도록 설정
-    doNothing().when(newsArticleCollectService).collectAll();
+    NewsArticleCollectResult result = new NewsArticleCollectResult(0, null);
+    when(newsArticleCollectService.collectAll()).thenReturn(result);
 
     // when & then
     mockMvc.perform(post("/api/articles"))
-        .andExpect(status().isOk()) // HTTP 200 응답 검증
-        .andExpect(content().string("뉴스 수집 완료")); // 응답 메시지 검증
+        .andExpect(status().isOk())
+        .andExpect(content().string("뉴스 수집 완료"));
 
-    // Controller가 Service를 정상 호출했는지 검증
     verify(newsArticleCollectService).collectAll();
   }
 
