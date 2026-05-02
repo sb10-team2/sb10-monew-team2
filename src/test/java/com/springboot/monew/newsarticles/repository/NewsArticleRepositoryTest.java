@@ -69,11 +69,10 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @DisplayName("QueryDSL - 발행일 범위 조건으로 뉴스기사를 필터링한다.")
   void findNewsArticles_ReturnsArticles_WhenPublishDateRangeApplied() {
     // given
-    Instant base = Instant.parse("2026-04-30T00:00:00Z");
 
-    NewsArticle before = createArticle("before", base.minusSeconds(1));
-    NewsArticle inRange = createArticle("in-range", base.plusSeconds(3600));
-    NewsArticle after = createArticle("after", base.plusSeconds(86400));
+    NewsArticle before = createArticle("before", Instant.parse("2026-04-30T00:00:00Z").minusSeconds(1));
+    NewsArticle inRange = createArticle("in-range", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(3600));
+    NewsArticle after = createArticle("after", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86400));
 
     newsArticleRepository.saveAll(List.of(before, inRange, after));
     flushAndClear();
@@ -82,8 +81,8 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         null,
         null,
         null,
-        base,
-        base.plusSeconds(86399),
+        Instant.parse("2026-04-30T00:00:00Z"),
+        Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86399),
         NewsArticleOrderBy.publishDate,
         NewsArticleDirection.DESC,
         null,
@@ -624,11 +623,10 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @DisplayName("QueryDSL - 발행일 커서 기준 다음 페이지 조회에 성공한다.")
   void findNewsArticles_ReturnsNextPage_WhenPublishDateCursorExists() {
     // given
-    Instant base = Instant.now();
 
-    NewsArticle first = createArticle("first", base);
-    NewsArticle second = createArticle("second", base.minusSeconds(10));
-    NewsArticle third = createArticle("third", base.minusSeconds(20));
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+    NewsArticle third = createArticle("third", Instant.now().minusSeconds(20));
 
     newsArticleRepository.saveAll(List.of(first, second, third));
     flushAndClear();
