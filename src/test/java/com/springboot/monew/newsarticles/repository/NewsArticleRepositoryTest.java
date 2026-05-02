@@ -965,20 +965,27 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   void findAllByPublishedAtGreaterThanEqualAndPublishedAtLessThan_ReturnsArticles_WhenDateFilterApplied() {
     // given
     LocalDate today = LocalDate.now();
+    ZoneId zone = ZoneId.of("Asia/Seoul");
 
-    // 날짜 기준으로 시작/끝 Instant 생성
-    Instant startOfToday = today.atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Instant startOfTomorrow = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+    // 날짜 기준으로 시작/끝 Instant 생성 (KST 기준)
+    Instant startOfToday = today.atStartOfDay(zone).toInstant();
+    Instant startOfTomorrow = today.plusDays(1).atStartOfDay(zone).toInstant();
 
     // 어제 / 오늘 / 내일 데이터 생성
-    NewsArticle yesterday = createArticle("yesterday",
-        today.minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    NewsArticle yesterday = createArticle(
+        "yesterday",
+        today.minusDays(1).atStartOfDay(zone).toInstant()
+    );
 
-    NewsArticle todayArticle = createArticle("today",
-        startOfToday.plusSeconds(3600)); // 오늘 1시간 후
+    NewsArticle todayArticle = createArticle(
+        "today",
+        startOfToday.plusSeconds(3600) // 오늘 1시간 후
+    );
 
-    NewsArticle tomorrow = createArticle("tomorrow",
-        startOfTomorrow.plusSeconds(3600));
+    NewsArticle tomorrow = createArticle(
+        "tomorrow",
+        startOfTomorrow.plusSeconds(3600)
+    );
 
     newsArticleRepository.saveAll(List.of(yesterday, todayArticle, tomorrow));
 
