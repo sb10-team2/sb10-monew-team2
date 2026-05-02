@@ -29,6 +29,7 @@ public class UserService {
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   // 사용자 회원가입
@@ -44,6 +45,9 @@ public class UserService {
     );
 
     User savedUser = userRepository.save(user);
+    // 회원가입 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveUserRegistered(savedUser);
+
     // 회원가입 후 사용자 활동 문서 생성을 위해 이벤트 발행
     applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser));
     log.info("회원가입 완료 - userId={}, email={}", savedUser.getId(), savedUser.getEmail());
@@ -111,6 +115,10 @@ public class UserService {
     }
 
     user.updateNickname(request.nickname());
+    // 닉네임 수정 후 사용자 활동 문서 갱신을 위해 이벤트 발행
+    // 닉네임 수정 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveUserNicknameUpdated(user);
+
     // 닉네임 수정 후 사용자 활동 문서 갱신을 위해 이벤트 발행
     applicationEventPublisher.publishEvent(
         new UserNicknameUpdatedEvent(user.getId(), user.getNickname())
