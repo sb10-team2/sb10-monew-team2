@@ -9,6 +9,7 @@ import com.springboot.monew.comment.mapper.CommentLikeMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.notification.event.CommentLikeNotificationEvent;
+import com.springboot.monew.user.document.UserActivityDocument.CommentLikeItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.event.comment.CommentLikeCountUpdatedEvent;
 import com.springboot.monew.user.event.comment.CommentLikedEvent;
@@ -16,6 +17,7 @@ import com.springboot.monew.user.event.comment.CommentUnlikedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class CommentLikeService {
   private final CommentLikeMapper commentLikeMapper;
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final UserActivityOutboxService userActivityOutboxService;
 
   // 좋아요
   @Transactional
@@ -57,10 +60,21 @@ public class CommentLikeService {
     CommentLike commentLike = new CommentLike(refreshed, user);
     commentLikeRepository.save(commentLike);
 
-    // 좋아요를 누른 사용자의 활동 문서에 댓글 좋아요 활동을 추가한다.
-    eventPublisher.publishEvent(
-        new CommentLikedEvent(userId, commentLikeMapper.toCommentLikeItem(commentLike))
+    // Outbox와 이벤트에서 같은 값을 쓰도록 한 번만 매핑한다.
+    CommentLikeItem commentLikeItem = commentLikeMapper.toCommentLikeItem(commentLike);
+
+    // 좋아요를 누른 사용자의 활동 문서에 댓글 좋아요 활동을 반영하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentLiked(userId, commentLikeItem);
+
+    // 좋아요 대상 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수를 갱신하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentLikeCountUpdated(
+        refreshed.getUser().getId(),
+        refreshed.getId(),
+        refreshed.getLikeCount()
     );
+
+    // 좋아요를 누른 사용자의 활동 문서에 댓글 좋아요 활동을 추가한다.
+    eventPublisher.publishEvent(new CommentLikedEvent(userId, commentLikeItem));
 
     // 좋아요 대상 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수를 갱신한다.
     eventPublisher.publishEvent(
@@ -101,6 +115,16 @@ public class CommentLikeService {
             CommentErrorCode.COMMENT_NOT_FOUND,
             Map.of("commentId", commentId)
         ));
+
+    // 좋아요를 취소한 사용자의 활동 문서에서 댓글 좋아요 활동을 제거하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentUnliked(userId, commentId);
+
+    // 좋아요 대상 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수를 갱신하기 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveCommentLikeCountUpdated(
+        refreshed.getUser().getId(),
+        refreshed.getId(),
+        refreshed.getLikeCount()
+    );
 
     // 좋아요를 취소한 사용자의 활동 문서에서 댓글 좋아요 활동을 제거한다.
     eventPublisher.publishEvent(

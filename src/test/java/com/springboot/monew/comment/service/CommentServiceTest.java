@@ -36,6 +36,7 @@ import com.springboot.monew.user.event.comment.CommentDeletedEvent;
 import com.springboot.monew.user.event.comment.CommentUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
@@ -59,6 +60,7 @@ class CommentServiceTest {
   @Mock NewsArticleRepository articleRepository;
   @Mock UserRepository userRepository;
   @Mock CommentMapper commentMapper;
+  @Mock UserActivityOutboxService userActivityOutboxService;
   // CommentService에 추가된 이벤트 발행 의존성을 테스트에서 주입하기 위한 mock이다.
   @Mock ApplicationEventPublisher eventPublisher;
 
@@ -98,7 +100,7 @@ class CommentServiceTest {
         Instant.now()
     );
 
-    // 이벤트 발행 시 CommentCreatedEvent 안에 담길 CommentItem mock 값을 미리 준비
+    // Outbox 저장 시 전달될 CommentItem mock 값을 미리 준비한다.
     CommentItem commentItem = new CommentItem(
         UUID.randomUUID(),
         article.getId(),
@@ -113,7 +115,7 @@ class CommentServiceTest {
     given(articleRepository.findById(article.getId())).willReturn(Optional.of(article));
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(commentMapper.toCommentDto(any(Comment.class), eq(false))).willReturn(expected);
-    // commentService.create() 내부에서 이벤트 생성 시 toCommentItem()을 호출하므로 null이 반환되지 않도록 stub 처리
+    // create() 내부에서 Outbox 저장용 CommentItem을 생성하므로 null이 반환되지 않도록 stub 처리한다.
     given(commentMapper.toCommentItem(any(Comment.class))).willReturn(commentItem);
 
     // when
@@ -128,7 +130,8 @@ class CommentServiceTest {
     verify(articleRepository).findById(article.getId());
     verify(userRepository).findById(user.getId());
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
-
+    // 댓글 생성 후 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentCreated(user.getId(), commentItem);
     // 발행된 CommentCreatedEvent를 가져와 댓글 생성 정보가 올바르게 담겼는지 검증
     ArgumentCaptor<CommentCreatedEvent> captor =
         ArgumentCaptor.forClass(CommentCreatedEvent.class);
@@ -226,7 +229,7 @@ class CommentServiceTest {
         Instant.now()
     );
 
-    // 이벤트 발행 시 CommentUpdatedEvent 안에 담길 CommentItem mock 값을 미리 준비
+    // Outbox 저장 시 전달될 CommentItem mock 값을 미리 준비한다.
     CommentItem commentItem = new CommentItem(
         commentId,
         UUID.randomUUID(),
@@ -243,7 +246,7 @@ class CommentServiceTest {
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId())).willReturn(false);
     given(commentMapper.toCommentDto(any(Comment.class), eq(false))).willReturn(expected);
-    // commentService.update() 내부에서 이벤트 생성 시 toCommentItem()을 호출하므로 null이 반환되지 않도록 stub 처리
+    // commentService.update() 내부에서 Outbox 저장용 CommentItem을 생성하므로 null이 반환되지 않도록 stub 처리한다.
     given(commentMapper.toCommentItem(any(Comment.class))).willReturn(commentItem);
 
     // when
@@ -258,6 +261,8 @@ class CommentServiceTest {
     verify(commentRepository).findByIdAndIsDeletedFalse(comment.getId());
     verify(userRepository).findById(user.getId());
     verify(commentMapper).toCommentDto(any(Comment.class), eq(false));
+    // 댓글 수정 후 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentUpdated(user.getId(), commentItem);
 
     // 발행된 CommentUpdatedEvent를 가져와 수정된 댓글 정보가 올바르게 담겼는지 검증
     ArgumentCaptor<CommentUpdatedEvent> captor =
@@ -443,6 +448,8 @@ class CommentServiceTest {
     // then
     verify(commentRepository).findById(commentId);
     verify(commentRepository).delete(comment);
+    // 댓글 삭제 후 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentDeleted(userId, commentId);
 
     // 발행된 CommentDeletedEvent를 가져와 삭제 대상 정보가 올바르게 담겼는지 검증한다.
     ArgumentCaptor<CommentDeletedEvent> captor =

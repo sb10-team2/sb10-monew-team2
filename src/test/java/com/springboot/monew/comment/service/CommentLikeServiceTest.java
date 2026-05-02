@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +26,7 @@ import com.springboot.monew.user.event.comment.CommentLikedEvent;
 import com.springboot.monew.user.event.comment.CommentUnlikedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +49,7 @@ class CommentLikeServiceTest {
   @Mock private CommentLikeMapper commentLikeMapper;
   @Mock private UserRepository userRepository;
   @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock private UserActivityOutboxService userActivityOutboxService;
 
   @InjectMocks
   private CommentLikeService commentLikeService;
@@ -85,7 +86,7 @@ class CommentLikeServiceTest {
         refreshed.getCreatedAt()
     );
 
-    // 사용자 활동 이벤트 발행 시 CommentLikedEvent 안에 담길 CommentLikeItem을 미리 준비한다.
+    // Outbox 저장 시 전달될 CommentLikeItem을 미리 준비한다.
     CommentLikeItem commentLikeItem = new CommentLikeItem(
         UUID.randomUUID(),
         Instant.now(),
@@ -106,7 +107,7 @@ class CommentLikeServiceTest {
     given(commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), user.getId()))
         .willReturn(false);
     given(commentLikeMapper.toCommentLikeDto(any(CommentLike.class))).willReturn(expected);
-    // like() 내부에서 CommentLikedEvent 생성 시 toCommentLikeItem()을 호출하므로 null이 반환되지 않도록 stub 처리한다.
+    // like() 내부에서 Outbox 저장용 CommentLikeItem을 생성하므로 null이 반환되지 않도록 stub 처리한다.
     given(commentLikeMapper.toCommentLikeItem(any(CommentLike.class))).willReturn(commentLikeItem);
 
     // when
@@ -118,6 +119,7 @@ class CommentLikeServiceTest {
     verify(commentRepository, times(2)).findByIdAndIsDeletedFalse(comment.getId());
     verify(commentLikeRepository).save(any(CommentLike.class));
     verify(commentLikeMapper).toCommentLikeDto(any(CommentLike.class));
+    verify(commentLikeMapper).toCommentLikeItem(any(CommentLike.class));
 
     // 좋아요 등록 시 총 3개의 이벤트가 발행되는지 검증하고, 전달된 이벤트 객체들을 모두 가져온다.
     ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
@@ -154,9 +156,14 @@ class CommentLikeServiceTest {
     assertThat(likeCountUpdatedEvent.userId()).isEqualTo(refreshed.getUser().getId());
     assertThat(likeCountUpdatedEvent.commentId()).isEqualTo(refreshed.getId());
     assertThat(likeCountUpdatedEvent.likeCount()).isEqualTo(refreshed.getLikeCount());
-
-    // 댓글 좋아요 알림 이벤트가 함께 발행되었는지 검증한다.
-    assertThat(notificationEvent).isNotNull();
+    // 좋아요를 누른 사용자의 활동 문서 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentLiked(user.getId(), commentLikeItem);
+    // 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수 갱신용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentLikeCountUpdated(
+        refreshed.getUser().getId(),
+        refreshed.getId(),
+        refreshed.getLikeCount()
+    );
   }
 
   @Test
@@ -280,7 +287,6 @@ class CommentLikeServiceTest {
     // then
     verify(commentLikeRepository).delete(commentLike);
     verify(commentRepository).decrementLikeCount(comment.getId());
-
     // 좋아요 취소 시 총 2개의 이벤트가 발행되는지 검증하고, 전달된 이벤트 객체들을 모두 가져온다.
     ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
     verify(eventPublisher, times(2)).publishEvent(captor.capture());
@@ -307,6 +313,14 @@ class CommentLikeServiceTest {
     assertThat(likeCountUpdatedEvent.userId()).isEqualTo(refreshed.getUser().getId());
     assertThat(likeCountUpdatedEvent.commentId()).isEqualTo(refreshed.getId());
     assertThat(likeCountUpdatedEvent.likeCount()).isEqualTo(refreshed.getLikeCount());
+    // 좋아요를 취소한 사용자의 활동 문서 반영용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentUnliked(user.getId(), comment.getId());
+    // 댓글 작성자의 활동 문서에 저장된 댓글 좋아요 수 갱신용 Outbox 저장이 호출되었는지 검증한다.
+    verify(userActivityOutboxService).saveCommentLikeCountUpdated(
+        refreshed.getUser().getId(),
+        refreshed.getId(),
+        refreshed.getLikeCount()
+    );
   }
 
   @Test

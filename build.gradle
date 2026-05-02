@@ -53,6 +53,11 @@ dependencies {
     testImplementation('org.instancio:instancio-core')
     testImplementation('org.instancio:instancio-junit')
     testImplementation 'net.datafaker:datafaker:2.5.4'
+    // 통합 테스트: 운영 환경과 유사한 환경 구축을 위해 컨테이너를 사용
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:mongodb'
 
     //aws
     implementation 'software.amazon.awssdk:s3:2.31.7'

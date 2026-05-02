@@ -22,6 +22,7 @@ import com.springboot.monew.user.event.interest.InterestUpdatedEvent;
 import com.springboot.monew.user.exception.UserErrorCode;
 import com.springboot.monew.user.exception.UserException;
 import com.springboot.monew.user.repository.UserRepository;
+import com.springboot.monew.user.service.UserActivityOutboxService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,6 +52,7 @@ public class InterestService {
   private final SubscriptionRepository subscriptionRepository;
   private final UserRepository userRepository;
   private final InterestDtoMapper interestDtoMapper;
+  private final UserActivityOutboxService userActivityOutboxService;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
@@ -189,6 +191,9 @@ public class InterestService {
 
     // 더 이상 연결된 관심사가 없는 키워드는 삭제
     deleteOrphanKeywords(orphanCandidateKeywords);
+
+    // 관심사 키워드 수정 후 사용자 활동 반영을 위한 Outbox 이벤트를 저장한다.
+    userActivityOutboxService.saveInterestUpdated(interest.getId(), keywordNames);
 
     // 관심사 키워드 수정 후, 해당 관심사를 구독 중인 사용자들의 활동 내역 구독 정보를 최신 키워드로 갱신하기 위해 이벤트를 발행한다.
     eventPublisher.publishEvent(

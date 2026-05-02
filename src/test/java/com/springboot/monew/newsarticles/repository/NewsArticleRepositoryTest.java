@@ -3,6 +3,8 @@ package com.springboot.monew.newsarticles.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.springboot.monew.comment.entity.Comment;
+import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.common.repository.BaseRepositoryTest;
 import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleCursorRow;
@@ -10,6 +12,8 @@ import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.enums.NewsArticleDirection;
 import com.springboot.monew.newsarticles.enums.NewsArticleOrderBy;
+import com.springboot.monew.user.entity.User;
+import com.springboot.monew.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -25,6 +29,12 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   @Autowired
   private NewsArticleRepository newsArticleRepository;
 
+  @Autowired
+  private CommentRepository commentRepository;
+
+  @Autowired
+  private UserRepository userRepository;
+
   //테스트용 NewsArticle 생성 메서드
   //반복되는 객체 생성 줄이기 위해 사용
   private NewsArticle createArticle(String originalLink, Instant publishedAt) {
@@ -35,6 +45,220 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         .publishedAt(publishedAt)
         .summary("test summary")
         .build();
+  }
+
+  private Comment createComment(NewsArticle article, User user) {
+    return new Comment(
+        user,
+        article,
+        "test comment"
+    );
+  }
+
+  private User createUser() {
+    String uniqueValue = UUID.randomUUID().toString();
+
+    return new User(
+        uniqueValue + "@test.com",
+        "user-" + uniqueValue.substring(0, 8),
+        "password123!"
+    );
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 발행일 범위 조건으로 뉴스기사를 필터링한다.")
+  void findNewsArticles_ReturnsArticles_WhenPublishDateRangeApplied() {
+    // given
+
+    NewsArticle before = createArticle("before", Instant.parse("2026-04-30T00:00:00Z").minusSeconds(1));
+    NewsArticle inRange = createArticle("in-range", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(3600));
+    NewsArticle after = createArticle("after", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86400));
+
+    newsArticleRepository.saveAll(List.of(before, inRange, after));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        Instant.parse("2026-04-30T00:00:00Z"),
+        Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86399),
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).sourceUrl()).isEqualTo("in-range");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 댓글 수 기준 오름차순 정렬 조건으로 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenOrderByCommentCountAsc() {
+    // given
+    // 서로다른 댓글 수를 가지도록 기사 2개 생성
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+
+    //댓글 저장을 위한 user객체
+    User user = userRepository.save(createUser());
+
+    // first: 댓글 2개
+    commentRepository.save(createComment(first, user));
+    commentRepository.save(createComment(first, user));
+
+    // second: 댓글 1개
+    commentRepository.save(createComment(second, user));
+    flushAndClear();
+
+    //정렬기준: 댓글수, 오름차순
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.ASC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+    //second(1개) -> first(2개) 순
+    assertThat(result.get(0).id()).isEqualTo(second.getId());
+    assertThat(result.get(1).id()).isEqualTo(first.getId());
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 댓글 수 기준 내림차순 정렬 조건으로 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenOrderByCommentCountDesc() {
+    // given
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+
+    //댓글 수 저장을 위한 User객체
+    User user = userRepository.save(createUser());
+
+    // first: 댓글 2개
+    commentRepository.save(createComment(first, user));
+    commentRepository.save(createComment(first, user));
+
+    // second: 댓글 1개
+    commentRepository.save(createComment(second, user));
+    flushAndClear();
+
+    //정렬기준 댓글수, 내림차순
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).id()).isEqualTo(first.getId());
+    assertThat(result.get(1).id()).isEqualTo(second.getId());
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 댓글 수 커서 조건으로 다음 페이지를 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenCommentCountCursorExists() {
+    // given
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+
+    newsArticleRepository.saveAll(List.of(first, second));
+    flushAndClear();
+
+    NewsArticle savedSecond = newsArticleRepository.findById(second.getId()).orElseThrow();
+
+    String cursor = "1|" + savedSecond.getCreatedAt();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.commentCount,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+
+
+  @Test
+  @DisplayName("QueryDSL - 발행일 기준 오름차순 정렬 조회에 성공한다.")
+  void findNewsArticles_ReturnsSortedByPublishedAtAsc_WhenOrderByPublishDateAsc() {
+    // given
+    Instant now = Instant.now();
+
+    NewsArticle oldArticle = createArticle("old", now.minusSeconds(3600));
+    NewsArticle newArticle = createArticle("new", now);
+
+    newsArticleRepository.saveAll(List.of(newArticle, oldArticle));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.ASC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("old", "new");
   }
 
   @Test
@@ -206,6 +430,86 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     assertThat(result).hasSize(1);
     assertThat(result.get(0).source()).isEqualTo(ArticleSource.NAVER);
   }
+  @Test
+  @DisplayName("QueryDSL - 출처 조건이 빈 리스트이면 필터링하지 않는다.")
+  void findNewsArticles_ReturnsAllArticles_WhenSourceInIsEmpty() {
+    // given
+    NewsArticle naver = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("naver")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    NewsArticle yonhap = NewsArticle.builder()
+        .source(ArticleSource.YEONHAP)
+        .originalLink("yonhap")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(naver, yonhap));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        List.of(),
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 조회수 기준 오름차순 정렬 조회에 성공한다.")
+  void findNewsArticles_ReturnsSortedByViewCountAsc_WhenOrderByViewCountAsc() {
+    // given
+    NewsArticle low = createArticle("low", Instant.now());
+    NewsArticle high = createArticle("high", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(low, high));
+    flushAndClear();
+
+    newsArticleRepository.incrementViewCount(high.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.viewCount,
+        NewsArticleDirection.ASC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("low", "high");
+  }
 
   @Test
   @DisplayName("QueryDSL - 조회수 기준 내림차순 정렬 조회에 성공한다.")
@@ -245,6 +549,49 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
+  @DisplayName("QueryDSL - 조회수 커서 조건으로 다음 페이지를 조회한다.")
+  void findNewsArticles_ReturnsNextPage_WhenViewCountCursorExists() {
+    // given
+    NewsArticle low = createArticle("low", Instant.now());
+    NewsArticle high = createArticle("high", Instant.now().minusSeconds(10));
+    NewsArticle zero = createArticle("zero", Instant.now().minusSeconds(20));
+
+    newsArticleRepository.saveAll(List.of(low, high, zero));
+    flushAndClear();
+
+    newsArticleRepository.incrementViewCount(low.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    newsArticleRepository.incrementViewCount(high.getId());
+    flushAndClear();
+
+    NewsArticle savedLow = newsArticleRepository.findById(low.getId()).orElseThrow();
+
+    String cursor = "1|" + savedLow.getCreatedAt();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.viewCount,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("zero");
+  }
+
+  @Test
   @DisplayName("QueryDSL - 잘못된 커서 형식이면 예외가 발생한다.")
   void findNewsArticles_ThrowsException_WhenCursorFormatIsInvalid() {
     // given
@@ -270,6 +617,185 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         .isInstanceOf(InvalidDataAccessApiUsageException.class)
         .hasCauseInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("잘못된 커서 형식");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 발행일 커서 기준 다음 페이지 조회에 성공한다.")
+  void findNewsArticles_ReturnsNextPage_WhenPublishDateCursorExists() {
+    // given
+
+    NewsArticle first = createArticle("first", Instant.now());
+    NewsArticle second = createArticle("second", Instant.now().minusSeconds(10));
+    NewsArticle third = createArticle("third", Instant.now().minusSeconds(20));
+
+    newsArticleRepository.saveAll(List.of(first, second, third));
+    flushAndClear();
+
+    // DB에 저장된 createdAt 기준으로 cursor 생성
+    NewsArticle savedSecond = newsArticleRepository.findById(second.getId()).orElseThrow();
+
+    String cursor = savedSecond.getPublishedAt() + "|" + savedSecond.getCreatedAt();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("third");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 검색어가 요약에 포함된 뉴스기사만 조회한다.")
+  void findNewsArticles_ReturnsArticles_WhenKeywordMatchesSummary() {
+    // given
+    NewsArticle matched = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("summary-match")
+        .title("normal title")
+        .publishedAt(Instant.now())
+        .summary("spring framework article")
+        .build();
+
+    NewsArticle notMatched = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("not-match")
+        .title("normal title")
+        .publishedAt(Instant.now())
+        .summary("java article")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(matched, notMatched));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "spring",
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).sourceUrl()).isEqualTo("summary-match");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 검색어가 공백이면 검색 조건을 적용하지 않는다.")
+  void findNewsArticles_ReturnsAllArticles_WhenKeywordIsBlank() {
+    // given
+    newsArticleRepository.saveAll(List.of(
+        createArticle("a", Instant.now()),
+        createArticle("b", Instant.now())
+    ));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "   ",
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 논리 삭제된 뉴스기사는 조회하지 않는다.")
+  void findNewsArticles_ExcludesDeletedArticles() {
+    // given
+    NewsArticle active = createArticle("active", Instant.now());
+    NewsArticle deleted = createArticle("deleted", Instant.now().minusSeconds(1));
+
+    deleted.delete(); // 실제 메서드명에 맞게 수정
+
+    newsArticleRepository.saveAll(List.of(active, deleted));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
+
+    // when
+    List<NewsArticleCursorRow> result =
+        newsArticleRepository.findNewsArticles(request, UUID.randomUUID());
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticleCursorRow::sourceUrl)
+        .containsExactly("active");
+  }
+
+  @Test
+  @DisplayName("QueryDSL - 빈 cursor value이면 예외가 발생한다.")
+  void findNewsArticles_ThrowsException_WhenCursorValueIsBlank() {
+    // given
+    newsArticleRepository.save(createArticle("link", Instant.now()));
+    flushAndClear();
+
+    String cursor = "|" + Instant.now();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        cursor,
+        null,
+        10
+    );
+
+    // when & then
+    assertThatThrownBy(() -> newsArticleRepository.findNewsArticles(request, UUID.randomUUID()))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -309,43 +835,89 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   }
 
   @Test
-  @DisplayName("원본링크 목록으로 뉴스기사 조회에 성공한다.")
-  void findAllByOriginalLinkIn_ReturnsNewsArticles_WhenOriginalLinksExist() {
-    //  given
-    // 여러개의 뉴스기사 저장
-    NewsArticle article1 = createArticle("link1", Instant.now());
-    NewsArticle article2 = createArticle("link2", Instant.now());
-    NewsArticle article3 = createArticle("link3", Instant.now());
+  @DisplayName("QueryDSL - count 조회 시 검색어 조건을 적용한다.")
+  void countNewsArticles_ReturnsCount_WhenKeywordFilterApplied() {
+    // given
+    NewsArticle spring = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("spring")
+        .title("spring news")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
 
-    newsArticleRepository.saveAll(List.of(article1, article2, article3));
+    NewsArticle java = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("java")
+        .title("java news")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
 
-    //  when
-    // 특정 originalLink 목록으로 조회
-    List<NewsArticle> result = newsArticleRepository.findAllByOriginalLinkIn(List.of("link1", "link3"));
+    newsArticleRepository.saveAll(List.of(spring, java));
+    flushAndClear();
 
-    //  then
-    // 조회도니 결과가 2개인지 검증
-    assertThat(result).hasSize(2);
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        "spring",
+        null,
+        null,
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
 
-    // 조회된 결과의 originalLink 값이 기대값과 일치하는지 검증
-    assertThat(result)
-        .extracting(NewsArticle::getOriginalLink)
-        .containsExactlyInAnyOrder("link1", "link3");
+    // when
+    long count = newsArticleRepository.countNewsArticles(request);
+
+    // then
+    assertThat(count).isEqualTo(1L);
   }
 
   @Test
-  @DisplayName("원본링크 목록에 해당하는 뉴스기사가 없으면 빈 목록을 반환한다.")
-  void findAllByOriginalLinkIn_ReturnsEmptyList_WhenOriginalLinksDoNotExist() {
+  @DisplayName("QueryDSL - count 조회 시 출처 조건을 적용한다.")
+  void countNewsArticles_ReturnsCount_WhenSourceFilterApplied() {
     // given
-    NewsArticle article = createArticle("link1", Instant.now());
-    newsArticleRepository.save(article);
+    NewsArticle naver = NewsArticle.builder()
+        .source(ArticleSource.NAVER)
+        .originalLink("naver")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    NewsArticle yonhap = NewsArticle.builder()
+        .source(ArticleSource.YEONHAP)
+        .originalLink("yonhap")
+        .title("title")
+        .publishedAt(Instant.now())
+        .summary("summary")
+        .build();
+
+    newsArticleRepository.saveAll(List.of(naver, yonhap));
+    flushAndClear();
+
+    NewsArticlePageRequest request = new NewsArticlePageRequest(
+        null,
+        null,
+        List.of(ArticleSource.NAVER),
+        null,
+        null,
+        NewsArticleOrderBy.publishDate,
+        NewsArticleDirection.DESC,
+        null,
+        null,
+        10
+    );
 
     // when
-    List<NewsArticle> result =
-        newsArticleRepository.findAllByOriginalLinkIn(List.of("not-exist"));
+    long count = newsArticleRepository.countNewsArticles(request);
 
     // then
-    assertThat(result).isEmpty();
+    assertThat(count).isEqualTo(1L);
   }
 
   @Test
@@ -393,20 +965,27 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   void findAllByPublishedAtGreaterThanEqualAndPublishedAtLessThan_ReturnsArticles_WhenDateFilterApplied() {
     // given
     LocalDate today = LocalDate.now();
+    ZoneId zone = ZoneId.of("Asia/Seoul");
 
-    // 날짜 기준으로 시작/끝 Instant 생성
-    Instant startOfToday = today.atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Instant startOfTomorrow = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+    // 날짜 기준으로 시작/끝 Instant 생성 (KST 기준)
+    Instant startOfToday = today.atStartOfDay(zone).toInstant();
+    Instant startOfTomorrow = today.plusDays(1).atStartOfDay(zone).toInstant();
 
     // 어제 / 오늘 / 내일 데이터 생성
-    NewsArticle yesterday = createArticle("yesterday",
-        today.minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    NewsArticle yesterday = createArticle(
+        "yesterday",
+        today.minusDays(1).atStartOfDay(zone).toInstant()
+    );
 
-    NewsArticle todayArticle = createArticle("today",
-        startOfToday.plusSeconds(3600)); // 오늘 1시간 후
+    NewsArticle todayArticle = createArticle(
+        "today",
+        startOfToday.plusSeconds(3600) // 오늘 1시간 후
+    );
 
-    NewsArticle tomorrow = createArticle("tomorrow",
-        startOfTomorrow.plusSeconds(3600));
+    NewsArticle tomorrow = createArticle(
+        "tomorrow",
+        startOfTomorrow.plusSeconds(3600)
+    );
 
     newsArticleRepository.saveAll(List.of(yesterday, todayArticle, tomorrow));
 
@@ -420,6 +999,94 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
     // then
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getOriginalLink()).isEqualTo("today");
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록으로 여러 개의 뉴스기사를 조회한다.")
+  void findAllByOriginalLinkIn_ReturnsMatchedArticles() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    NewsArticle b = createArticle("link-b", Instant.now());
+    NewsArticle c = createArticle("link-c", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(a, b, c));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "link-c"));
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticle::getOriginalLink)
+        .containsExactlyInAnyOrder("link-a", "link-c");
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록 중 일부만 존재할 경우 존재하는 것만 조회한다.")
+  void findAllByOriginalLinkIn_ReturnsPartialMatchedArticles() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    NewsArticle b = createArticle("link-b", Instant.now());
+
+    newsArticleRepository.saveAll(List.of(a, b));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "not-exist"));
+
+    // then
+    assertThat(result)
+        .extracting(NewsArticle::getOriginalLink)
+        .containsExactly("link-a");
+  }
+
+  @Test
+  @DisplayName("원본 링크가 모두 존재하지 않으면 빈 리스트를 반환한다.")
+  void findAllByOriginalLinkIn_ReturnsEmpty_WhenNoMatch() {
+    // given
+    newsArticleRepository.save(createArticle("link-a", Instant.now()));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("x", "y"));
+
+    // then
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록이 비어있으면 빈 결과를 반환한다.")
+  void findAllByOriginalLinkIn_ReturnsEmpty_WhenInputEmpty() {
+    // given
+    newsArticleRepository.save(createArticle("link-a", Instant.now()));
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of());
+
+    // then
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("원본 링크 목록에 중복이 있어도 중복 없이 조회된다.")
+  void findAllByOriginalLinkIn_IgnoresDuplicateInput() {
+    // given
+    NewsArticle a = createArticle("link-a", Instant.now());
+    newsArticleRepository.save(a);
+    flushAndClear();
+
+    // when
+    List<NewsArticle> result =
+        newsArticleRepository.findAllByOriginalLinkIn(List.of("link-a", "link-a"));
+
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getOriginalLink()).isEqualTo("link-a");
   }
 
 }
