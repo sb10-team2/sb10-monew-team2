@@ -1,6 +1,7 @@
 package com.springboot.datagenerator.handler;
 
-import com.springboot.datagenerator.constant.MonewDomain;
+import com.springboot.datagenerator.config.TestDataProcessorProperties;
+import com.springboot.datagenerator.constant.MonewApi;
 import com.springboot.datagenerator.task.FetchTask;
 import java.util.List;
 import java.util.Map;
@@ -9,19 +10,26 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
-public abstract class BaseFetchHandler implements DomainFetchHandler {
+public abstract class BaseApiTestDataProcessor implements ApiTestDataProcessor {
 
-  private final MonewDomain domain;
+  private final MonewApi domain;
   protected final JdbcTemplate template;
+  protected final TestDataProcessorProperties properties;
 
   @Override
-  public boolean matchDomain(MonewDomain domain) {
-    return this.domain == domain;
+  public MonewApi getTargetApi() {
+    return domain;
   }
 
   @Override
   public List<Map<String, Object>> fetch(FetchTask task) {
-    return template.queryForList(getSql(), task.prefix() + "%", task.cursor(), task.lastId());
+    boolean isFirstPage = task.cursor() == null || task.lastId() == null;
+    String sql = getSql(isFirstPage);
+    String prefix = task.prefix() + "%";
+    if (isFirstPage) {
+      return template.queryForList(sql, prefix, properties.batchSize());
+    }
+    return template.queryForList(sql, prefix, task.cursor(), task.lastId(), properties.batchSize());
   }
 
   @Override
@@ -38,7 +46,7 @@ public abstract class BaseFetchHandler implements DomainFetchHandler {
     return sb.toString();
   }
 
-  protected abstract String getSql();
+  protected abstract String getSql(boolean isFirstPage);
 
   protected abstract List<String> getColumns();
 }

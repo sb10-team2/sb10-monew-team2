@@ -1,13 +1,13 @@
 package com.springboot.datagenerator.handler;
 
-import com.springboot.datagenerator.constant.MonewDomain;
+import com.springboot.datagenerator.constant.MonewApi;
 import com.springboot.datagenerator.task.FetchTask;
 import java.util.List;
 import java.util.Map;
 
-public interface DomainFetchHandler {
+public interface ApiTestDataProcessor {
 
-  boolean matchDomain(MonewDomain domain);
+  MonewApi getTargetApi();
 
   List<Map<String, Object>> fetch(FetchTask task);
 
