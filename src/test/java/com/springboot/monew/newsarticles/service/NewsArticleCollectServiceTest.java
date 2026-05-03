@@ -183,5 +183,4 @@ class NewsArticleCollectServiceTest {
     // collector 단계에서 실패했으므로 saveAll은 호출되지 않아야 한다.
     verify(newsArticleService, never()).saveAll(anyList());
   }
-
 }
