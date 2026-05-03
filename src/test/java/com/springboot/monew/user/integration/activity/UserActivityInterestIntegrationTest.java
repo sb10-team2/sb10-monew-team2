@@ -1,4 +1,4 @@
-package com.springboot.monew.user.integration;
+package com.springboot.monew.user.integration.activity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +25,6 @@ import com.springboot.monew.user.repository.UserActivityRepository;
 import com.springboot.monew.user.repository.UserRepository;
 import com.springboot.monew.user.service.UserService;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

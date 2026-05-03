@@ -1,4 +1,4 @@
-package com.springboot.monew.user.integration;
+package com.springboot.monew.user.integration.activity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -6,7 +6,6 @@ import com.springboot.monew.comment.dto.CommentDto;
 import com.springboot.monew.comment.dto.CommentLikeDto;
 import com.springboot.monew.comment.dto.CommentRegisterRequest;
 import com.springboot.monew.comment.dto.CommentUpdateRequest;
-import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
 import com.springboot.monew.comment.service.CommentLikeService;

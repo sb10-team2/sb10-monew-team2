@@ -1,4 +1,4 @@
-package com.springboot.monew.user.integration;
+package com.springboot.monew.user.integration.activity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
