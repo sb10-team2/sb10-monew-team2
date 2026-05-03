@@ -67,14 +67,14 @@ public class UserIntegrationTest extends BaseIntegrationsTest {
     );
 
     // then
-    // 회원가입 성공 시 201과 Location 헤더를 반환해야 한다.
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.getHeaders().getLocation()).hasToString("/api/users/" + response.getBody().id());
     // 응답 본문은 생성된 사용자의 핵심 정보를 담아야 한다.
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().email()).isEqualTo(request.email());
     assertThat(response.getBody().nickname()).isEqualTo(request.nickname());
     assertThat(response.getBody().createdAt()).isNotNull();
+    // 회원가입 성공 시 201과 Location 헤더를 반환해야 한다.
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getHeaders().getLocation()).hasToString("/api/users/" + response.getBody().id());
     // DB에도 실제로 저장되어야 회원가입 플로우가 끝난 것으로 본다.
     assertThat(userRepository.findById(response.getBody().id())).isPresent();
   }
