@@ -2,24 +2,26 @@ package com.springboot.monew.newsarticles.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
 import com.springboot.monew.newsarticles.dto.response.RestoreResultDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
-import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
 import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
 import com.springboot.monew.newsarticles.service.NewsArticleCollectService;
 import com.springboot.monew.newsarticles.service.NewsArticleService;
@@ -84,7 +86,7 @@ class NewsArticleControllerTest {
 
   @Test
   @DisplayName("뉴스 수집 API - GET 요청 시 400 Bad Request (list API로 매핑됨)")
-  void collectNews_GetRequest_ReturnsBadRequest() throws Exception {
+  void collectNews_ReturnsBadRequest_WhenGetRequest() throws Exception {
 
     mockMvc.perform(get("/api/articles"))
         .andExpect(status().isBadRequest());
@@ -195,8 +197,6 @@ class NewsArticleControllerTest {
     // PathVariable 변환 단계에서 실패하므로 Service는 호출되지 않는다.
     verify(newsArticleService, never()).createView(any(), any());
   }
-
-
 
   @Test
   @DisplayName("뉴스 기사 목록 조회 - 정상 요청 시 200 OK + 페이지 응답 반환")
