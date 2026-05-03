@@ -1,6 +1,5 @@
 package com.springboot.monew.newsarticles.repository;
 
-import com.springboot.monew.newsarticles.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.repository.qdsl.NewsArticleQDSLRepository;
 import java.time.Instant;
@@ -14,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface NewsArticleRepository extends JpaRepository<NewsArticle, UUID>, NewsArticleQDSLRepository {
 
-  //원본링크목록 조회
+  //원본링크목록으로 뉴스기사 조회
   List<NewsArticle> findAllByOriginalLinkIn(Collection<String> originalLinks);
 
   //뉴스기사 조회수 증가
