@@ -1,3 +1,4 @@
 rootProject.name = 'MoNew'
 
 include 'data-generator'
+include 'load-test'
