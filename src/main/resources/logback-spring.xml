@@ -82,8 +82,10 @@
         <totalSizeCap>1GB</totalSizeCap>
       </rollingPolicy>
     </appender>
-
+    <!--콘솔로그를 추가하여 CloudWatch에서 수집하도록 변경 -->
+    <!-- ECS에서 디버깅하기위해 CONSOLE 추가 -->
     <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
       <appender-ref ref="FILE"/>
       <appender-ref ref="ERROR_FILE"/>
     </root>
