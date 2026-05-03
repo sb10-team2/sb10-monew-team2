@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticles.dto.response.RestoreResultDto;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.metric.result.NewsArticleCollectResult;
 import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
@@ -155,6 +156,22 @@ class NewsArticleControllerTest {
   }
 
   @Test
+  @DisplayName("기사 조회 생성 API - 사용자 헤더 UUID 형식 오류 시 500")
+  void createView_ReturnsInternalServerError_WhenUserHeaderIsInvalid() throws Exception {
+
+    UUID articleId = UUID.randomUUID();
+
+    mockMvc.perform(
+            post("/api/articles/{articleId}/article-views", articleId)
+                .header("Monew-Request-User-ID", "invalid-user-id")
+        )
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
+
+    verify(newsArticleService, never()).createView(any(), any());
+  }
+
+  @Test
   @DisplayName("기사 조회 생성 API - articleId UUID 형식이 잘못되면 500 Internal Server Error")
   void createView_ReturnsInternalServerError_WhenArticleIdIsInvalid() throws Exception {
 
@@ -254,6 +271,28 @@ class NewsArticleControllerTest {
                 .param("direction", "DESC")
         )
         .andExpect(status().isUnauthorized());
+
+    verify(newsArticleService, never()).list(any(), any());
+  }
+
+  @Test
+  @DisplayName("뉴스 기사 목록 조회 - orderBy 값이 잘못되면 400 Bad Request")
+  void list_ReturnsBadRequest_WhenOrderByIsInvalid() throws Exception {
+
+    UUID userId = UUID.randomUUID();
+
+    mockMvc.perform(
+            get("/api/articles")
+                .param("limit", "5")
+                .param("orderBy", "invalid")
+                .param("direction", "DESC")
+                .header("Monew-Request-User-ID", userId.toString())
+        )
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"))
+        .andExpect(jsonPath("$.details.orderBy").exists())
+        .andExpect(jsonPath("$.status").value(400));
 
     verify(newsArticleService, never()).list(any(), any());
   }
@@ -448,6 +487,17 @@ class NewsArticleControllerTest {
   }
 
   @Test
+  @DisplayName("뉴스기사 논리삭제 - articleId UUID 형식 오류 시 500")
+  void softDelete_ReturnsInternalServerError_WhenArticleIdIsInvalid() throws Exception {
+
+    mockMvc.perform(delete("/api/articles/{articleId}", "invalid-uuid"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
+
+    verify(newsArticleService, never()).softDelete(any());
+  }
+
+  @Test
   @DisplayName("뉴스기사 물리삭제에 성공한다.")
   void hardDelete_ReturnsNoContent_WhenArticleExists() throws Exception {
 
@@ -480,5 +530,71 @@ class NewsArticleControllerTest {
 
     // 서비스 호출은 수행되었는지 검증한다.
     verify(newsArticleService, times(1)).hardDelete(articleId);
+  }
+
+  @Test
+  @DisplayName("뉴스기사 물리삭제 - articleId UUID 형식 오류 시 500")
+  void hardDelete_ReturnsInternalServerError_WhenArticleIdIsInvalid() throws Exception {
+
+    mockMvc.perform(delete("/api/articles/{articleId}/hard", "invalid-uuid"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
+
+    verify(newsArticleService, never()).hardDelete(any());
+  }
+
+  @Test
+  @DisplayName("복구 API - 정상 요청 시 200 OK 반환")
+  void restore_ReturnsOk_WhenRequestIsValid() throws Exception {
+
+    // given
+    List<RestoreResultDto> result = List.of();
+
+    given(newsArticleRestoreService.restore(any(), any()))
+        .willReturn(result);
+
+    // when & then
+    mockMvc.perform(
+            get("/api/articles/restore")
+                .param("from", "2024-01-01")
+                .param("to", "2024-01-10")
+        )
+        .andExpect(status().isOk());
+
+    verify(newsArticleRestoreService, times(1)).restore(any(), any());
+  }
+
+  @Test
+  @DisplayName("복구 API - 날짜 형식이 잘못되면 500 반환")
+  void restore_ReturnsInternalServerError_WhenDateFormatInvalid() throws Exception {
+
+    mockMvc.perform(
+            get("/api/articles/restore")
+                .param("from", "invalid-date")
+                .param("to", "2024-01-10")
+        )
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"))
+        .andExpect(jsonPath("$.exceptionType").value("ResponseStatusException"))
+        .andExpect(jsonPath("$.status").value(500));
+
+    verify(newsArticleRestoreService, never()).restore(any(), any());
+  }
+
+  @Test
+  @DisplayName("복구 API - 서비스 예외 발생 시 500")
+  void restore_ReturnsInternalServerError_WhenServiceThrows() throws Exception {
+
+    doThrow(new RuntimeException("복구 실패"))
+        .when(newsArticleRestoreService).restore(any(), any());
+
+    mockMvc.perform(
+            get("/api/articles/restore")
+                .param("from", "2024-01-01")
+                .param("to", "2024-01-10")
+        )
+        .andExpect(status().isInternalServerError());
+
+    verify(newsArticleRestoreService).restore(any(), any());
   }
 }
