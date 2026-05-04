@@ -17,7 +17,6 @@ public class LogUploadBatchService {
 
   private final JobRepository jobRepository;
   private final PlatformTransactionManager platformTransactionManager;
-  private final LogFileItemReader logFileItemReader;
   private final S3UploadItemWriter s3UploadItemWriter;
 
   @Bean
@@ -28,7 +27,7 @@ public class LogUploadBatchService {
   }
 
   @Bean
-  public Step logUploadStep(){
+  public Step logUploadStep(LogFileItemReader logFileItemReader) {
     return new StepBuilder("logUploadStep", jobRepository)
         .<File, File>chunk(10, platformTransactionManager)
         .reader(logFileItemReader)
