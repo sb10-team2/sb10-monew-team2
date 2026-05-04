@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "https://esm.sh/@faker-js/faker@10.3.0": [
+        "node_modules/@faker-js/faker"
+      ],
+      "@/*": ["scripts/*"]
+    }
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}

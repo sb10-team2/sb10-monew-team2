@@ -2,7 +2,7 @@ const baseUrl = "http://localhost:8080";
 const apiPrefix = "/api";
 const baseApi = `${baseUrl}${apiPrefix}`;
 
-export const config = {
+const config = {
   endpoints: {
     postUser: `${baseApi}/users`,
     login: `${baseApi}/users/login`,
@@ -38,3 +38,5 @@ export const config = {
     }
   }
 };
+
+export default config;
