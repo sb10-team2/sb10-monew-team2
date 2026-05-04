@@ -1,35 +1,21 @@
 package com.springboot.monew.newsarticles.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.BDDMockito.given;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-
 import com.springboot.monew.common.exception.ErrorResponse;
 import com.springboot.monew.common.integration.BaseIntegrationsTest;
-import com.springboot.monew.interest.entity.Interest;
-import com.springboot.monew.interest.entity.InterestKeyword;
-import com.springboot.monew.interest.entity.Keyword;
 import com.springboot.monew.interest.repository.InterestKeywordRepository;
 import com.springboot.monew.interest.repository.InterestRepository;
 import com.springboot.monew.interest.repository.KeywordRepository;
-import com.springboot.monew.newsarticles.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticles.dto.response.CursorPageResponseNewsArticleDto;
 import com.springboot.monew.newsarticles.dto.response.NewsArticleDto;
-import com.springboot.monew.newsarticles.dto.response.RestoreResultDto;
 import com.springboot.monew.newsarticles.entity.NewsArticle;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
-import com.springboot.monew.newsarticles.s3.NewsArticleRestoreService;
-import com.springboot.monew.newsarticles.service.collector.ArticleCollector;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.repository.UserRepository;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +30,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 public class NewsArticleIntegrationTest extends BaseIntegrationsTest {
 
