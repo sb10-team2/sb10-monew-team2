@@ -20,14 +20,15 @@ public class NotificationEventListener {
 
   @Async("notificationCreationPool")
   @TransactionalEventListener
-  public void handleInterestNotificationCreation(List<InterestNotificationEvent> events) {
-    for (InterestNotificationEvent event : events) {
-      try {
-        notificationService.create(event);
-      } catch (MonewException exception) {
-        log.error("[관심사 알림 생성 실패] interestId: {}, resourceType: {}, message: {}",
-            event.getInterestId(), event.getResourceType(), exception.getDetails());
-      }
+  public void handleInterestNotificationCreation(InterestNotificationEvent event) {
+    try {
+      notificationService.create(event);
+    } catch (MonewException exception) {
+      log.error("[관심사 알림 생성 실패] interestId: {}, resourceType: {}, message: {}",
+          event.getInterestId(),
+          event.getResourceType(),
+          exception.getDetails()
+      );
     }
   }
 
