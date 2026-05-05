@@ -172,9 +172,6 @@ CREATE INDEX idx_comments_article_deleted_created
 CREATE INDEX idx_comments_article_deleted_likes_created
     ON comments (article_id, is_deleted, like_count DESC, created_at ASC);
 
-CREATE INDEX idx_notifications_user_confirmed_created
-    ON notifications (user_id, confirmed, created_at DESC);
-
 -- =========================
 -- users 제약조건
 -- =========================
