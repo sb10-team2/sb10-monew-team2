@@ -90,6 +90,7 @@ jacocoTestReport {
             "**/exception/**",
             "**/config/**",
             "**/mapper/**",
+            "**/metric/**",
             "**/*Application*",
             "**/*Interceptor*",
             "**/*Filter*",
