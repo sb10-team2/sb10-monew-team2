@@ -35,6 +35,7 @@ import com.springboot.monew.newsarticles.mapper.NewsArticleViewMapper;
 import com.springboot.monew.newsarticles.repository.ArticleInterestRepository;
 import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
 import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.notification.event.InterestNotificationEvent;
 import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.event.articleView.ArticleViewedEvent;
@@ -167,7 +168,7 @@ class NewsArticleServiceTest {
     verify(articleInterestRepository).saveAll(anyList());
 
     // 관심사 알림 이벤트가 발행되어야 한다
-    verify(eventPublisher).publishEvent(any(List.class));
+    verify(eventPublisher).publishEvent(any(InterestNotificationEvent.class));
   }
 
   @Test
@@ -291,7 +292,7 @@ class NewsArticleServiceTest {
 
     // 이벤트가 발행되어야 한다
     // List<InterestNotificationEvent> 타입 객체
-    verify(eventPublisher).publishEvent(any(List.class));
+    verify(eventPublisher).publishEvent(any(InterestNotificationEvent.class));
 
   }
 
