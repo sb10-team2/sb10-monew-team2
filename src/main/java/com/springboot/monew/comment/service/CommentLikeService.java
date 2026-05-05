@@ -41,7 +41,7 @@ public class CommentLikeService {
   @Transactional
   public CommentLikeDto like(UUID commentId, UUID userId) {
     Comment comment = getActiveComment(commentId);
-    getActiveUser(userId); // 논리 삭제 사용자 여부를 먼저 검증
+    User user = getActiveUser(userId); // 논리 삭제 사용자 여부를 먼저 검증
 
     // 중복 좋아요 check
     if (commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
@@ -56,7 +56,6 @@ public class CommentLikeService {
     Comment refreshed = commentRepository.findByIdAndIsDeletedFalse(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
     // bulk update 후 영속성 컨텍스트가 초기화되므로, CommentLike 저장에 사용할 user는 clear 이후에 조회한다.
-    User user = getActiveUser(userId);
     CommentLike commentLike = new CommentLike(refreshed, user);
     commentLikeRepository.save(commentLike);
 
@@ -86,7 +85,7 @@ public class CommentLikeService {
 
     log.debug("likeCount 증가 후 - commentId: {}, likeCount: {}", commentId, refreshed.getLikeCount());
     log.info("좋아요 등록 완료 - commentId: {}, userId: {}", commentId, userId);
-    eventPublisher.publishEvent(CommentLikeNotificationEvent.from(user, commentLike));
+    eventPublisher.publishEvent(CommentLikeNotificationEvent.from(refreshed.getUser(), commentLike));
     return commentLikeMapper.toCommentLikeDto(commentLike);
   }
 
