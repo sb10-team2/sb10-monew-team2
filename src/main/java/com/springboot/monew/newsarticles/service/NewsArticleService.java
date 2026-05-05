@@ -182,7 +182,18 @@ public class NewsArticleService {
 
     if (!newArticleInterests.isEmpty()) {
       articleInterestRepository.saveAll(newArticleInterests);
-      eventPublisher.publishEvent(InterestNotificationEvent.from(newArticleInterests));
+
+      List<InterestNotificationEvent> events =
+          InterestNotificationEvent.from(newArticleInterests);
+
+      events.forEach(event -> {
+        log.info("[관심사 알림 이벤트 발행] interestId={}, resourceType={}",
+            event.getInterestId(),
+            event.getResourceType()
+        );
+
+        eventPublisher.publishEvent(event);
+      });
     }
 
     log.info("뉴스기사 저장 완료 - 신규 기사 수: {}, 신규 기사-관심사 연결 수: {}",
