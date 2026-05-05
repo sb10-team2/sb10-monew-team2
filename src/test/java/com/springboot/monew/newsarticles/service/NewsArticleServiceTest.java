@@ -292,7 +292,7 @@ class NewsArticleServiceTest {
 
     // 이벤트가 발행되어야 한다
     // List<InterestNotificationEvent> 타입 객체
-    verify(eventPublisher).publishEvent(any(InterestNotificationEvent.class));
+    verify(eventPublisher, times(2)).publishEvent(any(InterestNotificationEvent.class));
 
   }
 
