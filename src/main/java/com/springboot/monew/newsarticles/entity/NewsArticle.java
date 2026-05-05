@@ -46,8 +46,7 @@ public class NewsArticle extends BaseEntity {
   private boolean isDeleted = false;
 
   @Builder
-  public NewsArticle(ArticleSource source, String originalLink, String title, Instant publishedAt,
-      String summary) {
+  public NewsArticle(ArticleSource source, String originalLink, String title, Instant publishedAt, String summary) {
     this.source = source;
     this.originalLink = originalLink;
     this.title = title;
