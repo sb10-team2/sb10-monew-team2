@@ -11,13 +11,12 @@ export function getPersonaType(): string {
 }
 
 export function generateSignupRequest(): SignupRequest {
-  const vuId: number = exec.vu.idInTest;
-  const iterId: number = exec.vu.iterationInScenario;
   const type: string = getPersonaType();
-
+  const phase: string = exec.scenario.name;
+  const uuid = crypto.randomUUID();
   return {
-    nickname: `${type}_${vuId}_${iterId}`,
-    email: `${type}_${vuId}_${iterId}@monew.com`,
+    nickname: `${uuid}`,
+    email: `${phase}_${type}_${uuid}@monew.com`,
     password: 'password1234!',
   };
 }

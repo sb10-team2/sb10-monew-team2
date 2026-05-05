@@ -11,7 +11,7 @@ export interface UserDto {
 
 export function createUserDto(response: UserResponse): UserDto {
   const type: string = getPersonaType();
-  const { ratio, ...persona} = config.persona[type];
+  const { ratio, ...persona} = config.persona[type as keyof typeof config.persona];
   return {
     id: response.id,
     ...persona

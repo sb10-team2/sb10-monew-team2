@@ -7,6 +7,30 @@ export interface CursorResponse<T> {
   totalElements: number;
 }
 
+export interface CommentLikeResponse {
+  id: string;
+  likedBy: string;
+  createdAt: string;
+  commentId: string;
+  articleId: string;
+  commentUserId: string;
+  commentUserNickname: string;
+  commentContent: string;
+  commentLikeCount: string;
+  commentCreatedAt: string;
+}
+
+export interface CommentResponse {
+  id: string;
+  articleId: string;
+  userId: string;
+  userNickname: string;
+  content: string;
+  likeCount: number;
+  likedByMe: boolean;
+  createdAt: string;
+}
+
 export interface ArticleResponse {
   id: string;
   source: string;
@@ -17,6 +41,11 @@ export interface ArticleResponse {
   commentCount: number;
   viewCount: number;
   viewedByMe: boolean;
+}
+
+export interface CommentLikeCreateRequest {
+  commentId: string;
+  userId: string;
 }
 
 export interface CommentCreateRequest {

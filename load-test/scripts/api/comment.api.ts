@@ -1,13 +1,15 @@
-import {post} from "@/utils/http-client";
+import {get, post} from "@/utils/http-client";
 import config from "@/config";
 import {UserDto} from "@/dto/user.dto";
-import {CommentCreateRequest} from "@/types/api.type";
+import {CommentCreateRequest, CommentResponse, CursorResponse} from "@/types/api.type";
 import {CommentDto} from "@/dto/comment.dto";
 import exec from 'k6/execution';
+import {getTag} from "@/utils/common";
 
-function createComment(articleId: string, userId: string): void {
+export function createComment(articleId: string, userId: string): void {
   const requestBody = getCommentCreateRequest(articleId, userId);
-  post<CommentDto>(config.endpoints.postComment, requestBody);
+  const tag = getTag("POST", config.endpoints.postComment);
+  post<CommentDto>(config.endpoints.postComment, requestBody, null, tag);
 }
 
 function getCommentCreateRequest(articleId: string, userId: string): CommentCreateRequest {
@@ -18,12 +20,10 @@ function getCommentCreateRequest(articleId: string, userId: string): CommentCrea
   };
 }
 
-export default function createComments(userDto: UserDto, articleIds: string[]) {
-  for (let i = 0; i < userDto.maxComments; i++) {
-    for (const articleId of articleIds) {
-      createComment(articleId, userDto.id);
-    }
-  }
+export function getComments(articleId: string, userId: string): CursorResponse<CommentResponse> {
+  const url = `${config.endpoints.getComment}?articleId=${articleId}&orderBy=createdAt&direction=DESC&limit=20`;
+  const tag = getTag("POST", config.endpoints.postComment);
+  return get<CursorResponse<CommentResponse>>(url, userId, tag);
 }
 
 function generateCommentContent(): string {

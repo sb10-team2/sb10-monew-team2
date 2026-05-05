@@ -7,5 +7,5 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - .:/test
-    command: run /test/scripts/main.js
+      - ./:/test
+    command: run /test/dist/main.js
