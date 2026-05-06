@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({GeneratorProperties.class, TestDataProcessorProperties.class})
+@EnableConfigurationProperties({GeneratorProperties.class})
 public class GeneratorConfig {
 
 }

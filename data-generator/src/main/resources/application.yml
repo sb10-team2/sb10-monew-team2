@@ -20,7 +20,3 @@ generator:
   article-per-user: 10
   interest-per-article: 100
   keyword-per-interest: 3
-
-test-data-processor:
-  batch-size: 10000
-  common-user-id: asd
