@@ -1,9 +1,4 @@
 spring:
-  #  mvc:
-  #    servlet:
-  #      context-path:
-
-  # 각자 로컬 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/monew
     username: monew
@@ -11,11 +6,11 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     mongodb:
@@ -28,6 +23,7 @@ spring:
 
 logging:
   level:
-    com.springboot.monew: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    com.springboot.monew: INFO
+
+springdoc:
+  default-flat-param-object: true

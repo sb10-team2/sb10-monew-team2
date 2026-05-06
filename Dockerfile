@@ -51,10 +51,6 @@ WORKDIR /app
 RUN mkdir -p /app/.logs \
     && chown -R appuser:appuser /app
 
-
-# JVM 실행 옵션 (기본값: 빈 문자열)
-ENV JAVA_TOOL_OPTIONS=""
-
 # builder 단계에서 만든 jar를 runtime 이미지로 복사
 #COPY할때 바로 소유자 지정
 COPY --from=builder --chown=appuser:appuser /build/build/libs/*.jar /app/app.jar
@@ -64,4 +60,4 @@ USER appuser
 EXPOSE 8080
 
 # 컨테이너 시작 시 Spring Boot 실행
-ENTRYPOINT ["sh", "-lc", "exec java $JAVA_TOOL_OPTIONS -jar /app/app.jar --server.port=8080"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar", "--server.port=8080"]
