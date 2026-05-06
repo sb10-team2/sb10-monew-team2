@@ -6,10 +6,13 @@ export interface UserDto {
   id: string;
   maxComments: number;
   maxLikes: number;
-  maxSubscriptions: number;
+  maxInterests: number;
+  maxKeywords: number;
+  minNotifications: number;
+  minArticles: number;
 }
 
-export function createUserDto(response: UserResponse): UserDto {
+export function toUserDto(response: UserResponse): UserDto {
   const type: string = getPersonaType();
   const { ratio, ...persona} = config.persona[type as keyof typeof config.persona];
   return {

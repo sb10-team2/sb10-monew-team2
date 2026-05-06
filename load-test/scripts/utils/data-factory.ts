@@ -14,9 +14,22 @@ export function generateSignupRequest(): SignupRequest {
   const type: string = getPersonaType();
   const phase: string = exec.scenario.name;
   const uuid = crypto.randomUUID();
+  const nickname = generateRandomString(20);
   return {
-    nickname: `${uuid}`,
+    nickname: `${nickname}`,
     email: `${phase}_${type}_${uuid}@monew.com`,
     password: 'password1234!',
   };
+}
+
+export function generateRandomString(length: number): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
 }

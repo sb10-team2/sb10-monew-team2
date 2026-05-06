@@ -7,15 +7,15 @@ export function post<T>(url: string, body: any, userId?: string | null, tag?: st
     headers: getHeader(userId),
   };
   if (tag) {
-    params.tags = { name: tag };
+    params.tags = {name: tag};
   }
   const res = http.post(url, payload, params);
   if (res.status === 200 || res.status === 201) {
     return (res.body ? res.json() : null) as unknown as T;
   }
-  console.error(`[API 에러] status: ${res.status},
+  console.error(`[POST API 에러] status: ${res.status},
   message: ${res.body},
-  request: ${res.request.url}, headers: ${res.headers}`);
+  request: ${res.request.url}, body: ${res.request.body}`);
   throw new ApiException(res.status, res.body?.toString() || 'Unknown Error');
 }
 
@@ -24,15 +24,17 @@ export function get<T>(url: string, userId?: string | null, tag?: string): T {
     headers: getHeader(userId),
   };
   if (tag) {
-    params.tags = { name: tag };
+    params.tags = {name: tag};
   }
   const res = http.get(url, params);
-  if (res.status === 200) {
+  if (res.status === 200 || res.status === 201) {
     return res.json() as unknown as T;
   }
-  console.error(`[API 에러] status: ${res.status},
-  message: ${res.body},
-  request: ${res.request.url}, headers: ${res.error}`);
+  console.error("[start]#######################");
+  console.error(`[GET API 에러] status: ${res.status},
+  message: ${res.body?.toString()},
+  request: ${res.request.url}`);
+  console.error("[end]#######################");
   throw new ApiException(res.status, res.body?.toString() || 'Unknown Error');
 }
 

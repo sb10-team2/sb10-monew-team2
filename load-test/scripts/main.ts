@@ -1,11 +1,11 @@
 import {k6Options} from '@/config';
 
 import runSetup from '@/scenarios/setup';
-import { generateDataScenario } from '@/scenarios/generate-data';
-import { readLoadTestScenario } from '@/scenarios/load-test';
+import {generateDataScenario} from '@/scenarios/generate-data';
+import {readLoadTestScenario} from '@/scenarios/load-test';
 
-import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
-import { generateCustomHtmlReport } from '@/utils/reporter'; // STEP 3에서 만들 파일
+import {textSummary} from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
+import {generateCustomHtmlReport} from '@/utils/reporter'; // STEP 3에서 만들 파일
 
 export const options = k6Options;
 
@@ -29,7 +29,7 @@ export function handleSummary(data: any) {
   console.log('커스텀 HTML 리포트를 생성합니다...');
 
   return {
-    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
-    'test-report.html': generateCustomHtmlReport(data),
+    'stdout': textSummary(data, {indent: ' ', enableColors: true}),
+    '/test/test-report.html': generateCustomHtmlReport(data),
   };
 }

@@ -7,6 +7,21 @@ export interface CursorResponse<T> {
   totalElements: number;
 }
 
+export interface InterestResponse {
+
+}
+
+export interface NotificationResponse {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  confirmed: boolean;
+  userId: string;
+  content: string;
+  resourceType: string;
+  resourceId: string;
+}
+
 export interface CommentLikeResponse {
   id: string;
   likedBy: string;

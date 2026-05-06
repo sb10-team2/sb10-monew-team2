@@ -9,7 +9,7 @@ import {getTag} from "@/utils/common";
 export function createComment(articleId: string, userId: string): void {
   const requestBody = getCommentCreateRequest(articleId, userId);
   const tag = getTag("POST", config.endpoints.postComment);
-  post<CommentDto>(config.endpoints.postComment, requestBody, null, tag);
+  post<CommentDto>(config.endpoints.postComment, requestBody, userId, tag);
 }
 
 function getCommentCreateRequest(articleId: string, userId: string): CommentCreateRequest {
@@ -22,7 +22,8 @@ function getCommentCreateRequest(articleId: string, userId: string): CommentCrea
 
 export function getComments(articleId: string, userId: string): CursorResponse<CommentResponse> {
   const url = `${config.endpoints.getComment}?articleId=${articleId}&orderBy=createdAt&direction=DESC&limit=20`;
-  const tag = getTag("POST", config.endpoints.postComment);
+  const tag = getTag("GET", config.endpoints.postComment);
+  console.log(`[실행 확인] ${tag}`)
   return get<CursorResponse<CommentResponse>>(url, userId, tag);
 }
 

@@ -1,78 +1,176 @@
 export function generateCustomHtmlReport(data: any): string {
-  const metrics = data.metrics;
-  const apiStats: Record<string, any[]> = { 'warm-up': [], 'load-test': [] };
+  try {
+    const metrics = data?.metrics || {};
 
-  for (const [key, value] of Object.entries(metrics)) {
-    if (key.startsWith('http_req_duration{name:[')) {
-      const match = key.match(/name:\[(.*?)\] (.*)}/);
-      if (match) {
-        const scenario = match[1];
-        const apiName = match[2];
+    const totalReqs = metrics.http_reqs?.values?.count || 0;
+    const failedRate = ((metrics.http_req_failed?.values?.rate || 0) * 100).toFixed(2);
+    const p95Duration = (metrics.http_req_duration?.values?.['p(95)'] || 0).toFixed(2);
+    const vusMax = metrics.vus_max?.values?.value || 0;
+    const globalTps = (metrics.http_reqs?.values?.rate || 0).toFixed(2);
 
-        const reqsKey = `http_reqs{name:[${scenario}] ${apiName}}`;
-        const failsKey = `http_req_failed{name:[${scenario}] ${apiName}}`;
+    const scenarios: Record<string, any[]> = {};
+    let hasDetails = false;
 
-        const duration = value as any;
-        const reqs = metrics[reqsKey] as any || { values: { count: 0, rate: 0 } };
-        const fails = metrics[failsKey] as any || { values: { rate: 0 } };
+    for (const [key, value] of Object.entries(metrics)) {
+      if (key.startsWith('http_req_duration{') && key.includes('name:[')) {
+        hasDetails = true;
+        const match = key.match(/name:\[(.*?)\]\s+\[(.*?)\]/);
 
-        if (apiStats[scenario]) {
-          apiStats[scenario].push({
-            name: apiName,
-            avg: duration.values.avg.toFixed(2),
-            p95: duration.values['p(95)'].toFixed(2),
-            p99: duration.values['p(99)'].toFixed(2),
-            rps: reqs.values.rate.toFixed(2),
-            errorRate: (fails.values.rate * 100).toFixed(2),
+        if (match) {
+          const scenarioName = match[1];
+          const apiName = match[2];
+
+          if (!scenarios[scenarioName]) scenarios[scenarioName] = [];
+
+          const duration = (value as any)?.values || {};
+          const reqs = (metrics[key.replace('http_req_duration', 'http_reqs')] as any)?.values || {};
+          const fails = (metrics[key.replace('http_req_duration', 'http_req_failed')] as any)?.values || {};
+
+          scenarios[scenarioName].push({
+            api: apiName,
+            avg: duration.avg || 0,
+            p95: duration['p(95)'] || 0,
+            p99: duration['p(99)'] || 0,
+            count: reqs.count || 0,
+            tps: reqs.rate || 0,
+            errorRate: fails.rate || 0,
           });
         }
       }
     }
-  }
 
-  let html = `
-    <html>
-      <head>
-        <title>Monew 성능 테스트 리포트</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; }
-          details { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-          summary { font-size: 1.2em; font-weight: bold; cursor: pointer; color: #2c3e50; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-          th { background-color: #34495e; color: white; }
-          .error { color: red; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <h1>🚀 성능 테스트 최종 리포트</h1>
-  `;
+    let apiRows = "";
 
-  for (const [scenario, stats] of Object.entries(apiStats)) {
-    if (stats.length === 0) continue;
+    if (!hasDetails) {
+      apiRows = `<tr><td colspan="7" class="error">상세 API 태그 데이터가 없습니다. thresholds 설정을 확인하세요.</td></tr>`;
+    } else {
+      for (const [scenario, apis] of Object.entries(scenarios)) {
+        const activeApis = apis.filter(api => api.count > 0);
+        if (activeApis.length === 0) {
+          continue;
+        }
+        const totalCount = apis.reduce((sum, api) => sum + api.count, 0);
+        const totalTps = apis.reduce((sum, api) => sum + api.tps, 0);
 
-    html += `<details>
-              <summary>▶ ${scenario.toUpperCase()} 단계 상세 지표 보기</summary>
-              <table>
-                <tr>
-                  <th>구분 (API)</th><th>평균 응답시간 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>RPS / TPS</th><th>Error Rate (%)</th>
-                </tr>`;
+        let totalErrors = 0, sumAvg = 0, sumP95 = 0, sumP99 = 0;
+        apis.forEach(api => {
+          totalErrors += api.count * api.errorRate;
+          sumAvg += api.avg; sumP95 += api.p95; sumP99 += api.p99;
+        });
+        const avgErrorRate = totalCount > 0 ? (totalErrors / totalCount) : 0;
 
-    for (const stat of stats) {
-      const errorStyle = parseFloat(stat.errorRate) > 0 ? 'class="error"' : '';
-      html += `<tr>
-                <td>${stat.name}</td>
-                <td>${stat.avg}</td>
-                <td>${stat.p95}</td>
-                <td>${stat.p99}</td>
-                <td>${stat.rps}</td>
-                <td ${errorStyle}>${stat.errorRate}%</td>
-              </tr>`;
+        apiRows += `
+          <tr class="summary-row" onclick="toggleDetails('${scenario}')" title="클릭하여 세부 API 보기">
+            <td style="text-align: left; padding-left: 15px;">▶ <b>${scenario}</b></td>
+            <td><b>* (통합 지표)</b></td>
+            <td><b>${(sumAvg / apis.length).toFixed(2)}</b></td>
+            <td><b>${(sumP95 / apis.length).toFixed(2)}</b></td>
+            <td><b>${(sumP99 / apis.length).toFixed(2)}</b></td>
+            <td class="highlight-tps"><b>${totalTps.toFixed(2)}</b></td>
+            <td class="${avgErrorRate > 0 ? 'error' : 'success'}"><b>${(avgErrorRate * 100).toFixed(2)}%</b></td>
+          </tr>
+        `;
+
+        for (const api of apis) {
+          apiRows += `
+            <tr class="detail-row-${scenario}">
+              <td style="color: #7f8c8d; text-align: right;">└─</td>
+              <td style="text-align: left;">${api.api}</td>
+              <td>${api.avg.toFixed(2)}</td>
+              <td>${api.p95.toFixed(2)}</td>
+              <td>${api.p99.toFixed(2)}</td>
+              <td class="highlight-tps">${api.tps.toFixed(2)}</td>
+              <td class="${api.errorRate > 0 ? 'error' : ''}">${(api.errorRate * 100).toFixed(2)}%</td>
+            </tr>
+          `;
+        }
+      }
     }
 
-    html += `</table></details>`;
-  }
+    return `
+      <!DOCTYPE html>
+      <html lang="ko">
+        <head>
+          <meta charset="UTF-8">
+          <title>Monew 성능 테스트 최종 리포트</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f4f7f6; color: #333; }
+            h1 { text-align: center; color: #2c3e50; }
+            details { background: white; padding: 20px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            summary { font-size: 1.3em; font-weight: bold; cursor: pointer; color: #34495e; outline: none; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95em; }
+            th, td { padding: 12px 15px; border: 1px solid #e0e6ed; text-align: center; }
+            th { background-color: #34495e; color: white; position: sticky; top: 0; }
+            .summary-row { background-color: #e8f4f8; cursor: pointer; transition: background-color 0.2s; }
+            .summary-row:hover { background-color: #d1eaf3; }
+            .error { color: #e74c3c; font-weight: bold; }
+            .success { color: #27ae60; font-weight: bold; }
+            .highlight-tps { color: #2980b9; font-weight: bold; }
+          </style>
+          <script>
+            function toggleDetails(scenario) {
+              const rows = document.querySelectorAll('.detail-row-' + scenario);
+              let isHidden = false;
+              rows.forEach(row => {
+                if (row.style.display === 'none') {
+                  row.style.display = 'table-row';
+                } else {
+                  row.style.display = 'none';
+                  isHidden = true;
+                }
+              });
+              
+              const summaryCell = event.currentTarget.cells[0];
+              if (isHidden) {
+                summaryCell.innerHTML = summaryCell.innerHTML.replace('▼', '▶');
+              } else {
+                summaryCell.innerHTML = summaryCell.innerHTML.replace('▶', '▼');
+              }
+            }
+          </script>
+        </head>
+        <body>
+          <h1>🚀 Monew 성능 테스트 결과 리포트</h1>
+          
+          <details open>
+            <summary>📊 글로벌 핵심 요약 (Global Summary)</summary>
+            <table>
+              <tr>
+                <th>최대 가상 유저 (VUs)</th>
+                <th>총 요청 수 (Total Reqs)</th>
+                <th>전체 TPS (RPS)</th>
+                <th>글로벌 에러율 (Error Rate)</th>
+                <th>글로벌 응답 속도 (p95)</th>
+              </tr>
+              <tr>
+                <td><b>${vusMax} 명</b></td>
+                <td><b>${totalReqs} 건</b></td>
+                <td class="highlight-tps"><b>${globalTps}</b></td>
+                <td class="${Number(failedRate) > 0 ? 'error' : 'success'}"><b>${failedRate} %</b></td>
+                <td><b>${p95Duration} ms</b></td>
+              </tr>
+            </table>
+          </details>
 
-  html += `</body></html>`;
-  return html;
+          <details open>
+            <summary>▶ 시나리오 및 API별 상세 지표 (상단 행 클릭 시 접기/펴기)</summary>
+            <table>
+              <tr>
+                <th style="width: 15%;">시나리오 (Scenario)</th>
+                <th style="width: 25%;">API (Method / URI)</th>
+                <th>평균 (ms)</th>
+                <th>p95 (ms)</th>
+                <th>p99 (ms)</th>
+                <th>TPS / RPS</th>
+                <th>Error Rate (%)</th>
+              </tr>
+              ${apiRows}
+            </table>
+          </details>
+        </body>
+      </html>
+    `;
+  } catch (e) {
+    return `<html><meta charset="UTF-8"><body><h1>리포트 생성 중 에러 발생</h1><p style="color:red;">${String(e)}</p></body></html>`;
+  }
 }
