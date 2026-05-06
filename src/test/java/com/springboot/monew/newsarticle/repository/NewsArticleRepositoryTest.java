@@ -16,6 +16,7 @@ import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
@@ -70,9 +71,9 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
   void findNewsArticles_ReturnsArticles_WhenPublishDateRangeApplied() {
     // given
 
-    NewsArticle before = createArticle("before", Instant.parse("2026-04-30T00:00:00Z").minusSeconds(1));
-    NewsArticle inRange = createArticle("in-range", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(3600));
-    NewsArticle after = createArticle("after", Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86400));
+    NewsArticle before = createArticle("before", Instant.parse("2026-04-29T14:59:59Z"));
+    NewsArticle inRange = createArticle("in-range", Instant.parse("2026-04-29T16:00:00Z"));
+    NewsArticle after = createArticle("after", Instant.parse("2026-04-30T15:00:00Z"));
 
     newsArticleRepository.saveAll(List.of(before, inRange, after));
     flushAndClear();
@@ -81,8 +82,8 @@ public class NewsArticleRepositoryTest extends BaseRepositoryTest {
         null,
         null,
         null,
-        Instant.parse("2026-04-30T00:00:00Z"),
-        Instant.parse("2026-04-30T00:00:00Z").plusSeconds(86399),
+        LocalDateTime.of(2026, 4, 30, 0, 0, 0),
+        LocalDateTime.of(2026, 4, 30, 23, 59, 59),
         NewsArticleOrderBy.publishDate,
         NewsArticleDirection.DESC,
         null,

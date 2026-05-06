@@ -184,12 +184,12 @@ public interface NewsArticleApiDocs {
       @Parameter(
           name = "publishDateFrom",
           description = "발행일 범위 시작 (선택, ISO 8601 형식)",
-          example = "2024-01-01T00:00:00.000Z"
+          example = "2024-01-01T00:00:00"
       ),
       @Parameter(
           name = "publishDateTo",
           description = "발행일 범위 종료 (선택, ISO 8601 형식)",
-          example = "2024-01-31T23:59:59.000Z"
+          example = "2024-01-31T23:59:59"
       ),
       @Parameter(
           name = "orderBy",

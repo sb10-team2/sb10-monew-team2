@@ -18,17 +18,22 @@ import com.springboot.monew.newsarticle.dto.request.NewsArticlePageRequest;
 import com.springboot.monew.newsarticle.dto.response.NewsArticleCursorRow;
 import com.springboot.monew.newsarticle.enums.NewsArticleDirection;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository {
 
   private final JPAQueryFactory queryFactory;
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
   @Override
   public List<NewsArticleCursorRow> findNewsArticles(NewsArticlePageRequest request, UUID userId) {
@@ -175,21 +180,23 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
   }
 
   // 날짜 시작 범위 조건
-  private BooleanExpression publishDateGoe(Instant publishDateFrom) {
+  private BooleanExpression publishDateGoe(LocalDateTime publishDateFrom) {
     if (publishDateFrom == null) {
       return null;
     }
-
-    return newsArticle.publishedAt.goe(publishDateFrom);
+    return newsArticle.publishedAt.goe(
+        publishDateFrom.atZone(KST).toInstant()
+    );
   }
 
   // 날짜 끝 범위 조건
-  private BooleanExpression publishDateLoe(Instant publishDateTo) {
+  private BooleanExpression publishDateLoe(LocalDateTime publishDateTo) {
     if (publishDateTo == null) {
       return null;
     }
-
-    return newsArticle.publishedAt.loe(publishDateTo);
+    return newsArticle.publishedAt.loe(
+        publishDateTo.atZone(KST).toInstant()
+    );
   }
 
   // 정렬 기준에 따른 커서 조건 생성

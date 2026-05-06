@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,8 +26,8 @@ public record NewsArticlePageRequest(
     List<ArticleSource> sourceIn,
 
     //날짜 범위
-    Instant publishDateFrom,
-    Instant publishDateTo,
+    LocalDateTime publishDateFrom,
+    LocalDateTime publishDateTo,
 
     //정렬
     @NotNull NewsArticleOrderBy orderBy,
