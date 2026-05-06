@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -180,16 +181,16 @@ public interface NewsArticleApiDocs {
           example = "550e8400-e29b-41d4-a716-446655440000",
           schema = @Schema(type = "string", format = "uuid")
       ),
-      @Parameter(
-          name = "sourceIn",
-          description = """
-              출처 필터 (선택, 복수 선택 가능)
-              - `NAVER` : 네이버
-              - `HANKYUNG` : 한국경제
-              - `CHOSUN` : 조선일보
-              - `YEONHAP` : 연합뉴스""",
-          schema = @Schema(type = "array", allowableValues = {"NAVER", "HANKYUNG", "CHOSUN", "YEONHAP"})
-      ),
+//      @Parameter(
+//          name = "sourceIn",
+//          description = """
+//              출처 필터 (선택, 복수 선택 가능)
+//              - `NAVER` : 네이버
+//              - `HANKYUNG` : 한국경제
+//              - `CHOSUN` : 조선일보
+//              - `YEONHAP` : 연합뉴스"""
+//          schema = @Schema(type = "array", allowableValues = {"NAVER", "HANKYUNG", "CHOSUN", "YEONHAP"})
+//      ),
       @Parameter(
           name = "publishDateFrom",
           description = "발행일 범위 시작 (선택, ISO 8601 형식)",
@@ -331,7 +332,8 @@ public interface NewsArticleApiDocs {
       )
   })
   CursorPageResponseNewsArticleDto list(
-      @Valid NewsArticlePageRequest request,
+      //@ParameterObject: 이 객체를 RequesstBody가 아니라 Query Parameter 묶음으로 해석해라.
+      @Valid @ParameterObject NewsArticlePageRequest request,
       @Parameter(description = "요청자 ID") @RequestHeader("Monew-Request-User-ID") UUID userId
   );
 
