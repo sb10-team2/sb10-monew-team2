@@ -181,16 +181,6 @@ public interface NewsArticleApiDocs {
           example = "550e8400-e29b-41d4-a716-446655440000",
           schema = @Schema(type = "string", format = "uuid")
       ),
-//      @Parameter(
-//          name = "sourceIn",
-//          description = """
-//              출처 필터 (선택, 복수 선택 가능)
-//              - `NAVER` : 네이버
-//              - `HANKYUNG` : 한국경제
-//              - `CHOSUN` : 조선일보
-//              - `YEONHAP` : 연합뉴스"""
-//          schema = @Schema(type = "array", allowableValues = {"NAVER", "HANKYUNG", "CHOSUN", "YEONHAP"})
-//      ),
       @Parameter(
           name = "publishDateFrom",
           description = "발행일 범위 시작 (선택, ISO 8601 형식)",
@@ -223,10 +213,31 @@ public interface NewsArticleApiDocs {
       @Parameter(
           name = "cursor",
           description = """
-              이전 페이지의 마지막 커서 값 (첫 페이지 조회 시 생략)
-              - orderBy=`publishDate` 형식: `2024-01-15T10:30:00.000000000Z`
-              - orderBy=`commentCount` / `viewCount` 형식: `100|2024-01-15T10:30:00.000000000Z`""",
-          example = "2024-01-15T10:30:00.000000000Z"
+        이전 페이지의 마지막 커서 값 (첫 페이지 조회 시 생략)
+
+        서버 응답의 `nextCursor` 값을 그대로 전달합니다.
+
+        커서 형식:
+        - publishDate 정렬:
+          `publishDate|createdAt`
+
+        - commentCount / viewCount 정렬:
+          `count|createdAt`
+
+        예시:
+        - publishDate:
+          `2024-01-15T10:30:00.000000000Z|2024-01-15T10:30:04.621481Z`
+
+        - commentCount:
+          `100|2024-01-15T10:30:04.621481Z`
+
+        - viewCount:
+          `1500|2024-01-15T10:30:04.621481Z`
+
+        cursor 내부에 after(createdAt) 값이 포함되어 있으므로
+        별도의 after 파라미터는 사용하지 않습니다.
+        """,
+          example = "2024-01-15T10:30:00.000000000Z|2024-01-15T10:30:04.621481Z"
       ),
       @Parameter(
           name = "after",
