@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "user_activities")
 public class UserActivityDocument {
 
-  // 최근 활동 목록은 최대 10개까지만 유지한다.
+  // 최근 활동 목록은 최대 10개까지만 유지한다.(관심사 제외)
   private static final int RECENT_ACTIVITY_LIMIT = 10;
 
   @Id
@@ -65,11 +65,8 @@ public class UserActivityDocument {
 
   // 관심사 구독 성공 시 subscriptions에 추가한다.
   public void addSubscription(SubscriptionItem item) {
-    addRecentItem(
-        subscriptions,
-        item,
-        subscription -> subscription.interestId().equals(item.interestId())
-    );
+    subscriptions.removeIf(subscription -> subscription.interestId().equals(item.interestId()));
+    subscriptions.add(0, item);
   }
 
   // 관심사 구독 취소 시 subscriptions에서 제거한다.
