@@ -8,6 +8,7 @@ import com.springboot.monew.user.service.UserService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "사용자 관리", description = "사용자 관련 API")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor

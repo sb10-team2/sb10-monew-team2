@@ -140,7 +140,7 @@ public class CommentService {
     }
 
     // userId 조회 -> 존재 + 소프트딜릿 여부, 검증 느낌 ?
-    User user = getActiveUser(userId);
+    getActiveUser(userId);
 
     // Comment 조회
     List<Comment> comments =
@@ -179,7 +179,8 @@ public class CommentService {
     int size = comments.size();
 
     // 댓글 전체 개수
-    long totalElements = commentRepository.countByArticleIdAndIsDeletedFalse(request.articleId());
+    long totalElements = (request.cursor() == null && request.after() == null)
+        ? commentRepository.countByArticleIdAndIsDeletedFalse(request.articleId()): -1L;
 
     // Dto 변환
     List<CommentDto> content =
