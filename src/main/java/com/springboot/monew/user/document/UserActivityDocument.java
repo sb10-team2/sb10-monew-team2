@@ -1,7 +1,7 @@
 package com.springboot.monew.user.document;
 
 
-import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.newsarticle.enums.ArticleSource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

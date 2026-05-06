@@ -9,7 +9,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 
-import com.springboot.monew.newsarticles.s3.AwsProperties;
+import com.springboot.monew.newsarticle.s3.AwsProperties;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;

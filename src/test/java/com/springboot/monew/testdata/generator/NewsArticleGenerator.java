@@ -2,7 +2,7 @@ package com.springboot.monew.testdata.generator;
 
 import static org.instancio.Select.field;
 
-import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticle.entity.NewsArticle;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
