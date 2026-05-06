@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'com.rometools:rome:2.1.0'
+//    implementation 'com.rometools:rome:2.1.0'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
     annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jpa'

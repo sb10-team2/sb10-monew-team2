@@ -14,7 +14,7 @@ import com.springboot.monew.interest.entity.InterestOrderBy;
 import com.springboot.monew.interest.entity.QInterest;
 import com.springboot.monew.interest.entity.QInterestKeyword;
 import com.springboot.monew.interest.entity.QKeyword;
-import com.springboot.monew.newsarticles.entity.QArticleInterest;
+import com.springboot.monew.newsarticle.entity.QArticleInterest;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;

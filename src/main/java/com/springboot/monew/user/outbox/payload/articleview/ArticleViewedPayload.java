@@ -1,6 +1,6 @@
 package com.springboot.monew.user.outbox.payload.articleview;
 
-import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.newsarticle.enums.ArticleSource;
 import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import java.time.Instant;
 import java.util.UUID;

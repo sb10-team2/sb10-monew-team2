@@ -1,7 +1,7 @@
 package com.springboot.monew.user.mapper;
 
 import com.springboot.monew.interest.dto.response.SubscriptionDto;
-import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticle.dto.response.NewsArticleViewDto;
 import com.springboot.monew.user.document.UserActivityDocument;
 import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
