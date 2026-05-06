@@ -20,3 +20,7 @@ generator:
   article-per-user: 10
   interest-per-article: 100
   keyword-per-interest: 3
+
+logging:
+  level:
+    com.springboot.datagenerator: INFO

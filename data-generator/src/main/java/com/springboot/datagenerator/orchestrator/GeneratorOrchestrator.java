@@ -63,10 +63,10 @@ public class GeneratorOrchestrator {
   private void truncated() {
     String truncateSql = "TRUNCATE TABLE " +
         "\"interests\", \"users\", \"comment_likes\", \"article_interests\", " +
-        "\"batch_step_execution_context\", \"notifications\", \"batch_job_execution\", " +
-        "\"news_articles\", \"batch_step_execution\", \"batch_job_execution_context\", " +
-        "\"batch_job_instance\", \"article_views\", \"subscriptions\", " +
-        "\"batch_job_execution_params\", \"comments\", \"interest_keywords\", \"keywords\" " +
+        "\"notifications\", " +
+        "\"news_articles\", " +
+        "\"article_views\", \"subscriptions\", " +
+        "\"comments\", \"interest_keywords\", \"keywords\" " +
         "RESTART IDENTITY CASCADE;";
 
     template.execute(truncateSql);
