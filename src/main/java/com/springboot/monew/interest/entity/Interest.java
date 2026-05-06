@@ -1,0 +1,42 @@
+package com.springboot.monew.interest.entity;
+
+import com.springboot.monew.common.entity.BaseUpdatableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(
+    name = "interests",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "UK_INTERESTS_NAME",
+            columnNames = "name"
+        )
+    }
+)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Interest extends BaseUpdatableEntity {
+
+  @Column(name = "name", nullable = false, length = 50)
+  private String name;
+
+  @Column(name = "subscriber_count", nullable = false)
+  private long subscriberCount;
+
+  @Setter
+  @Transient
+  private long articleCount;
+
+  public Interest(String name) {
+    this.name = name;
+    this.subscriberCount = 0;
+  }
+}

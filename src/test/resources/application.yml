@@ -1,0 +1,48 @@
+spring:
+  sql:
+    init:
+      schema-locations:
+        - classpath:schema.sql
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        jdbc.batch_size: 100
+        order_inserts: true
+        order_updates: true
+        default_batch_fetch_size: 500
+    open-in-view: false
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/monew-test?replicaSet=rs0
+  batch:
+    job:
+      enabled: false
+
+logging:
+  level:
+    com.springboot.monew: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+
+naver:
+  api:
+    key: "test-secret-key-for-build-pass"
+    secret: "test-secret-key-for-build-pass"
+
+cloud:
+  aws:
+    s3:
+      access-key: test-dummy
+      secret-key: test-dummy
+      region: ap-northeast-2
+      bucket: test-dummy-bucket

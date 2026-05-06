@@ -20,15 +20,20 @@ repositories {
 }
 
 dependencies {
+    implementation platform('org.springdoc:springdoc-openapi:2.8.5')
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'com.rometools:rome:2.1.0'
+//    implementation 'com.rometools:rome:2.1.0'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
+    annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jpa'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
     runtimeOnly 'org.postgresql:postgresql'
 
     compileOnly 'org.projectlombok:lombok'
@@ -36,19 +41,41 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
+    testCompileOnly("org.projectlombok:lombok:1.18.42")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
+    testAnnotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
     testImplementation 'com.h2database:h2'
-    runtimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation platform('org.instancio:instancio-bom:6.0.0-RC2')
+    testImplementation('org.instancio:instancio-core')
+    testImplementation('org.instancio:instancio-junit')
+    testImplementation 'net.datafaker:datafaker:2.5.4'
+    // 통합 테스트: 운영 환경과 유사한 환경 구축을 위해 컨테이너를 사용
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:mongodb'
 
     //aws
     implementation 'software.amazon.awssdk:s3:2.31.7'
     implementation 'software.amazon.awssdk:auth:2.31.7'
+
+    //.env 파일 자동 인식
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+    //웹페이지(html,xml)를 자바 객체처럼 쉽게 다루게 해주는 라이브러리
+    implementation 'org.jsoup:jsoup:1.17.2'
+    // 관심사 이름 유사도 체크를 위한 라이브러리 의존성 추가
+    implementation 'org.apache.commons:commons-text:1.11.0'
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags "test-data-generator"
+    }
     finalizedBy jacocoTestReport
 }
 
@@ -58,4 +85,27 @@ jacocoTestReport {
         xml.required = true
         html.required = true
     }
+    def excludes = [
+            "**/dto/**",
+            "**/exception/**",
+            "**/config/**",
+            "**/mapper/**",
+            "**/metric/**",
+            "**/*Application*",
+            "**/*Interceptor*",
+            "**/*Filter*",
+            "**/Q*.class",
+            "**/notification/event/*Event.class"
+    ]
+    for (qPattern in "**/QA".."**/QZ") {
+        excludes.add(qPattern + "*")
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: excludes)
+    }))
+}
+
+def localGradle = file('local.gradle')
+if (localGradle.exists()) {
+    apply from: localGradle
 }

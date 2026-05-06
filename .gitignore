@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-user-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -48,3 +49,6 @@ logs/
 
 ### Local yml ###
 application-local.yml
+
+.env
+monew.env

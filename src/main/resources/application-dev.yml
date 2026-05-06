@@ -1,9 +1,9 @@
 spring:
-  mvc:
-    servlet:
-      context-path: /api
+  #  mvc:
+  #    servlet:
+  #      context-path:
 
-# 각자 로컬 설정
+  # 각자 로컬 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/monew
     username: monew
@@ -19,22 +19,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/monew}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/monew?replicaSet=rs0}
   batch:
     jdbc:
       initialize-schema: always
     job:
       enabled: false
-
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_S3_BUCKET}
-    region:
-      static: ${AWS_REGION:ap-northeast-2}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
 
 logging:
   level:
