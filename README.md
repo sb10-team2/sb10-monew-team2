@@ -21,6 +21,13 @@
 
   <br>
 
+  ## 🗂️ 프로젝트 ERD
+  <img width="2110" height="1232" alt="image" src="https://github.com/user-attachments/assets/f00a397b-a9f9-42c9-966c-29c45795d513" />
+
+  
+  
+  <br>
+  
   ## 🛠 기술 스택
 
   - **Backend**: Spring Boot 3.5, Spring Data JPA, Spring Batch, QueryDSL
