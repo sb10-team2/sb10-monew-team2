@@ -24,7 +24,9 @@ import com.springboot.monew.user.repository.UserActivityOutboxRepository;
 import com.springboot.monew.user.repository.UserActivityRepository;
 import com.springboot.monew.user.repository.UserRepository;
 import com.springboot.monew.user.service.UserService;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -196,5 +198,38 @@ class UserActivityInterestIntegrationTest extends BaseIntegrationsTest {
   private InterestDto createInterest(String name, List<String> keywords) {
     // 관심사 흐름 테스트에서 공통으로 사용할 관심사를 실제 생성 서비스로 준비한다.
     return interestService.create(new InterestRegisterRequest(name, keywords));
+  }
+
+  @Test
+  @DisplayName("관심사 구독이 10개를 넘어도 사용자 활동내역 문서에는 전체 구독 목록이 유지된다")
+  void subscribe_keepsAllSubscriptionsInUserActivity() {
+    // given
+    List<InterestDto> createdInterests = new ArrayList<>();
+
+    // when
+    // 서로 유사한 이름으로 판정되지 않도록 UUID를 섞어서 관심사를 생성하고 바로 구독한다.
+    for (int i = 0; i < 11; i++) {
+      InterestDto interest = createInterest(
+          "관심사-" + UUID.randomUUID(),
+          List.of("keyword-" + i)
+      );
+      createdInterests.add(interest);
+      subscriptionService.subscribe(interest.id(), user.id());
+    }
+
+    // then
+    // 사용자 활동내역 Mongo 문서를 조회한다.
+    UserActivityDocument activity = userActivityRepository.findById(user.id()).orElseThrow();
+
+    // subscriptions는 더 이상 10개로 잘리지 않고 전체 11개가 유지되어야 한다.
+    assertThat(activity.getSubscriptions()).hasSize(11);
+
+    // 가장 마지막에 구독한 관심사가 맨 앞에 있어야 한다.
+    assertThat(activity.getSubscriptions().get(0).interestId())
+        .isEqualTo(createdInterests.get(10).id());
+
+    // 가장 먼저 구독한 관심사는 맨 뒤에 있어야 한다.
+    assertThat(activity.getSubscriptions().get(10).interestId())
+        .isEqualTo(createdInterests.get(0).id());
   }
 }

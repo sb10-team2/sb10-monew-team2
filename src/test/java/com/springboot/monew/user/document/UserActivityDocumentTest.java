@@ -394,4 +394,47 @@ public class UserActivityDocumentTest {
         .doesNotContain(firstCommentId);
   }
 
+  @Test
+  @DisplayName("관심사 구독은 10개를 초과해도 잘리지 않고 사용자 활동내역 문서에 전체 목록이 최신순으로 유지된다")
+  void addSubscription_KeepsAllSubscriptions() {
+    // given
+    // 사용자 활동내역 문서를 생성한다.
+    UserActivityDocument document = new UserActivityDocument(
+        UUID.randomUUID(),
+        "test@example.com",
+        "tester",
+        Instant.now()
+    );
+
+    // 첫 번째로 구독한 관심사와 마지막으로 구독한 관심사의 id를 따로 보관해서
+    // 잘림 없이 전체가 유지되는지와 최신순 정렬이 유지되는지를 함께 검증한다.
+    UUID firstInterestId = UUID.randomUUID();
+    UUID lastInterestId = UUID.randomUUID();
+
+    // when
+    // 관심사 구독을 11개 추가한다.
+    // 기존 구현은 subscriptions도 최근 10개 제한을 적용받았기 때문에
+    // 이 테스트는 11개 모두 남아 있어야 한다는 요구사항을 검증한다.
+    for (int i = 0; i < 11; i++) {
+      UUID interestId = (i == 0) ? firstInterestId : (i == 10 ? lastInterestId : UUID.randomUUID());
+
+      document.addSubscription(new SubscriptionItem(
+          UUID.randomUUID(),
+          interestId,
+          "interest-" + i,
+          List.of("keyword-" + i),
+          Instant.now().plusSeconds(i)
+      ));
+    }
+
+    // then
+    assertThat(document.getSubscriptions()).hasSize(11);
+    // 가장 마지막에 추가한 관심사가 최신 구독으로 맨 앞에 위치해야 한다.
+    assertThat(document.getSubscriptions().get(0).interestId()).isEqualTo(lastInterestId);
+    // 가장 먼저 추가한 관심사도 삭제되지 않고 목록 안에 남아 있어야 한다.
+    assertThat(document.getSubscriptions().stream()
+        .map(SubscriptionItem::interestId))
+        .contains(firstInterestId);
+  }
+
 }
