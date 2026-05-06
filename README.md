@@ -88,96 +88,317 @@
 
   <br>
 
-  ## 📂 파일 구조
+ ## 📂 파일 구조
 
-  src/main/java/com/springboot/monew                                                              
-  ├── comment                                                                                   
+```
+src/main/java/com/springboot/monew                                              
+  ├── MoNewApplication.java                                                                       
+  ├── comment                                                                                     
   │   ├── controller                                                                              
-  │   ├── dto
-  │   ├── entity                                                                                  
-  │   ├── exception                                                                               
-  │   ├── mapper
-  │   ├── repository                                                                              
-  │   │   └── qdsl
-  │   └── service                                                                                 
-  ├── common                                                                                      
+  │   │   ├── CommentApiDocs.java                                                                 
+  │   │   ├── CommentController.java                                                              
+  │   │   ├── CommentLikeApiDocs.java                                                             
+  │   │   └── CommentLikeController.java                                                          
   │   ├── dto                                                                                     
-  │   ├── entity
+  │   │   ├── CommentDto.java                                                                     
+  │   │   ├── CommentLikeDto.java                                                                 
+  │   │   ├── CommentPageRequest.java                                                             
+  │   │   ├── CommentRegisterRequest.java                                                         
+  │   │   ├── CommentUpdateRequest.java                                                           
+  │   │   └── CursorPageResponseCommentDto.java                                                   
+  │   ├── entity                                                                                  
+  │   │   ├── Comment.java                                                                     
+  │   │   ├── CommentDirection.java                                                               
+  │   │   ├── CommentLike.java                                                                 
+  │   │   └── CommentOrderBy.java                                                                 
+  │   ├── exception
+  │   │   ├── CommentErrorCode.java                                                               
+  │   │   └── CommentException.java                                                            
+  │   ├── mapper                                                                                  
+  │   │   ├── CommentLikeMapper.java
+  │   │   └── CommentMapper.java                                                                  
+  │   ├── repository                                                                              
+  │   │   ├── CommentLikeRepository.java                                                       
+  │   │   ├── CommentRepository.java                                                              
+  │   │   └── qdsl                                                                             
+  │   │       ├── CommentQDSLRepository.java                                                      
+  │   │       └── CommentQDSLRepositoryImpl.java
+  │   └── service                                                                                 
+  │       ├── CommentLikeService.java                                                          
+  │       └── CommentService.java                                                                 
+  ├── common
+  │   ├── dto                                                                                     
+  │   │   └── CursorPageResponse.java                                                          
+  │   ├── entity                                                                                  
+  │   │   ├── BaseEntity.java
+  │   │   └── BaseUpdatableEntity.java                                                            
   │   ├── exception                                                                               
-  │   ├── log                                                                                     
-  │   ├── mapper
-  │   ├── metric
+  │   │   ├── ErrorCode.java                                                                   
+  │   │   ├── ErrorResponse.java                                                                  
+  │   │   ├── GlobalExceptionHandler.java                                                      
+  │   │   └── MonewException.java                                                                 
+  │   ├── log
+  │   │   ├── LogFileItemReader.java                                                              
+  │   │   ├── LogUploadBatchConfig.java                                                           
+  │   │   ├── LogUploadBatchService.java                                                       
+  │   │   ├── LogUploadScheduler.java                                                             
+  │   │   └── S3UploadItemWriter.java                                                          
+  │   ├── mapper                                                                                  
+  │   │   ├── BaseMapper.java                                                                     
+  │   │   └── CommonMapperConfig.java                                                          
+  │   ├── metric                                                                                  
+  │   │   ├── MetricSupport.java                                                               
+  │   │   ├── MonewMetricTags.java                                                                
+  │   │   ├── MonewTaskNames.java                                                                 
+  │   │   ├── ScheduledTaskMetrics.java                                                        
+  │   │   ├── ScheduledTaskStatus.java                                                            
+  │   │   └── TaskMetricNames.java                                                             
   │   └── utils                                                                                   
-  ├── config
-  ├── interest                                                                                    
+  │       └── TimeConverter.java                                                               
+  ├── config                                                                                      
+  │   ├── BatchConfig.java                                                                     
+  │   ├── HttpClientConfig.java                                                                
+  │   ├── JpaAuditingConfig.java                                                                  
+  │   ├── JpaTransactionConfig.java                                                               
+  │   ├── MdcLoggingInterceptor.java                                                              
+  │   ├── MongoConfig.java                                                                        
+  │   ├── NotificationCreationConfig.java                                                      
+  │   ├── QueryDslConfig.java                                                                     
+  │   ├── S3Config.java                                                                           
+  │   ├── SchedulingConfig.java                                                                
+  │   ├── SwaggerConfig.java                                                                      
+  │   └── WebMvcConfig.java                                                                       
+  ├── interest                                                                                 
   │   ├── controller                                                                              
+  │   │   ├── InterestApiDocs.java                                                             
+  │   │   └── InterestController.java                                                             
   │   ├── dto
-  │   │   ├── request
-  │   │   └── response
-  │   ├── entity                                                                                  
+  │   │   ├── request                                                                             
+  │   │   │   ├── InterestPageRequest.java                                                     
+  │   │   │   ├── InterestRegisterRequest.java                                                    
+  │   │   │   └── InterestUpdateRequest.java
+  │   │   └── response                                                                            
+  │   │       ├── CursorPageResponseInterestDto.java                                           
+  │   │       ├── InterestDto.java                                                                
+  │   │       ├── InterestKeywordInfo.java
+  │   │       └── SubscriptionDto.java                                                            
+  │   ├── entity                                                                               
+  │   │   ├── Interest.java                                                                       
+  │   │   ├── InterestDirection.java                                                              
+  │   │   ├── InterestKeyword.java                                                             
+  │   │   ├── InterestOrderBy.java                                                                
+  │   │   ├── Keyword.java                                                                     
+  │   │   └── Subscription.java                                                                   
   │   ├── exception
-  │   ├── mapper                                                                                  
+  │   │   ├── InterestErrorCode.java                                                              
+  │   │   └── InterestException.java                                                              
+  │   ├── mapper                                                                               
+  │   │   ├── InterestDtoMapper.java                                                              
+  │   │   └── SubscriptionDtoMapper.java                                                       
   │   ├── repository                                                                              
+  │   │   ├── InterestKeywordRepository.java
+  │   │   ├── InterestRepository.java                                                             
+  │   │   ├── KeywordRepository.java                                                           
+  │   │   ├── SubscriptionRepository.java                                                         
   │   │   └── qdsl
-  │   ├── service
+  │   │       ├── InterestQDSLRepository.java                                                     
+  │   │       └── InterestQDSLRepositoryImpl.java                                              
+  │   ├── service                                                                                 
+  │   │   ├── InterestService.java
+  │   │   └── SubscriptionService.java                                                            
   │   └── util                                                                                    
-  ├── newsarticles
+  │       └── StringSimilarityUtil.java                                                        
+  ├── newsarticles                                                                                
   │   ├── controller                                                                              
-  │   ├── dto                                                                                     
-  │   │   ├── request
-  │   │   └── response
-  │   ├── entity
+  │   │   ├── NewsArticleApiDocs.java                                                          
+  │   │   └── NewsArticleController.java                                                          
+  │   ├── dto                                                                                  
+  │   │   ├── CollectedArticleWithInterest.java                                                   
+  │   │   ├── NaverNewsItem.java
+  │   │   ├── NewsArticleBackupDto.java                                                           
+  │   │   ├── ParsedCursor.java                                                                
+  │   │   ├── RssItem.java                                                                        
+  │   │   ├── request                                                                          
+  │   │   │   └── NewsArticlePageRequest.java                                                     
+  │   │   └── response                                                                         
+  │   │       ├── CollectedArticle.java                                                           
+  │   │       ├── CursorPageResponseNewsArticleDto.java                                           
+  │   │       ├── NaverNewsResponse.java                                                       
+  │   │       ├── NewsArticleCursorRow.java                                                       
+  │   │       ├── NewsArticleDto.java                                                             
+  │   │       ├── NewsArticleViewDto.java                                                      
+  │   │       └── RestoreResultDto.java                                                           
+  │   ├── entity                                                                               
+  │   │   ├── ArticleInterest.java                                                                
+  │   │   ├── ArticleView.java                                                                    
+  │   │   └── NewsArticle.java                                                                 
   │   ├── enums                                                                                   
-  │   ├── exception
+  │   │   ├── ArticleSource.java                                                               
+  │   │   ├── NewsArticleDirection.java                                                           
+  │   │   └── NewsArticleOrderBy.java                                                             
+  │   ├── exception                                                                            
+  │   │   ├── ArticleException.java                                                               
+  │   │   └── NewsArticleErrorCode.java                                                        
   │   ├── mapper                                                                                  
+  │   │   ├── NewsArticleMapper.java
+  │   │   └── NewsArticleViewMapper.java                                                          
   │   ├── metric                                                                                  
-  │   │   └── result
+  │   │   ├── NewsBackupMetrics.java                                                           
+  │   │   ├── NewsCollectMetrics.java                                                             
+  │   │   ├── NewsMetricNames.java                                                                
+  │   │   └── result                                                                           
+  │   │       ├── NewsArticleCollectResult.java                                                   
+  │   │       ├── NewsArticleSaveResult.java                                                      
+  │   │       ├── NewsArticleSourceCollectResult.java                                          
+  │   │       ├── NewsBackupFileResult.java                                                       
+  │   │       └── NewsBackupRunResult.java                                                     
   │   ├── repository                                                                              
-  │   │   └── qdsl
+  │   │   ├── ArticleInterestRepository.java                                                   
+  │   │   ├── ArticleViewRepository.java                                                          
+  │   │   ├── NewsArticleRepository.java                                                       
+  │   │   └── qdsl                                                                                
+  │   │       ├── NewsArticleQDSLRepository.java
+  │   │       └── NewsArticleQDSLRepositoryImpl.java                                              
   │   ├── s3                                                                                      
+  │   │   ├── AwsProperties.java                                                               
+  │   │   ├── NewsArticleBackupService.java                                                       
+  │   │   ├── NewsArticleRestoreService.java                                                      
+  │   │   └── S3BackupService.java                                                             
   │   ├── scheduler                                                                               
-  │   └── service
-  │       └── collector                                                                           
-  ├── notification
-  │   ├── controller                                                                              
-  │   ├── dto                                                                                     
-  │   ├── entity
-  │   ├── event
-  │   │   └── listener
-  │   ├── exception                                                                               
-  │   ├── mapper
-  │   ├── metric                                                                                  
-  │   ├── repository                                                                              
-  │   │   └── qdsl
-  │   ├── scheduler
+  │   │   ├── NewsArticleBackupScheduler.java                                                  
+  │   │   └── NewsArticleScheduler.java                                                           
   │   └── service                                                                                 
-  └── user
+  │       ├── NaverNewsApiClient.java                                                          
+  │       ├── NewsArticleCollectService.java                                                      
+  │       ├── NewsArticleService.java                                                             
+  │       ├── RssClient.java                                                                   
+  │       └── collector                                                                           
+  │           ├── ArticleCollector.java                                                        
+  │           ├── ChosunRssCollector.java                                                         
+  │           ├── HankyungRssCollector.java
+  │           ├── NaverArticleCollector.java                                                      
+  │           └── YonhapRssCollector.java                                                      
+  ├── notification                                                                                
+  │   ├── controller                                                                           
+  │   │   ├── NotificationApiDocs.java                                                            
+  │   │   └── NotificationController.java                                                      
+  │   ├── dto                                                                                     
+  │   │   ├── NotificationDto.java                                                             
+  │   │   └── NotificationFindRequest.java
+  │   ├── entity                                                                                  
+  │   │   ├── Notification.java
+  │   │   └── ResourceType.java                                                                   
+  │   ├── event                                                                                   
+  │   │   ├── CommentLikeNotificationEvent.java
+  │   │   ├── InterestNotificationEvent.java                                                      
+  │   │   └── listener                                                                            
+  │   │       └── NotificationEventListener.java
+  │   ├── exception                                                                               
+  │   │   ├── NotificationErrorCode.java                                                       
+  │   │   └── NotificationException.java                                                          
+  │   ├── mapper
+  │   │   └── NotificationMapper.java                                                             
+  │   ├── metric                                                                               
+  │   │   ├── NotificationMetricNames.java
+  │   │   └── NotificationMetrics.java                                                            
+  │   ├── repository
+  │   │   ├── NotificationRepository.java                                                         
+  │   │   └── qdsl                                                                             
+  │   │       ├── NotificationQDSLRepository.java                                                 
+  │   │       └── NotificationQDSLRepositoryImpl.java
+  │   ├── scheduler                                                                               
+  │   │   └── NotificationCleanUpScheduler.java                                                   
+  │   └── service
+  │       └── NotificationService.java                                                            
+  └── user                                                                                     
       ├── controller                                                                              
-      ├── document                                                                                
-      ├── dto
+      │   ├── UserActivityController.java
+      │   ├── UserActivityDocs.java                                                               
+      │   ├── UserApiDocs.java                                                                 
+      │   └── UserController.java                                                                 
+      ├── document
+      │   └── UserActivityDocument.java                                                           
+      ├── dto                                                                                  
       │   ├── request
-      │   └── response
-      ├── entity                                                                                  
+      │   │   ├── UserLoginRequest.java
+      │   │   ├── UserRegisterRequest.java                                                        
+      │   │   └── UserUpdateRequest.java
+      │   └── response                                                                            
+      │       ├── CommentActivityDto.java                                                      
+      │       ├── CommentLikeActivityDto.java                                                     
+      │       ├── UserActivityDto.java
+      │       └── UserDto.java                                                                    
+      ├── entity                                                                               
+      │   └── User.java                                                                           
       ├── event
+      │   ├── UserActivityEventListener.java                                                      
       │   ├── articleView                                                                         
+      │   │   └── ArticleViewedEvent.java
       │   ├── comment                                                                             
-      │   ├── interest
+      │   │   ├── CommentCreatedEvent.java                                                     
+      │   │   ├── CommentDeletedEvent.java                                                        
+      │   │   ├── CommentLikeCountUpdatedEvent.java
+      │   │   ├── CommentLikedEvent.java                                                          
+      │   │   ├── CommentUnlikedEvent.java                                                        
+      │   │   └── CommentUpdatedEvent.java
+      │   ├── interest                                                                            
+      │   │   ├── InterestSubscribedEvent.java                                                 
+      │   │   ├── InterestUnsubscribedEvent.java                                                  
+      │   │   └── InterestUpdatedEvent.java
       │   └── user                                                                                
-      ├── exception
+      │       ├── UserNicknameUpdatedEvent.java                                                   
+      │       └── UserRegisteredEvent.java
+      ├── exception                                                                               
+      │   ├── UserErrorCode.java                                                               
+      │   └── UserException.java
       ├── mapper                                                                                  
-      ├── metric                                                                                  
-      ├── outbox
-      │   ├── enums
-      │   └── payload                                                                             
-      │       ├── articleview
+      │   ├── UserActivityMapper.java
+      │   └── UserMapper.java                                                                     
+      ├── metric                                                                               
+      │   ├── UserMetricNames.java                                                                
+      │   └── UserMetrics.java
+      ├── outbox                                                                                  
+      │   ├── UserActivityOutbox.java                                                          
+      │   ├── UserActivityOutboxPayloadSerializer.java
+      │   ├── UserActivityOutboxProcessor.java                                                    
+      │   ├── UserActivityOutboxSingleProcessor.java
+      │   ├── enums                                                                               
+      │   │   ├── UserActivityAggregateType.java                                                  
+      │   │   ├── UserActivityEventType.java
+      │   │   └── UserActivityOutboxStatus.java                                                   
+      │   └── payload                                                                          
+      │       ├── articleview                                                                     
+      │       │   └── ArticleViewedPayload.java
       │       ├── comment                                                                         
-      │       ├── commentlike                                                                     
+      │       │   ├── CommentActivityPayload.java                                              
+      │       │   └── CommentDeletedPayload.java                                                  
+      │       ├── commentlike
+      │       │   ├── CommentLikeActivityPayload.java                                             
+      │       │   ├── CommentLikeCountUpdatedPayload.java                                         
+      │       │   └── CommentUnlikedPayload.java
       │       ├── interest                                                                        
-      │       └── user
+      │       │   ├── InterestSubscribedPayload.java                                              
+      │       │   ├── InterestUnsubscribedPayload.java
+      │       │   └── InterestUpdatedPayload.java                                                 
+      │       └── user                                                                         
+      │           ├── UserNicknameUpdatedPayload.java                                             
+      │           └── UserRegisteredPayload.java
       ├── repository                                                                              
+      │   ├── UserActivityOutboxRepository.java                                                
+      │   ├── UserActivityRepository.java                                                         
+      │   ├── UserRepository.java
       │   └── qdsl                                                                                
+      │       ├── UserQDSLRepository.java                                                      
+      │       └── UserQDSLRepositoryImpl.java                                                     
       ├── scheduler
-      └── service
+      │   ├── UserActivityOutboxScheduler.java                                                    
+      │   └── UserCleanUpScheduler.java                                                        
+      └── service                                                                                 
+          ├── UserActivityOutboxService.java
+          ├── UserActivityService.java                                                            
+          ├── UserActivityUpdateService.java                                                   
+          └── UserService.java
+```
 
   <br>
 
