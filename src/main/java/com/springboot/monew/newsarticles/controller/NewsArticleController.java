@@ -18,6 +18,7 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,7 +62,7 @@ public class NewsArticleController implements NewsArticleApiDocs {
 
   //뉴스기사 목록 조회
   @GetMapping
-  public CursorPageResponseNewsArticleDto list(@Valid NewsArticlePageRequest request,
+  public CursorPageResponseNewsArticleDto list(@Valid @ParameterObject NewsArticlePageRequest request,
       @RequestHeader("Monew-Request-User-ID") UUID userId){
     return newsArticleService.list(request, userId);
 

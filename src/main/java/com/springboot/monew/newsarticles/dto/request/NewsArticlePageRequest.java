@@ -3,6 +3,8 @@ package com.springboot.monew.newsarticles.dto.request;
 import com.springboot.monew.newsarticles.enums.ArticleSource;
 import com.springboot.monew.newsarticles.enums.NewsArticleDirection;
 import com.springboot.monew.newsarticles.enums.NewsArticleOrderBy;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +21,8 @@ public record NewsArticlePageRequest(
     UUID interestId,
 
     //출처 필터
+    //sourceIn이 배열/리스트 타입이고, 각 요소는 ArticleSource enum이다.(swagger 어노테이션)
+    @ArraySchema( schema = @Schema(implementation = ArticleSource.class) )
     List<ArticleSource> sourceIn,
 
     //날짜 범위
