@@ -11,3 +11,5 @@ docker-compose.yml
 README.md
 .env
 monew.env
+data-generator
+load-test
