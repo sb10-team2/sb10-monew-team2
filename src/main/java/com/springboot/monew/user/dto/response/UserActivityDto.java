@@ -1,7 +1,7 @@
 package com.springboot.monew.user.dto.response;
 
 import com.springboot.monew.interest.dto.response.SubscriptionDto;
-import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticle.dto.response.NewsArticleViewDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;

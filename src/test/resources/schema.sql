@@ -163,6 +163,16 @@ ALTER TABLE comments
     ADD CONSTRAINT CK_COMMENTS_LIKE_COUNT CHECK (like_count >= 0);
 
 -- =========================
+-- 인덱스
+-- =========================
+
+CREATE INDEX idx_comments_article_deleted_created
+    ON comments (article_id, is_deleted, created_at DESC);
+
+CREATE INDEX idx_comments_article_deleted_likes_created
+    ON comments (article_id, is_deleted, like_count DESC, created_at ASC);
+
+-- =========================
 -- users 제약조건
 -- =========================
 ALTER TABLE users

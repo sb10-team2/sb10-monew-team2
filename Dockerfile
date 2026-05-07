@@ -60,4 +60,4 @@ USER appuser
 EXPOSE 8080
 
 # 컨테이너 시작 시 Spring Boot 실행
-ENTRYPOINT ["java", "-jar", "/app/app.jar", "--server.port=8080"]
+ENTRYPOINT ["java", "-Xms256m -Xmx512m", "-jar", "/app/app.jar", "--server.port=8080"]

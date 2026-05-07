@@ -2,17 +2,17 @@ name: MoNew Deploy Workflow
 
 on:
   pull_request:
-    branches: ["dev"]
+    branches: ["main"]
     types: [closed]
 
 #중복 배포 방지, 최신 배포만 유지
 #같은 그룹끼리는 동시에 1개만 실행
 #ex) dev 브랜치에 push 3번 발생 -> 마지막 push건만 실행된다.
 concurrency:
-  group: deploy-dev
+  group: deploy-main
   cancel-in-progress: true    #이전 실행을 취소하고 새것을 실행한다.
 
-#PR이 닫히고 dev에 merge됐을때 배포
+#PR이 닫히고 main에 merge됐을때 배포
 jobs:
   deploy:
     if: github.event.pull_request.merged == true

@@ -295,6 +295,19 @@ ALTER TABLE user_activity_outbox
     ADD CONSTRAINT "CK_USER_ACTIVITY_OUTBOX_STATUS"
         CHECK ("status" IN ('PENDING', 'PROCESSED', 'FAILED'));
 
--- 미처리 이벤트를 발생 시각 순으로 빠르게 조회하기 위한 인덱스
+-- =========================
+-- 인덱스
+-- =========================
+
+-- user_activity_outbox: 미처리 이벤트를 발생 시각 순으로 빠르게 조회하기 위한 인덱스
 CREATE INDEX "IDX_USER_ACTIVITY_OUTBOX_STATUS_OCCURRED_AT"
     ON user_activity_outbox ("status", "occurred_at");
+
+-- comments: createdAt 정렬용 (기본 정렬)
+CREATE INDEX idx_comments_article_deleted_created
+    ON comments (article_id, is_deleted, created_at DESC);
+
+-- comments: likeCount 정렬용
+CREATE INDEX idx_comments_article_deleted_likes_created
+    ON comments (article_id, is_deleted, like_count DESC, created_at ASC);
+

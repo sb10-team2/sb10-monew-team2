@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.springboot.monew.newsarticles.enums.ArticleSource;
+import com.springboot.monew.newsarticle.enums.ArticleSource;
 import com.springboot.monew.user.document.UserActivityDocument.ArticleViewItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.outbox.UserActivityOutbox;

@@ -7,10 +7,10 @@ import com.springboot.monew.comment.exception.CommentException;
 import com.springboot.monew.comment.mapper.CommentMapper;
 import com.springboot.monew.comment.repository.CommentLikeRepository;
 import com.springboot.monew.comment.repository.CommentRepository;
-import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.newsarticles.exception.ArticleException;
-import com.springboot.monew.newsarticles.exception.NewsArticleErrorCode;
-import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
+import com.springboot.monew.newsarticle.entity.NewsArticle;
+import com.springboot.monew.newsarticle.exception.ArticleException;
+import com.springboot.monew.newsarticle.exception.NewsArticleErrorCode;
+import com.springboot.monew.newsarticle.repository.NewsArticleRepository;
 import com.springboot.monew.user.document.UserActivityDocument.CommentItem;
 import com.springboot.monew.user.entity.User;
 import com.springboot.monew.user.event.comment.CommentCreatedEvent;
@@ -140,7 +140,7 @@ public class CommentService {
     }
 
     // userId 조회 -> 존재 + 소프트딜릿 여부, 검증 느낌 ?
-    User user = getActiveUser(userId);
+    getActiveUser(userId);
 
     // Comment 조회
     List<Comment> comments =
@@ -179,7 +179,8 @@ public class CommentService {
     int size = comments.size();
 
     // 댓글 전체 개수
-    long totalElements = commentRepository.countByArticleIdAndIsDeletedFalse(request.articleId());
+    long totalElements = (request.cursor() == null && request.after() == null)
+        ? commentRepository.countByArticleIdAndIsDeletedFalse(request.articleId()): -1L;
 
     // Dto 변환
     List<CommentDto> content =

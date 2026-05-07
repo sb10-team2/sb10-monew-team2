@@ -6,7 +6,7 @@ import static org.instancio.Select.field;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.common.entity.BaseEntity;
 import com.springboot.monew.common.entity.BaseUpdatableEntity;
-import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticle.entity.NewsArticle;
 import com.springboot.monew.notification.entity.Notification;
 import com.springboot.monew.notification.entity.ResourceType;
 import com.springboot.monew.user.entity.User;

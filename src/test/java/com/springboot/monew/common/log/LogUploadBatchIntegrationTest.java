@@ -8,7 +8,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 
-import com.springboot.monew.newsarticles.s3.AwsProperties;
+import com.springboot.monew.newsarticle.s3.AwsProperties;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.springboot.monew.comment.entity.Comment;
 import com.springboot.monew.comment.entity.CommentLike;
 import com.springboot.monew.common.repository.BaseRepositoryTest;
-import com.springboot.monew.newsarticles.entity.NewsArticle;
+import com.springboot.monew.newsarticle.entity.NewsArticle;
 import com.springboot.monew.user.entity.User;
 import java.util.List;
 import java.util.UUID;

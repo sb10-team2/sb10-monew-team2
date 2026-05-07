@@ -1,7 +1,7 @@
 package com.springboot.monew.notification.event;
 
 import com.springboot.monew.interest.entity.Interest;
-import com.springboot.monew.newsarticles.entity.ArticleInterest;
+import com.springboot.monew.newsarticle.entity.ArticleInterest;
 import com.springboot.monew.notification.entity.ResourceType;
 import java.util.List;
 import java.util.UUID;

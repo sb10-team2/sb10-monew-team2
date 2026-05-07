@@ -3,15 +3,15 @@
   "networkMode": "bridge",
   "requiresCompatibilities": ["EC2"],
   "cpu": "256",
-  "memory": "512",
+  "memory": "1024",
   "executionRoleArn": "arn:aws:iam::842693856616:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "monew-app",
       "image": "${REPO_URI}:${IMAGE_TAG}",
       "cpu": 256,
-      "memory": 384,
-      "memoryReservation": 256,
+      "memory": 1024,
+      "memoryReservation": 768,
       "portMappings": [
         {
           "containerPort": 8080,

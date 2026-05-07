@@ -3,12 +3,12 @@ package com.springboot.monew.user.integration.activity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.springboot.monew.common.integration.BaseIntegrationsTest;
-import com.springboot.monew.newsarticles.dto.response.NewsArticleViewDto;
-import com.springboot.monew.newsarticles.entity.NewsArticle;
-import com.springboot.monew.newsarticles.enums.ArticleSource;
-import com.springboot.monew.newsarticles.repository.ArticleViewRepository;
-import com.springboot.monew.newsarticles.repository.NewsArticleRepository;
-import com.springboot.monew.newsarticles.service.NewsArticleService;
+import com.springboot.monew.newsarticle.dto.response.NewsArticleViewDto;
+import com.springboot.monew.newsarticle.entity.NewsArticle;
+import com.springboot.monew.newsarticle.enums.ArticleSource;
+import com.springboot.monew.newsarticle.repository.ArticleViewRepository;
+import com.springboot.monew.newsarticle.repository.NewsArticleRepository;
+import com.springboot.monew.newsarticle.service.NewsArticleService;
 import com.springboot.monew.user.document.UserActivityDocument;
 import com.springboot.monew.user.dto.request.UserRegisterRequest;
 import com.springboot.monew.user.dto.response.UserDto;

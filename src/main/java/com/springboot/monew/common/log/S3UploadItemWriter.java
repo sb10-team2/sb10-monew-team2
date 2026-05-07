@@ -1,6 +1,6 @@
 package com.springboot.monew.common.log;
 
-import com.springboot.monew.newsarticles.s3.AwsProperties;
+import com.springboot.monew.newsarticle.s3.AwsProperties;
 import java.io.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
