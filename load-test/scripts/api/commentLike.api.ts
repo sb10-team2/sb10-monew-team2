@@ -7,6 +7,6 @@ import {getTag} from "@/utils/common";
 
 function createCommentLike(commentId: string, userId: string) {
   const url = config.endpoints.postCommentLike.replace("{commendId}", commentId);
-  const tag = getTag("POST", config.endpoints.postCommentLike);
+  const tag = getTag(config.tags.postCommentLike);
   post<CommentLikeResponse>(url, null, userId, tag);
 }

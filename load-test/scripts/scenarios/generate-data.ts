@@ -17,11 +17,13 @@ export function generateDataScenario(articleIds: string[]): void {
   const userId = userDto.id;
 
   const shuffledArticles = shuffleArray(articleIds);
-  const ghostUserIds = getGhostUserIds(config.data_generation.limits.maxLikesPerComment);
+  const maxLikesPerComment = config.scenarios.dataGeneration.limits.maxLikesPerComment;
+  const maxCommentsPerArticle = config.scenarios.dataGeneration.limits.maxCommentsPerArticle;
+  const ghostUserIds = getGhostUserIds(maxLikesPerComment);
   const articleId = shuffledArticles[0];
 
   createCommentRandomly(articleId, userId);
-  const url = `${config.endpoints.getComment}?articleId=${articleId}&orderBy=createdAt&direction=DESC&limit=${config.data_generation.limits.maxCommentsPerArticle}`;
+  const url = `${config.endpoints.getComment}?articleId=${articleId}&orderBy=createdAt&direction=DESC&limit=${maxCommentsPerArticle}`;
   const commentsPage = get<CursorResponse<CommentResponse>>(url, userId);
   const comments = commentsPage.content;
   for (const comment of comments) {
@@ -30,7 +32,8 @@ export function generateDataScenario(articleIds: string[]): void {
 }
 
 function createCommentLikesRandomly(comment: CommentResponse, userIds: string[]) {
-  const likesToPress = Math.floor(Math.random() * config.data_generation.limits.maxLikesPerComment) + 1
+  const maxLikesPerComment = config.scenarios.dataGeneration.limits.maxLikesPerComment;
+  const likesToPress = Math.floor(Math.random() * maxLikesPerComment) + 1
   const shuffledUserIds = shuffleArray(userIds);
   for (let j = 0; j < likesToPress; j++) {
     const likeUrl = config.endpoints.postCommentLike.replace('{commentId}', comment.id);
@@ -40,7 +43,8 @@ function createCommentLikesRandomly(comment: CommentResponse, userIds: string[])
 }
 
 function createCommentRandomly(articleId: string, userId: string) {
-  const commentsToCreate = Math.floor(Math.random() * config.data_generation.limits.maxCommentsPerArticle) + 1;
+  const maxCommentsPerArticle = config.scenarios.dataGeneration.limits.maxCommentsPerArticle;
+  const commentsToCreate = Math.floor(Math.random() * maxCommentsPerArticle) + 1;
   const commentBody = {
     articleId: articleId,
     userId: userId,

@@ -3,11 +3,11 @@ import {SignupRequest} from "@/types/api.type";
 import config from "@/config";
 
 export function getPersonaType(): string {
-  const vuId: number = exec.vu.idInTest;
-  const totalVu: number = config.warmUp.vus;
-  const heavyRatio: number = config.persona.heavy.ratio;
-  const heavyVuThreshold: number = totalVu * heavyRatio;
-  return vuId <= heavyVuThreshold ? 'heavy' : 'light';
+  const vuId: number = exec.vu.idInTest; // 1, 2, 3, 4, 5... (1부터 시작)
+  const ratio: number = config.persona.heavy.ratio; // 0.2
+  const cyclePosition = (vuId - 1) % 100;
+  const threshold = ratio * 100;
+  return cyclePosition < threshold ? 'heavy' : 'light';
 }
 
 export function generateSignupRequest(): SignupRequest {

@@ -7,8 +7,30 @@ export interface CursorResponse<T> {
   totalElements: number;
 }
 
-export interface InterestResponse {
+type ArticleSourceType = 'NAVER' | 'HANKYUNG' | 'CHOSUN' | 'YEONHAP';
 
+export type ArticleSourceResponse = ArticleSourceType[];
+
+export interface ArticleViewResponse {
+  id: string;
+  viewedBy: string;
+  createdAt: string;
+  articleId: string;
+  source: string;
+  sourceUrl: string;
+  articleTitle: string;
+  articlePublishedDate: string;
+  articleSummary: string;
+  articleCommentCount: number;
+  articleViewCount: number;
+}
+
+export interface InterestResponse {
+  id: string;
+  name: string;
+  keywords: string[];
+  subscriberCount: number;
+  subscribedByMe: boolean;
 }
 
 export interface NotificationResponse {

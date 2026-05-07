@@ -5,12 +5,12 @@ import {getTag} from "@/utils/common";
 import {generateRandomString} from "@/utils/data-factory";
 
 export function signup(request: SignupRequest): UserResponse {
-  const tag = getTag("POST", config.endpoints.postUser);
+  const tag = getTag(config.tags.postUser);
   return post<UserResponse>(config.endpoints.postUser, request, null, tag);
 }
 
 export function signin(request: LoginRequest): UserResponse {
-  const tag = getTag("POST", config.endpoints.postUser);
+  const tag = getTag(config.tags.login);
   return post<UserResponse>(config.endpoints.login, request, null, tag);
 }
 
@@ -28,6 +28,6 @@ function createGhostUserId(): string {
     nickname: generateRandomString(20),
     password: '1q2w3e4r!'
   }
-  const response = post<UserResponse>(config.endpoints.postUser, request, null);
+  const response = post<UserResponse>(config.endpoints.postUser, request);
   return response.id;
 }

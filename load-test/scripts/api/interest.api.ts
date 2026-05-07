@@ -10,7 +10,7 @@ export function createInterests(userDto: UserDto): InterestResponse[] {
   const results: InterestResponse[] = [];
   const count = Math.floor(Math.random() * userDto.maxInterests) + 1;
   const url = config.endpoints.postInterest;
-  const tag = getTag("POST", url);
+  const tag = getTag(config.tags.postInterest);
   for (let i = 0; i < count; i++) {
     const requestBody = {
       name: generateRandomString(20),
@@ -24,14 +24,16 @@ export function createInterests(userDto: UserDto): InterestResponse[] {
 }
 
 export function readInterests(userDto: UserDto): void {
-  const tag = getTag("GET", config.endpoints.getInterest);
+  const tag = getTag(config.tags.getInterest);
   let limit = Math.floor(Math.random() * userDto.maxInterests) + 1
   let cursor = '';
   let after = '';
   let url = `${config.endpoints.getInterest}?orderBy=name&direction=DESC&limit=${limit}&cursor=${cursor}&after=${after}`;
   let hasNext: boolean = true;
-  while (hasNext) {
+  let count = 10;
+  while (hasNext && count > 0) {
     const response = get<CursorResponse<InterestResponse>>(url, userDto.id, tag);
+    count--;
     hasNext = response.hasNext;
     cursor = response.nextCursor;
     after = response.nextAfter;

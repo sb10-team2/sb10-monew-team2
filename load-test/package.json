@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Monew 부하 테스트 프로젝트",
   "scripts": {
-    "test:local": "k6 run scripts/main.js",
-    "test:docker": "docker-compose up"
+    "build": "npx webpack",
+    "pretest": "npm run build",
+    "test": "docker-compose up",
+    "test:clean": "rm -rf .logs/* && npm run test"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",

@@ -1,13 +1,13 @@
 import {sleep} from 'k6';
 import {signin, signup} from '@/api/auth.api';
-import {toUserDto} from "@/dto/user.dto";
+import {toUserDto, UserDto} from "@/dto/user.dto";
 import {generateSignupRequest} from "@/utils/data-factory";
 import {createComment, getComments} from "@/api/comment.api";
-import {readArticles} from "@/api/article.api";
+import {readArticle, readArticles, readArticleSource} from "@/api/article.api";
 import {randomThinkTime} from "@/utils/random";
 import config from "@/config";
 import {post} from "@/utils/http-client";
-import {shuffleArray} from "@/utils/common";
+import {getTag, shuffleArray} from "@/utils/common";
 import {readNotifications} from "@/api/notification.api";
 import {createInterests, readInterests} from "@/api/interest.api";
 
@@ -37,18 +37,17 @@ function doLoadTestScenario(articleIds: string[]): void {
     if (remainingComments <= 0 && remainingLikes <= 0) {
       break;
     }
-    readArticles(userDto);
+    readArticleSource();
+    readArticlesRandomly(articleId, userDto);
 
     if (remainingComments > 0) {
-      createComment(articleId, userId);
-      remainingComments--;
-      randomThinkTime(0.5, 1.5);
+      const consumed = createCommentsRandomly(articleId, userId, remainingComments);
+      remainingComments -= consumed;
     }
 
     if (remainingLikes > 0) {
-      const consumedLikes = processCommentLikes(articleId, userId, remainingLikes);
+      const consumedLikes = createCommentLikesRandomly(articleId, userId, remainingLikes);
       remainingLikes -= consumedLikes;
-      randomThinkTime(1, 3);
     }
 
     readNotifications(userDto);
@@ -57,7 +56,24 @@ function doLoadTestScenario(articleIds: string[]): void {
   }
 }
 
-function processCommentLikes(articleId: string, userId: string, remainingLikes: number): number {
+function readArticlesRandomly(articleId: string, userDto: UserDto) {
+  if (Math.random() < 0.5) {
+    readArticles(userDto);
+    return;
+  }
+  readArticle(articleId, userDto.id);
+}
+
+function createCommentsRandomly(articleId: string, userId: string, remainingComments: number): number {
+  if (remainingComments <= 0) return 0;
+  const count = Math.min(remainingComments, Math.floor(Math.random() * 3) + 1);
+  for (let i = 0; i < count; i++) {
+    createComment(articleId, userId);
+  }
+  return count;
+}
+
+function createCommentLikesRandomly(articleId: string, userId: string, remainingLikes: number): number {
   if (remainingLikes <= 0) return 0;
 
   const commentResponse = getComments(articleId, userId).content;
@@ -69,11 +85,12 @@ function processCommentLikes(articleId: string, userId: string, remainingLikes: 
       Math.floor(Math.random() * 3) + 1
   );
 
+  const tag = getTag(config.tags.postCommentLike);
   const targetComments = shuffleArray(commentResponse).slice(0, likesToPress);
   for (const comment of targetComments) {
     const likeUrl = config.endpoints.postCommentLike.replace('{commentId}', comment.id);
-    post(likeUrl, {}, userId);
-    randomThinkTime(0.5, 1.5);
+    post(likeUrl, {}, userId, tag);
+    randomThinkTime(0.5, 1.0);
   }
 
   return likesToPress;

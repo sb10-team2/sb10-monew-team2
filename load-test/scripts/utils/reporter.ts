@@ -1,16 +1,10 @@
 export function generateCustomHtmlReport(data: any): string {
   try {
     const metrics = data?.metrics || {};
-
-    const totalReqs = metrics.http_reqs?.values?.count || 0;
-    const failedRate = ((metrics.http_req_failed?.values?.rate || 0) * 100).toFixed(2);
-    const p95Duration = (metrics.http_req_duration?.values?.['p(95)'] || 0).toFixed(2);
-    const vusMax = metrics.vus_max?.values?.value || 0;
-    const globalTps = (metrics.http_reqs?.values?.rate || 0).toFixed(2);
-
     const scenarios: Record<string, any[]> = {};
     let hasDetails = false;
 
+    // 1. 시나리오 및 API별 데이터 그룹화
     for (const [key, value] of Object.entries(metrics)) {
       if (key.startsWith('http_req_duration{') && key.includes('name:[')) {
         hasDetails = true;
@@ -39,43 +33,89 @@ export function generateCustomHtmlReport(data: any): string {
       }
     }
 
+    // 🌟 2. 글로벌 요약 지표 동적 계산 (p99 평균으로 수정)
+    let filteredTotalReqs = 0;
+    let filteredTotalTps = 0;
+    let filteredErrorCount = 0;
+    let filteredP99Sum = 0; // p95 대신 p99 합산
+    let apiCount = 0;
+
+    for (const [name, apis] of Object.entries(scenarios)) {
+      if (name === 'data_generation') continue; // 데이터 생성 단계 제외
+
+      apis.forEach(api => {
+        filteredTotalReqs += api.count;
+        filteredTotalTps += api.tps;
+        filteredErrorCount += (api.count * api.errorRate);
+        filteredP99Sum += api.p99; // p99 수집
+        apiCount++;
+      });
+    }
+
+    const vusMax = metrics.vus_max?.values?.value || 0; // 전체 최대 VU
+    const totalReqs = filteredTotalReqs;
+    const globalTps = filteredTotalTps.toFixed(2);
+    const failedRate = totalReqs > 0 ? ((filteredErrorCount / totalReqs) * 100).toFixed(2) : "0.00";
+    // 🌟 글로벌 응답 속도를 p99의 평균으로 계산
+    const p99Duration = apiCount > 0 ? (filteredP99Sum / apiCount).toFixed(2) : "0.00";
+
+    // 3. 표(Table) 내부 HTML 행(Row) 생성
     let apiRows = "";
 
     if (!hasDetails) {
-      apiRows = `<tr><td colspan="7" class="error">상세 API 태그 데이터가 없습니다. thresholds 설정을 확인하세요.</td></tr>`;
+      apiRows = `<tr><td colspan="8" class="error">상세 API 태그 데이터가 없습니다. thresholds 설정을 확인하세요.</td></tr>`;
     } else {
-      for (const [scenario, apis] of Object.entries(scenarios)) {
+
+      // 🌟 핵심 수정: load_test가 무조건 맨 위로 오도록 배열 정렬
+      const sortedScenarios = Object.entries(scenarios).sort(([nameA], [nameB]) => {
+        if (nameA === 'load_test') return -1; // load_test를 제일 앞으로
+        if (nameB === 'load_test') return 1;
+        return 0;
+      });
+
+      for (const [scenario, apis] of sortedScenarios) {
+        // 호출 횟수가 0인 API 필터링
         const activeApis = apis.filter(api => api.count > 0);
-        if (activeApis.length === 0) {
-          continue;
-        }
-        const totalCount = apis.reduce((sum, api) => sum + api.count, 0);
-        const totalTps = apis.reduce((sum, api) => sum + api.tps, 0);
+        if (activeApis.length === 0) continue;
+
+        // 시나리오별 통합 데이터 계산
+        const totalCount = activeApis.reduce((sum, api) => sum + api.count, 0);
+        const totalTps = activeApis.reduce((sum, api) => sum + api.tps, 0);
 
         let totalErrors = 0, sumAvg = 0, sumP95 = 0, sumP99 = 0;
-        apis.forEach(api => {
+        activeApis.forEach(api => {
           totalErrors += api.count * api.errorRate;
           sumAvg += api.avg; sumP95 += api.p95; sumP99 += api.p99;
         });
         const avgErrorRate = totalCount > 0 ? (totalErrors / totalCount) : 0;
 
+        // 🌟 핵심 수정: load_test의 이름 옆에 (VU: 500) 표시 추가
+        let displayScenarioName = scenario;
+        if (scenario === 'load_test') {
+          displayScenarioName = `load_test (VU: ${vusMax})`;
+        }
+
+        // 시나리오 통합 행(Summary Row)
         apiRows += `
           <tr class="summary-row" onclick="toggleDetails('${scenario}')" title="클릭하여 세부 API 보기">
-            <td style="text-align: left; padding-left: 15px;">▶ <b>${scenario}</b></td>
+            <td style="text-align: left; padding-left: 15px;">▶ <b>${displayScenarioName}</b></td>
             <td><b>* (통합 지표)</b></td>
-            <td><b>${(sumAvg / apis.length).toFixed(2)}</b></td>
-            <td><b>${(sumP95 / apis.length).toFixed(2)}</b></td>
-            <td><b>${(sumP99 / apis.length).toFixed(2)}</b></td>
+            <td style="color: #8e44ad;"><b>${totalCount}</b></td>
+            <td><b>${(sumAvg / activeApis.length).toFixed(2)}</b></td>
+            <td><b>${(sumP95 / activeApis.length).toFixed(2)}</b></td>
+            <td><b>${(sumP99 / activeApis.length).toFixed(2)}</b></td>
             <td class="highlight-tps"><b>${totalTps.toFixed(2)}</b></td>
             <td class="${avgErrorRate > 0 ? 'error' : 'success'}"><b>${(avgErrorRate * 100).toFixed(2)}%</b></td>
           </tr>
         `;
 
-        for (const api of apis) {
+        // 개별 API 행(Detail Row)
+        for (const api of activeApis) {
           apiRows += `
             <tr class="detail-row-${scenario}">
               <td style="color: #7f8c8d; text-align: right;">└─</td>
               <td style="text-align: left;">${api.api}</td>
+              <td style="color: #8e44ad; font-weight: bold;">${api.count}</td>
               <td>${api.avg.toFixed(2)}</td>
               <td>${api.p95.toFixed(2)}</td>
               <td>${api.p99.toFixed(2)}</td>
@@ -87,6 +127,7 @@ export function generateCustomHtmlReport(data: any): string {
       }
     }
 
+    // 4. 최종 HTML 조합
     return `
       <!DOCTYPE html>
       <html lang="ko">
@@ -100,7 +141,7 @@ export function generateCustomHtmlReport(data: any): string {
             summary { font-size: 1.3em; font-weight: bold; cursor: pointer; color: #34495e; outline: none; }
             table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95em; }
             th, td { padding: 12px 15px; border: 1px solid #e0e6ed; text-align: center; }
-            th { background-color: #34495e; color: white; position: sticky; top: 0; }
+            th { background-color: #34495e; color: white; position: sticky; top: 0; z-index: 10; }
             .summary-row { background-color: #e8f4f8; cursor: pointer; transition: background-color 0.2s; }
             .summary-row:hover { background-color: #d1eaf3; }
             .error { color: #e74c3c; font-weight: bold; }
@@ -140,14 +181,14 @@ export function generateCustomHtmlReport(data: any): string {
                 <th>총 요청 수 (Total Reqs)</th>
                 <th>전체 TPS (RPS)</th>
                 <th>글로벌 에러율 (Error Rate)</th>
-                <th>글로벌 응답 속도 (p95)</th>
+                <th>글로벌 응답 속도 (p99 평균)</th>
               </tr>
               <tr>
                 <td><b>${vusMax} 명</b></td>
                 <td><b>${totalReqs} 건</b></td>
                 <td class="highlight-tps"><b>${globalTps}</b></td>
                 <td class="${Number(failedRate) > 0 ? 'error' : 'success'}"><b>${failedRate} %</b></td>
-                <td><b>${p95Duration} ms</b></td>
+                <td><b>${p99Duration} ms</b></td>
               </tr>
             </table>
           </details>
@@ -156,8 +197,9 @@ export function generateCustomHtmlReport(data: any): string {
             <summary>▶ 시나리오 및 API별 상세 지표 (상단 행 클릭 시 접기/펴기)</summary>
             <table>
               <tr>
-                <th style="width: 15%;">시나리오 (Scenario)</th>
+                <th style="width: 18%;">시나리오 (Scenario)</th>
                 <th style="width: 25%;">API (Method / URI)</th>
+                <th>요청 횟수 (Count)</th>
                 <th>평균 (ms)</th>
                 <th>p95 (ms)</th>
                 <th>p99 (ms)</th>
