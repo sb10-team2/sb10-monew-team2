@@ -3,7 +3,7 @@
   "networkMode": "bridge",
   "requiresCompatibilities": ["EC2"],
   "cpu": "256",
-  "memory": "512",
+  "memory": "1024",
   "executionRoleArn": "arn:aws:iam::842693856616:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
