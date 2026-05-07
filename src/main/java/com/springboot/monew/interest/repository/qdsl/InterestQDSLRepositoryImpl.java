@@ -55,15 +55,17 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
 
   @Override
   public List<Interest> findInterests(InterestPageRequest request) {
-    // 동적 조건 조합을 위한 BooleanBuilder 생성
+    String normalizedKeyword = normalize(request.keyword());
+
     BooleanBuilder where = new BooleanBuilder();
-    // 검색 키워드 조건을 where 절에 추가
-    where.and(keywordContains(normalize(request.keyword())));
-    // 커서 페이지네이션 조건을 where 절에 추가
+    where.and(keywordContains(normalizedKeyword));
     where.and(cursorCondition(request));
 
-    // 기본 검색 쿼리에 조건, 정렬, 조회 개수를 적용하여 결과를 조회
-    return interestSearchQuery()
+    JPAQuery<Interest> query = normalizedKeyword == null
+        ? queryFactory.selectFrom(qInterest)
+        : interestSearchQuery();
+
+    return query
         .where(where)
         .orderBy(orderSpecifiers(request.orderBy(), request.direction()))
         .limit(request.limit() + 1)
@@ -72,12 +74,21 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
 
   @Override
   public long countInterests(String keyword) {
-    // 관심사와 키워드를 조인하여 중복을 제거한 관심사 개수를 조회
+    String normalizedKeyword = normalize(keyword);
+
+    if (normalizedKeyword == null) {
+      Long count = queryFactory.select(qInterest.id.count())
+          .from(qInterest)
+          .fetchOne();
+
+      return count == null ? 0L : count;
+    }
+
     Long count = queryFactory.select(qInterest.id.countDistinct())
         .from(qInterest)
         .leftJoin(qInterestKeyword).on(qInterestKeyword.interest.eq(qInterest))
         .leftJoin(qInterestKeyword.keyword, qKeyword)
-        .where(keywordContains(normalize(keyword)))
+        .where(keywordContains(normalizedKeyword))
         .fetchOne();
 
     return count == null ? 0L : count;
