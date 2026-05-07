@@ -35,6 +35,7 @@ public class NaverArticleCollector implements ArticleCollector {
 
     //최종 수집 결과 저장 리스트
     List<CollectedArticle> result = new ArrayList<>();
+    Boolean interrupted = false;
 
     //키워드별 뉴스 수집 수행
     //stream 대신 for문을 사용해서 특정 키워드 실패시 전체 배치 중단되지 않도록 처리
@@ -59,20 +60,26 @@ public class NaverArticleCollector implements ArticleCollector {
                 })
                 .toList()
         );
-        // 네이버 API 속도 제한 방지
-        // 네이버 API 속도제한(429 Too Many Requests) 방지용 sleep
-        Thread.sleep(200);
+
 
       } catch (ArticleException e) {
         log.warn("키워드 뉴스 수집 실패 - keyword={}", keyword, e);
 
-      } catch (InterruptedException e) {
+      } finally {
 
-        // sleep 중 interrupt 발생 시 현재 스레드 interrupt 상태 복구
-        Thread.currentThread().interrupt();
-        log.warn("뉴스 수집 sleep 중 interrupt 발생");
+        //성공, 실패 여부와 관계없이 요청간 간격을 둔다.
+        try {
 
-        // 배치 중단
+          // 네이버 API 속도 제한 방지
+          // 네이버 API 속도제한(429 Too Many Requests) 방지용 sleep
+          Thread.sleep(200);
+        }catch (InterruptedException e) {
+          log.warn("뉴스 수집 sleep 중 interrupt 발생");
+          interrupted = true;
+        }
+      }
+      // finally 밖에서 loop 종료
+      if (interrupted) {
         break;
       }
     }
