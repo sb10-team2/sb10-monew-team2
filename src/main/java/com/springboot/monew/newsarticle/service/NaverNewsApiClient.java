@@ -9,6 +9,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -59,9 +60,24 @@ public class NaverNewsApiClient {
 
       return response == null || response.articles() == null ? List.of() : response.articles();
 
+    } catch (HttpClientErrorException.TooManyRequests ex) {
+      log.warn("네이버 API 속도 제한 발생 - query={}", query, ex);
+
+      throw new ArticleException(
+          NewsArticleErrorCode.NAVER_API_RATE_LIMIT_EXCEEDED,
+          Map.of("query", query)
+      );
+
     } catch (RestClientException ex) {
-      log.warn("Naver API 호출 실패. query={}", query, ex);
-      throw new ArticleException(NewsArticleErrorCode.NAVER_API_REQUEST_FAILED, Map.of("query", query, "ex", ex));
+      log.warn("네이버 API 호출 실패 - query={}", query, ex);
+
+      throw new ArticleException(
+          NewsArticleErrorCode.NAVER_API_REQUEST_FAILED,
+          Map.of(
+              "query", query,
+              "message", ex.getMessage()
+          )
+      );
     }
   }
 }
