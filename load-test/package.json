@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "Monew 부하 테스트 프로젝트",
   "scripts": {
-    "build": "npx webpack",
+    "init": "npm install",
+    "build": "webpack",
     "pretest": "npm run build",
     "test": "docker-compose up",
     "test:clean": "rm -rf .logs/* && npm run test"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.4.0",
     "@types/k6": "^0.50.0",
     "ts-loader": "^9.5.7",
     "typescript": "^6.0.3",
