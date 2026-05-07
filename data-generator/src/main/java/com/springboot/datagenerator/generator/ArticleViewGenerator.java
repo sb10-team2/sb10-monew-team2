@@ -2,6 +2,7 @@ package com.springboot.datagenerator.generator;
 
 import static org.instancio.Select.field;
 
+import com.springboot.datagenerator.config.GeneratorProperties;
 import com.springboot.monew.newsarticle.entity.ArticleView;
 import com.springboot.monew.newsarticle.entity.NewsArticle;
 import com.springboot.monew.user.entity.User;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import lombok.Setter;
 import org.instancio.Instancio;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
