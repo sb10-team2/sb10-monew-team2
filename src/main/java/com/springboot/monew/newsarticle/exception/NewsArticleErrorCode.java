@@ -11,7 +11,8 @@ public enum NewsArticleErrorCode implements ErrorCode {
   NEWS_ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "NA01", "뉴스기사를 찾을 수 없습니다."),
   NEWS_ARTICLE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NA02", "이미 삭제된 뉴스기사입니다."),
   NEWS_ARTICLE_ALREADY_VIEWED(HttpStatus.BAD_REQUEST, "NA03", "이미 조회된 뉴스기사입니다."),
-  NAVER_API_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "NA04", "네이버 뉴스 API 호출에 실패했습니다.");
+  NAVER_API_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "NA04", "네이버 뉴스 API 호출에 실패했습니다."),
+  NAVER_API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "NA05", "네이버 뉴스 API 호출 제한을 초과했습니다.");
 
   private final HttpStatus httpStatus;
   private final String code;

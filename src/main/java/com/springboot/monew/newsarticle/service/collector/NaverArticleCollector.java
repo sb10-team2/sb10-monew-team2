@@ -3,11 +3,13 @@ package com.springboot.monew.newsarticle.service.collector;
 import com.springboot.monew.newsarticle.dto.NaverNewsItem;
 import com.springboot.monew.newsarticle.dto.response.CollectedArticle;
 import com.springboot.monew.newsarticle.enums.ArticleSource;
+import com.springboot.monew.newsarticle.exception.ArticleException;
 import com.springboot.monew.newsarticle.service.NaverNewsApiClient;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -31,33 +33,64 @@ public class NaverArticleCollector implements ArticleCollector {
 
     log.info("네이버 뉴스 수집 시작 - keywords={}", keywords);
 
-    List<CollectedArticle> result = keywords.stream()
-        .flatMap(keyword -> naverNewsApiClient.searchNews(keyword).stream())
-        .map(this::toCollectedArticle)
-        .filter(article -> {
-          boolean valid = article.publishedAt() != null;
-          if (!valid) {
-            log.warn("publishedAt 없음으로 기사 제외 - originallink={}", article.originalLink());
-          }
-          return valid;
-        })
-        .distinct()
-        .toList();
+    //최종 수집 결과 저장 리스트
+    List<CollectedArticle> result = new ArrayList<>();
 
-    log.info("네이버 뉴스 수집 종료 - 수집된 기사 수={}", result.size());
+    //키워드별 뉴스 수집 수행
+    //stream 대신 for문을 사용해서 특정 키워드 실패시 전체 배치 중단되지 않도록 처리
+    for (String keyword : keywords) {
+      try {
 
-    return result;
+        //네이버 뉴스 API 호출
+        List<NaverNewsItem> items = naverNewsApiClient.searchNews(keyword);
+
+        // 수집한 뉴스 데이터를 내부 CollectedArticle 형태로 변환
+        result.addAll(
+            items.stream()
+                .map(this::toCollectedArticle)
+                .filter(article -> {
+                  boolean valid = article.publishedAt() != null;
+
+                  if (!valid) {
+
+                    log.warn("publishedAt 없음으로 기사 제외 - originallink={}", article.originalLink());
+                  }
+                  return valid;
+                })
+                .toList()
+        );
+        // 네이버 API 속도 제한 방지
+        // 네이버 API 속도제한(429 Too Many Requests) 방지용 sleep
+        Thread.sleep(200);
+
+      } catch (ArticleException e) {
+        log.warn("키워드 뉴스 수집 실패 - keyword={}", keyword, e);
+
+      } catch (InterruptedException e) {
+
+        // sleep 중 interrupt 발생 시 현재 스레드 interrupt 상태 복구
+        Thread.currentThread().interrupt();
+        log.warn("뉴스 수집 sleep 중 interrupt 발생");
+
+        // 배치 중단
+        break;
+      }
+    }
+    // 동일 기사 중복 제거
+    List<CollectedArticle> distinctResult = result.stream()
+            .distinct()
+            .toList();
+
+    log.info("네이버 뉴스 수집 종료 - 수집된 기사 수={}", distinctResult.size());
+
+    return distinctResult;
   }
 
   private CollectedArticle toCollectedArticle(NaverNewsItem item) {
     Instant publishedAt = parsePublishedAt(item.pubDate());
 
     if (publishedAt == null) {
-      log.warn(
-          "pubDate 파싱 실패 - originallink={}, pubDate={}",
-          item.originallink(),
-          item.pubDate()
-      );
+      log.warn("pubDate 파싱 실패 - originallink={}, pubDate={}", item.originallink(), item.pubDate());
     }
 
     return new CollectedArticle(
