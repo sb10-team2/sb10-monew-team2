@@ -37,4 +37,4 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_NAME="postgresql://monew:monew123@host.docker.internal:5432/monew?sslmode=disable"
+      - DATA_SOURCE_NAME=postgresql://monew:monew123@host.docker.internal:5432/monew?sslmode=disable
