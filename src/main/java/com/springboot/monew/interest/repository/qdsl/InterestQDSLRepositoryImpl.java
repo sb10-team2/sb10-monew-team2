@@ -55,16 +55,23 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
 
   @Override
   public List<Interest> findInterests(InterestPageRequest request) {
+    // 검색어의 앞뒤 공백을 제거하고, 비어 있으면 null로 변환
     String normalizedKeyword = normalize(request.keyword());
 
+    // 동적 조건 조합을 위한 BooleanBuilder 생성
     BooleanBuilder where = new BooleanBuilder();
+    // 검색 키워드 조건을 where 절에 추가
     where.and(keywordContains(normalizedKeyword));
+    // 커서 페이지네이션 조건을 where 절에 추가
     where.and(cursorCondition(request));
 
+    // 검색어가 없으면 키워드 검색이 필요 없으므로 Interest 단독 조회를 사용
+    // 검색어가 있으면 관심사 이름과 키워드 이름을 모두 검색해야 하므로 조인 쿼리를 사용
     JPAQuery<Interest> query = normalizedKeyword == null
         ? queryFactory.selectFrom(qInterest)
         : interestSearchQuery();
 
+    // 기본 검색 쿼리에 조건, 정렬, 조회 개수를 적용하여 결과를 조회
     return query
         .where(where)
         .orderBy(orderSpecifiers(request.orderBy(), request.direction()))
@@ -74,8 +81,10 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
 
   @Override
   public long countInterests(String keyword) {
+    // 검색어의 앞뒤 공백을 제거하고, 비어 있으면 null로 변환
     String normalizedKeyword = normalize(keyword);
 
+    // 검색어가 없으면 전체 관심사 수만 필요하므로 불필요한 키워드 조인을 수행하지 않음
     if (normalizedKeyword == null) {
       Long count = queryFactory.select(qInterest.id.count())
           .from(qInterest)
@@ -84,6 +93,7 @@ public class InterestQDSLRepositoryImpl implements InterestQDSLRepository {
       return count == null ? 0L : count;
     }
 
+    // 검색어가 있으면 관심사 이름과 키워드 이름을 모두 검색해야 하므로 조인 후 중복 관심사를 제거해 Count
     Long count = queryFactory.select(qInterest.id.countDistinct())
         .from(qInterest)
         .leftJoin(qInterestKeyword).on(qInterestKeyword.interest.eq(qInterest))
