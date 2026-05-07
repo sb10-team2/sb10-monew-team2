@@ -53,7 +53,7 @@ RUN mkdir -p /app/.logs \
 
 
 # JVM 실행 옵션 (기본값: 빈 문자열)
-ENV JAVA_TOOL_OPTIONS=""
+ENV JAVA_TOOL_OPTIONS="-Xms256m -Xmx512m"
 
 # builder 단계에서 만든 jar를 runtime 이미지로 복사
 #COPY할때 바로 소유자 지정
