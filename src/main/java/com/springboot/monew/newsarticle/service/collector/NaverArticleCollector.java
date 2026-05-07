@@ -75,6 +75,7 @@ public class NaverArticleCollector implements ArticleCollector {
           Thread.sleep(200);
         }catch (InterruptedException e) {
           log.warn("뉴스 수집 sleep 중 interrupt 발생");
+          Thread.currentThread().interrupt(); // 인터럽트 상태 복원
           interrupted = true;
         }
       }
