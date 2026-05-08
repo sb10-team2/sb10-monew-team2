@@ -414,4 +414,4 @@ src/main/java/com/springboot/monew
 
   ## 📝 프로젝트 회고록
 
-  > 제작한 발표자료 링크 또는 첨부파일 첨부
+  > (https://www.notion.so/2-3506fd228e8d8013aeb4e41b33546e95?source=copy_link)
