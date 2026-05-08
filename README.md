@@ -26,6 +26,8 @@
   ## 🎥 시연 영상
   https://www.youtube.com/watch?v=7sDyvYd_iMY
 
+  <br>
+
   ## 🗂️ 프로젝트 ERD
   <img width="2110" height="1232" alt="image" src="https://github.com/user-attachments/assets/f00a397b-a9f9-42c9-966c-29c45795d513" />
 
