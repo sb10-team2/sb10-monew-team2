@@ -48,34 +48,7 @@ public class NewsArticleQDSLRepositoryImpl implements NewsArticleQDSLRepository 
      * comments, article_views를 먼저 JOIN하지 않고,
      * 기사 자체의 필터 조건만 먼저 적용한다.
      */
-    BooleanBuilder where = new BooleanBuilder();
-
-    where.and(newsArticle.isDeleted.isFalse());
-    where.and(keywordContains(normalize(request.keyword())));
-    where.and(sourceIn(request));
-    where.and(publishDateGoe(request.publishDateFrom()));
-    where.and(publishDateLoe(request.publishDateTo()));
-
-    /*
-     * 관심사 필터가 있는 경우에만 article_interests 조건을 적용한다.
-     *
-     * 기존처럼 항상 LEFT JOIN하면 관심사 필터가 없는 기본 목록 조회에서도
-     * 불필요한 JOIN이 발생한다.
-     *
-     * EXISTS를 사용하면 article_interests로 인해 기사 row가 중복되지 않는다.
-     */
-    if (request.interestId() != null) {
-      where.and(
-          JPAExpressions
-              .selectOne()
-              .from(articleInterest)
-              .where(
-                  articleInterest.newsArticle.eq(newsArticle),
-                  articleInterest.interest.id.eq(request.interestId())
-              )
-              .exists()
-      );
-    }
+    BooleanBuilder where = buildBaseWhere(request);
 
     /*
      * 커서 조건 적용
