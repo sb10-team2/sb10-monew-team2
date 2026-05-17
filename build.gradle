@@ -52,7 +52,7 @@ dependencies {
     testImplementation platform('org.instancio:instancio-bom:6.0.0-RC2')
     testImplementation('org.instancio:instancio-core')
     testImplementation('org.instancio:instancio-junit')
-    testImplementation 'net.datafaker:datafaker:2.5.4'
+
     // 통합 테스트: 운영 환경과 유사한 환경 구축을 위해 컨테이너를 사용
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
@@ -73,9 +73,7 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform {
-        excludeTags "test-data-generator"
-    }
+    useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
 
@@ -108,4 +106,8 @@ jacocoTestReport {
 def localGradle = file('local.gradle')
 if (localGradle.exists()) {
     apply from: localGradle
+}
+
+jar {
+    enabled = true
 }

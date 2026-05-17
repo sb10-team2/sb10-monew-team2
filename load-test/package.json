@@ -1,0 +1,19 @@
+{
+  "name": "monew-load-test",
+  "version": "1.0.0",
+  "description": "Monew 부하 테스트 프로젝트",
+  "scripts": {
+    "init": "npm install",
+    "build": "webpack",
+    "pretest": "npm run build",
+    "test": "docker-compose up",
+    "test:clean": "rm -rf .logs/* && npm run test"
+  },
+  "devDependencies": {
+    "@types/k6": "^0.50.0",
+    "ts-loader": "^9.5.7",
+    "typescript": "^6.0.3",
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
+  }
+}
